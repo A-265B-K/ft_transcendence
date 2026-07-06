@@ -1,0 +1,27 @@
+# dont forget to add to  to /etc/hosts the following entry:
+# 127.0.0.1 transcendence.game
+
+services:
+    frontend:
+      build:
+        context: ./frontend
+        dockerfile: ../docker/frontend/Dockerfile
+    nginx:
+      build:
+        context: ./docker/nginx
+      ports:
+        - "80:80"
+        - "443:443"
+    postgres:
+      image: postgres
+      environment:
+        POSTGRES_USER: ${POSTGRES_USER}
+        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+        POSTGRES_DB: ${POSTGRES_DB}
+      volumes:
+        - postgres_data:/var/lib/postgesql/data
+      ports:
+        - "${POSTGRES_PORT}:5432"
+
+volumes:
+  postgres_data:
