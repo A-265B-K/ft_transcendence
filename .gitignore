@@ -68,4 +68,12 @@ vcpkg_installed/
 Testing/
 .cache/
 
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Node dependencies
+node_modules/
+
 AGENTS.md
