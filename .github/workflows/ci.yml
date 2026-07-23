@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  docker:
+      runs-on: ubuntu-latest
+
+      steps:
+        - uses: actions/checkout@v5
+
+        - name: Set up Docker Buildx
+          uses: docker/setup-buildx-action@v4
+
+        - name: Build and start containers
+          run: docker compose up --build -d
+
+        - name: Check all containers are running
+          run: |
+              if docker compose ps --all | grep -E "Exit|exited"; then
+                echo "Some containers exited unexpectedly"
+                exit 1
+              fi
+
+        - name: Check nginx is responding
+          run: curl -f --insecure https://localhost:8443
+
+        - name: Show logs on failure
+          if: failure()
+          run: docker compose logs
+
+        - name: Stop containers
+          if: always()
+          run: docker compose down -v
