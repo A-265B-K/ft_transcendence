@@ -13,12 +13,18 @@ import type { InputState } from "../entities/Player";
 export class Input {
     // Dictionary tracking which keys are currently pressed
     keys: Record<string, boolean> = {};
+    private interactQueued = false;
 
     /**
      * Handle keydown events - mark key as pressed
      */
     private readonly handleKeyDown = (e: KeyboardEvent) => {
-        this.keys[e.key.toLowerCase()] = true;
+        const key = e.key.toLowerCase();
+        this.keys[key] = true;
+
+        if (key === "e") {
+            this.interactQueued = true;
+        }
     };
 
     /**
@@ -68,5 +74,11 @@ export class Input {
             left: this.keys["a"] === true,  // A key
             right: this.keys["d"] === true, // D key
         };
+    }
+
+    consumeInteract() {
+        const wasQueued = this.interactQueued;
+        this.interactQueued = false;
+        return wasQueued;
     }
 }

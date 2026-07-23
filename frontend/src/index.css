@@ -1,14 +1,127 @@
-/**
- * Global Styles
- * 
- * Sets up full-viewport container for the game canvas.
- */
-
-/* Remove default margins and padding from page */
 html, body, #root {
     margin: 0;
     padding: 0;
     width: 100%;      /* Full viewport width */
     height: 100%;     /* Full viewport height */
     overflow: hidden; /* Prevent scrollbars */
+    background: linear-gradient(180deg, #10212a 0%, #081016 100%);
+    font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.app-shell {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.game-canvas-host {
+    width: 100%;
+    height: 100%;
+}
+
+.hud-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 0 16px 24px;
+}
+
+.castle-pointer-hud {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    pointer-events: none;
+    min-width: 140px;
+    padding: 14px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 18px;
+    background: rgba(10, 16, 22, 0.72);
+    backdrop-filter: blur(12px);
+    color: #f4f7fb;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
+    display: grid;
+    justify-items: center;
+    gap: 4px;
+}
+
+.castle-pointer-hud__title {
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(244, 247, 251, 0.7);
+}
+
+.castle-pointer-hud__arrow {
+    font-size: 30px;
+    font-weight: 900;
+    line-height: 1;
+    color: #ffcf5c;
+    text-shadow: 0 2px 12px rgba(255, 207, 92, 0.5);
+    transform-origin: center;
+}
+
+.castle-pointer-hud__distance {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(244, 247, 251, 0.86);
+}
+
+.inventory-panel {
+    pointer-events: auto;
+    min-width: 220px;
+    padding: 14px 18px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 18px;
+    background: rgba(10, 16, 22, 0.72);
+    backdrop-filter: blur(12px);
+    color: #f4f7fb;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
+}
+
+.inventory-panel__title {
+    margin-bottom: 10px;
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(244, 247, 251, 0.7);
+}
+
+.inventory-panel__items {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.inventory-panel__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.inventory-panel__label {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.inventory-panel__label--wood {
+    color: #f0b35f;
+}
+
+.inventory-panel__label--iron {
+    color: #91c8d8;
+}
+
+.inventory-panel__value {
+    min-width: 24px;
+    text-align: right;
+    font-size: 16px;
+    font-weight: 700;
 }

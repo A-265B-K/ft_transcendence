@@ -1,6 +1,7 @@
 import { Sprite, Texture } from "pixi.js";
 import { MAP_SIZE } from "../config/constants";
 import { isoX, isoY } from "../world/iso";
+import { Inventory } from "./Inventory";
 
 
 export type InputState = {
@@ -18,14 +19,11 @@ export class Player {
     sprite: Sprite;
     
     // Player inventory tracking collected resources
-    inventory = {
-        wood: 0,
-        iron: 0,
-    }
+    readonly inventory = new Inventory();
     
     // Grid position (world coordinates)
-    gridX = 100;
-    gridY = 100;
+    gridX = 0;
+    gridY = 0;
 
     // Movement speed (tiles per second)
     speed = 15;
@@ -39,6 +37,12 @@ export class Player {
         this.sprite = new Sprite(texture);
         this.sprite.anchor.set(0.5, 1);  // Center horizontally, bottom vertically
         this.sprite.scale.set(0.5);      // Scale down sprite size
+    }
+
+    placeAt(gridX: number, gridY: number) {
+        this.gridX = gridX;
+        this.gridY = gridY;
+        this.syncSpritePosition();
     }
 
     /**
@@ -70,8 +74,13 @@ export class Player {
         this.gridX = Math.max(0, Math.min(MAP_SIZE - 1, this.gridX));
         this.gridY = Math.max(0, Math.min(MAP_SIZE - 1, this.gridY));
 
+        this.syncSpritePosition();
+    }
+
+    private syncSpritePosition() {
         // Update sprite position using isometric projection
         this.sprite.x = isoX(this.gridX, this.gridY);
         this.sprite.y = isoY(this.gridX, this.gridY);
+        this.sprite.zIndex = this.gridX + this.gridY;
     }
 }

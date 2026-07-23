@@ -6,10 +6,12 @@
  * Implements view frustum culling to only render tiles near the player.
  */
 
-import { Container, Sprite, Texture, } from "pixi.js";
-import { isoX, isoY } from "./iso";
+import { Container, Sprite, Texture } from "pixi.js";
+import { isoX, isoY, tileHeight, tileWidth } from "./iso";
 import { MAP_SIZE } from "../config/constants";
 import { TileType } from "./TileType";
+import { generateTerrainMap } from "./generateTerrainMap";
+import { isHarvestableTile, type HarvestableTile } from "./tileResource";
 
 /**
  * GameMap class - manages procedural world generation and tile rendering
@@ -27,14 +29,11 @@ export class GameMap {
     // Sprite pool for efficient rendering (reuse sprites instead of creating new ones)
     tiles: Sprite[] = [];
 
-    // View radius in tiles (tiles within this distance of player are rendered)
-    viewSize = 25;
+    // Small padding to cover tile corners at the screen edges
+    viewPadding = 2;
 
     /**
      * Constructor - initializes map with textures and generates terrain
-     * @param grass - Texture for grass tiles
-     * @param wood - Texture for wood/forest tiles
-     * @param iron - Texture for iron ore tiles
      */
     constructor(grass: Texture, wood: Texture, iron: Texture) {
         // Create container for all tile sprites
@@ -48,83 +47,135 @@ export class GameMap {
             [TileType.Iron]: iron,
         };
 
-        // Generate the procedural map
-        this.generateMap();
+        this.map = generateTerrainMap();
 
-        // Create a pool of reusable tile sprites to avoid allocation overhead
-        const poolSize = 3000;
+        //make a pool wiht grass and resoses
+        const poolSize = 3500;
         for (let i = 0; i < poolSize; i++) {
             const tile = new Sprite(this.textures[TileType.Grass]);
-            // Tile dimensions for isometric rendering
-            tile.width = 64;
-            tile.height = 32;
-            tile.visible = false; // Hidden by default, shown when in view
+            tile.width = tileWidth;
+            tile.height = tileHeight;
+            tile.visible = false; 
 
             this.tiles.push(tile);
             this.container.addChild(tile);
         }
     }
 
-
     /**
-     * Generate a procedural map using random tile distribution
-     * Probabilities:
-     * - 0.12% iron ore
-     * - 0.8% wood/forest
-     * - 99.08% grass
+     * Update visible tiles based on screen size and camera position
      */
-    private generateMap() {
-        for (let y = 0; y < MAP_SIZE; y++) {
-            this.map[y] = [];
-
-            for (let x = 0; x < MAP_SIZE; x++) {
-                const r = Math.random();
-                if (r < 0.0012) this.map[y][x] = TileType.Iron;        // Rare
-                else if (r < 0.008) this.map[y][x] = TileType.Wood;    // Uncommon
-                else this.map[y][x] = TileType.Grass;                   // Common
-            }
-        }
-    }
-
-    /**
-     * Update visible tiles based on player position
-     * Only renders tiles within viewSize of the player (view frustum culling)
-     * @param playerX - Player's grid X coordinate
-     * @param playerY - Player's grid Y coordinate
-     */
-    update(playerX: number, playerY: number) {
+    update(screenWidth: number, screenHeight: number, cameraX: number, cameraY: number) {
         let index = 0;
 
-        // Calculate view boundaries around player
-        const view = this.viewSize;
-        const centerX = Math.floor(playerX);
-        const centerY = Math.floor(playerY);
+        const left = -cameraX;
+        const top = -cameraY;
+        const right = left + screenWidth;
+        const bottom = top + screenHeight;
 
-        // Iterate through visible tiles around the player
-        for (let x = centerX - view; x < centerX + view; x++) {
-            for (let y = centerY - view; y < centerY + view; y++) {
-                // Skip tiles outside map bounds
-                if (x < 0 || y < 0 || x >= MAP_SIZE || y >= MAP_SIZE) continue;
+        const corners = [
+            this.screenToGrid(left, top),
+            this.screenToGrid(right, top),
+            this.screenToGrid(left, bottom),
+            this.screenToGrid(right, bottom),
+        ];
 
-                // Get sprite from pool
-                const tile = this.tiles[index++];
-                if (!tile) return;
+        const minGridX = Math.floor(Math.min(...corners.map((corner) => corner.x))) - this.viewPadding;
+        const maxGridX = Math.ceil(Math.max(...corners.map((corner) => corner.x))) + this.viewPadding;
+        const minGridY = Math.floor(Math.min(...corners.map((corner) => corner.y))) - this.viewPadding;
+        const maxGridY = Math.ceil(Math.max(...corners.map((corner) => corner.y))) + this.viewPadding;
 
-                // Get tile type from map data
+for (let x = minGridX; x <= maxGridX; x++) {
+            for (let y = minGridY; y <= maxGridY; y++) {
+                if (x < 0 || y < 0 || x >= MAP_SIZE || y >= MAP_SIZE) {
+                    continue;
+                }
+
+                const tileX = isoX(x, y);
+                const tileY = isoY(x, y);
+                const screenX = tileX + cameraX;
+                const screenY = tileY + cameraY;
+
+                const bufferX = tileWidth;
+                const bufferY = tileHeight;
+                if (
+                    screenX < -bufferX || 
+                    screenX > screenWidth + bufferX || 
+                    screenY < -bufferY || 
+                    screenY > screenHeight + bufferY
+                ) {
+                    continue; 
+                }
+
+                // LAYER 1: Always render GRASS (ground) first
+                const grassTile = this.tiles[index++];
+                if (!grassTile) return;
+
+                grassTile.visible = true;
+                grassTile.texture = this.textures[TileType.Grass];
+                grassTile.anchor.set(0, 0); // Top-left corner of the rhombus
+                grassTile.width = tileWidth;
+                grassTile.height = tileHeight;
+                grassTile.x = tileX;
+                grassTile.y = tileY;
+                grassTile.zIndex = x + y; // Default zIndex of the ground
+
+                // LAYER 2: Render object (wood/ore) on top of grass
                 const tileType = this.map[y]?.[x] ?? TileType.Grass;
-                
-                // Configure and render the tile
-                tile.visible = true;
-                tile.texture = this.textures[tileType];
-                tile.x = isoX(x, y);           // Convert to screen coordinates
-                tile.y = isoY(x, y);
-                tile.zIndex = x + y;           // Depth sorting for isometric rendering
+
+                if (tileType !== TileType.Grass) {
+                    const objectTile = this.tiles[index++];
+                    if (!objectTile) return;
+
+                    objectTile.visible = true;
+                    objectTile.texture = this.textures[tileType];
+                    objectTile.anchor.set(0.5, 0.6); // Bottom-center
+                    objectTile.scale.set(0.25);    // Keep proportions and scale down to 25%
+                    
+                    // Position the object exactly in the center of the grass rhombus
+                    objectTile.x = tileX + tileWidth / 2;
+                    objectTile.y = tileY + tileHeight / 2;
+                    
+                    // A tiny offset of +0.1 forces the object to render on top of its grass tile
+                    objectTile.zIndex = x + y + 0.1; 
+                }
             }
         }
 
-        // Hide remaining sprites in pool
+        // Hide remaining unused sprites in the pool
         for (; index < this.tiles.length; index++) {
             this.tiles[index].visible = false;
         }
+    }
+
+    harvestAt(x: number, y: number): HarvestableTile | null {
+        if (x < 0 || y < 0 || x >= MAP_SIZE || y >= MAP_SIZE) {
+            return null;
+        }
+
+        const tileType = this.map[y]?.[x] ?? TileType.Grass;
+
+        if (!isHarvestableTile(tileType)) {
+            return null;
+        }
+
+        this.map[y][x] = TileType.Grass;
+
+        return tileType;
+    }
+
+    clearTile(x: number, y: number) {
+        if (x < 0 || y < 0 || x >= MAP_SIZE || y >= MAP_SIZE) {
+            return;
+        }
+
+        this.map[y][x] = TileType.Grass;
+    }
+
+    private screenToGrid(screenX: number, screenY: number) {
+        return {
+            x: screenY / tileHeight + screenX / tileWidth,
+            y: screenY / tileHeight - screenX / tileWidth,
+        };
     }
 }
