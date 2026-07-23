@@ -1,5 +1,5 @@
 # dont forget to add to  to /etc/hosts the following entry:
-# 127.0.0.1 transcendence.game
+# 127.0.0.1 localhost
 
 services:
     frontend:
@@ -10,8 +10,8 @@ services:
       build:
         context: ./docker/nginx
       ports:
-        - "80:80"
-        - "443:443"
+        - "8080:80"
+        - "8443:443"
     postgres:
       image: postgres
       environment:

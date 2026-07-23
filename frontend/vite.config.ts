@@ -8,6 +8,6 @@ export default defineConfig({
     react(),  // React plugin for JSX support and Fast Refresh
   ],
   server: {
-    allowedHosts: ['transcendence.game'],
+    allowedHosts: ['localhost'],
   },
 })
