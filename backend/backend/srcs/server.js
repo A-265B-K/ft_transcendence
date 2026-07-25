@@ -17,7 +17,15 @@ import { dirname, join } from 'node:path'
 import onConnection from './onConnection.js'
 
 const fastify = Fastify()
-const io = new Server(fastify.server)
+const io = new Server(fastify.server, {
+    cors: {
+        origin: [
+            "https://localhost:8443",
+            "https://127.0.0.1:8443",
+        ],
+        methods: ["GET", "POST"],
+    }
+});
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
