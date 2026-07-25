@@ -11,8 +11,6 @@ services:
       build:
         context: ./backend
         dockerfile: ../docker/backend/Dockerfile
-      -ports:
-        - "3000:3000"
       volumes:
         - ./backend:/app
         - backend_node_modules:/app/node_modules
