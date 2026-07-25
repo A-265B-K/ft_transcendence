@@ -1,17 +1,44 @@
-# dont forget to add to  to /etc/hosts the following entry:
-# 127.0.0.1 localhost
-
 services:
     frontend:
       build:
         context: ./frontend
         dockerfile: ../docker/frontend/Dockerfile
+      volumes:
+        - ./frontend:/app
+        - frontend_node_modules:/app/node_modules
+      command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
     nginx:
-      build:
-        context: ./docker/nginx
+      image: nginx:alpine
+      depends_on:
+        nginx-certgen:
+          condition: service_completed_successfully
+        frontend:
+          condition: service_started
+        prometheus:
+          condition: service_started
+        grafana:
+          condition: service_started
       ports:
-        - "8080:80"
         - "8443:443"
+      volumes:
+        - ./docker/nginx/config.conf:/etc/nginx/conf.d/default.conf:ro
+        - nginx_certs:/etc/nginx/ssl:ro
+    nginx-certgen:
+      image: alpine/openssl:latest
+      entrypoint: ["/bin/sh", "-c"]
+      command:
+        - |
+          if [ ! -f /etc/nginx/ssl/nginx.crt ] || [ ! -f /etc/nginx/ssl/nginx.key ]; then
+            openssl req -x509 -nodes -days 365 \
+              -newkey rsa:2048 \
+              -subj "/CN=localhost" \
+              -addext "subjectAltName=DNS:localhost" \
+              -keyout /etc/nginx/ssl/nginx.key \
+              -out /etc/nginx/ssl/nginx.crt
+          fi
+      volumes:
+        - nginx_certs:/etc/nginx/ssl
+
     postgres:
       image: postgres
       environment:
@@ -21,6 +48,14 @@ services:
         - postgres_data:/var/lib/postgresql/
       ports:
         - "${POSTGRES_PORT}:5432"
+    prometheus:
+      image: prom/prometheus:main-distroless
+
+    grafana:
+      image: grafana/grafana
+
 
 volumes:
   postgres_data:
+  nginx_certs:
+  frontend_node_modules:
