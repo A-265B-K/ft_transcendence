@@ -16,8 +16,8 @@ export default function App() {
 
 	if (screen === "menu")
 		return ( <Menu 
-					onMenu={(name) => {
-						setPlayerName(name);
+					onMenu={(username) => {
+						setPlayerName(username);
 						setScreen("game");
 					}}
 				/>
