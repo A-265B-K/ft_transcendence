@@ -1,33 +1,73 @@
-import { useState } from "react";
-import { type MenuProps } from "./MenuProps"
+import { useEffect, useState } from "react";
+import { socket } from "../socket";
+import { type MenuProps } from "./MenuProps";
 
-export default function Menu( { onMenu }: MenuProps) {
+export default function Menu({ onMenu }: MenuProps) {
     const [name, setName] = useState("");
 
-    function handleMenu () {
-		if (name.trim() === "")
-			return;
+    function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault();
 
-		onMenu(name);
-    };
+        if (name.trim() === "")
+            return;
 
-     return (
-    <div className="menu-container" style={{ maxWidth: "400px", margin: "50px auto", textAlign: "center" }}>
-      <h2>Menu</h2>
-      
-      <form onSubmit={handleMenu} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+        socket.emit("join", {
+            id: crypto.randomUUID(),
+            username: name,
+        });
+    }
 
-        <input
-          placeholder="Type your name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-        
+    useEffect(() => {
+        function handleJoined(data: {
+            roomId: string;
+            player: {
+                id: string;
+                username: string;
+            };
+        }) {
+            console.log("Joined room:", data.roomId);
+            console.log("Player:", data.player);
 
-        <button type="submit">
-          Start game
-        </button>
-      </form>
-    </div>
-  );
+            onMenu(data.player.username);
+        }
+
+        socket.on("joined", handleJoined);
+
+        return () => {
+            socket.off("joined", handleJoined);
+        };
+    }, [onMenu]);
+
+    return (
+        <div
+            className="Menu-container"
+            style={{
+                maxWidth: "400px",
+                margin: "50px auto",
+                textAlign: "center",
+            }}
+        >
+            <h2>Enter your name</h2>
+
+            <form
+                onSubmit={handleSubmit}
+                style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "10px",
+                }}
+            >
+                <input
+                    type="text"
+                    placeholder="Your name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                />
+
+                <button type="submit">
+                    Start Game
+                </button>
+            </form>
+        </div>
+    );
 }

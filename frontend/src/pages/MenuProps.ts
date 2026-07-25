@@ -1,3 +1,3 @@
 export type MenuProps = {
-    onMenu: (name: string) => void;
+    onMenu: (username: string) => void;
 };
