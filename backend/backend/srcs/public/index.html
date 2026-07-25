@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<body>
+  <div id="status"></div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io()
+
+    socket.on('connect', () => {
+      console.log('connected:', socket.id)
+      socket.emit('join', { id: 'user-003', username: 'tuk' })
+    })
+
+    socket.on('joined', (data) => {
+      console.log('joined room:', data.roomId)
+      console.log('player:', data.player)
+      document.getElementById('status').innerHTML = `Connected as ${data.player.username} in room ${data.roomId}`
+    })
+
+    socket.on('player_joined', (username) => {
+      console.log('another player joined:', username)
+      document.getElementById('status').innerHTML += `<br>${username} joined`
+    })
+
+    socket.on('player_left', (username) => {
+      console.log('player left:', username)
+      document.getElementById('status').innerHTML += `<br>${username} left`
+    })
+  </script>
+</body>
+</html>

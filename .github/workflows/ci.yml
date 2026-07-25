@@ -41,7 +41,10 @@ jobs:
               fi
 
         - name: Check nginx is responding
-          run: curl -f --insecure https://localhost:8443
+          run: curl -I -f --insecure https://localhost:8443
+        
+        - name: healthcheck backend
+          run: curl -f http://localhost:3000/
 
         - name: Show logs on failure
           if: failure()
