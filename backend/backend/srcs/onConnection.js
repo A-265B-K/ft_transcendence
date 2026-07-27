@@ -32,8 +32,18 @@ const createPlayer = (socket, data, slot, spawn) => {
 	}
 }
 
-const  onJoin = (socket, data) => {
-	
+const findAvailableSlot = (room, maxSize) => {
+	const usedSlots = new Set(room.players.map(p => p.slot))
+
+	for (let slot = 1; slot <= maxSize; slot++) {
+		if (!usedSlots.has(slot)) return slot
+	}
+
+	return null
+}
+
+const onJoin = (socket, data) => {
+
 	let available = findAvailableRoom()
 	let room
 	let roomId
@@ -46,13 +56,19 @@ const  onJoin = (socket, data) => {
 		[roomId, room] = available
 	}
 
-	
-	// inform DB about the new layer on that room 
+	const slot = findAvailableSlot(room, ROOM_MAX_SIZE)
+
+	if (slot === null) {
+		console.error(`Room ${roomId} has no available slot even though it should have space`)
+		socket.emit('join_error', { message: 'Room is full' })
+		return
+	}
+
+	// inform DB about the new player on that room
 	if (!mockDB.rooms[roomId])
 		mockDB.rooms[roomId] = { roomId, playerCount: 0 }
-	mockDB.rooms[roomId].playerCount++
+	mockDB.rooms[roomId].playerCount = room.players.length + 1
 
-	let slot = mockDB.rooms[roomId].playerCount
 	const spawn = room.map.spawnPoints.find(sp => sp.playerSlot === slot)
 
 	const player = createPlayer(socket, data, slot, spawn)
@@ -61,11 +77,11 @@ const  onJoin = (socket, data) => {
 
 	socket.join(roomId)
 	socket.to(roomId).emit('player_joined', player.username)
-	socket.emit('joined', { roomId, player })
+	socket.emit('joined', { roomId, player, map: room.map, players: room.players })
 
 	console.log(`Player ${player.username} joined room ${roomId}
 		 (${room.players.length}/${ROOM_MAX_SIZE})`)
-	
+
 	console.log(`Spawn point x: ${player.x} y: ${player.y}`)
 	return roomId
 }
