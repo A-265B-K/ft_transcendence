@@ -1,12 +1,13 @@
 import { randomUUID } from 'node:crypto'
 import { rooms, mockDB } from "../state/gameState.js"
-import { MAP_TEMPLATE } from '../map/mapLoader.js'
+import { generateMap } from '../map/mapGenerator.js'
+import { ROOM_MAX_SIZE } from '../constants.js'
 
 const createRoom = () => {
 	const roomId = randomUUID()
 	rooms[roomId] = { 
 		players: [],
-		map: structuredClone(MAP_TEMPLATE)
+		map: generateMap(ROOM_MAX_SIZE)
 	}
 
 	//TODO: change it to fetch API alkuijte  - POST newroom
