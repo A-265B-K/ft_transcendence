@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<title>Map Test Client</title>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #1c1c1a;
+    color: #e8e6df;
+  }
+  header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: #26251f;
+    border-bottom: 1px solid #3a392f;
+    flex-wrap: wrap;
+  }
+  header input {
+    background: #1c1c1a;
+    border: 1px solid #4a4838;
+    color: #e8e6df;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+  }
+  header input#serverUrl { width: 260px; }
+  header input#username { width: 140px; }
+  header button {
+    background: #3c5c48;
+    border: none;
+    color: #e8e6df;
+    padding: 7px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  header button:hover { background: #4a7057; }
+  header button:disabled { background: #333; color: #777; cursor: not-allowed; }
+  #status {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    background: #4a2020;
+  }
+  #status.connected { background: #204a2e; }
+  #status.waiting { background: #4a3d20; }
+  main {
+    display: flex;
+    gap: 0;
+  }
+  #canvasWrap {
+    padding: 16px;
+  }
+  canvas {
+    background: #2a2a24;
+    border-radius: 8px;
+    border: 1px solid #3a392f;
+    display: block;
+  }
+  #sidebar {
+    padding: 16px;
+    width: 260px;
+    font-size: 13px;
+    color: #b8b6a8;
+  }
+  #sidebar h3 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #7a7868;
+    margin: 16px 0 8px;
+  }
+  #sidebar h3:first-child { margin-top: 0; }
+  #log {
+    background: #26251f;
+    border-radius: 6px;
+    padding: 8px;
+    height: 200px;
+    overflow-y: auto;
+    font-family: monospace;
+    font-size: 11px;
+    line-height: 1.5;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; margin: 4px 0; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .stat-row { display: flex; justify-content: space-between; margin: 3px 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <input id="serverUrl" type="text" placeholder="http://localhost:3000" value="http://localhost:3000" />
+  <input id="username" type="text" placeholder="username" value="tester" />
+  <button id="connectBtn" onclick="connectToServer()">Conectar</button>
+  <span id="status">desconectado</span>
+</header>
+
+<main>
+  <div id="canvasWrap">
+    <canvas id="mapCanvas" width="680" height="680"></canvas>
+  </div>
+  <div id="sidebar">
+    <h3>Legenda</h3>
+    <div class="legend-item"><span class="dot" style="background:#c25a35"></span> castle zone</div>
+    <div class="legend-item"><span class="dot" style="background:#6b6b62"></span> obstacle</div>
+    <div class="legend-item"><span class="dot" style="background:#2e8b6f"></span> wood</div>
+    <div class="legend-item"><span class="dot" style="background:#3f7bc4"></span> stone</div>
+    <div class="legend-item"><span class="dot" style="background:#d4b843"></span> spawn point</div>
+
+    <h3>Info da room</h3>
+    <div id="roomInfo" class="stat-row">nenhuma room ainda</div>
+
+    <h3>Eventos</h3>
+    <div id="log"></div>
+  </div>
+</main>
+
+<script>
+let socket = null;
+let currentMap = null;
+let currentPlayers = [];
+
+function log(msg) {
+  const el = document.getElementById('log');
+  const time = new Date().toLocaleTimeString();
+  el.innerHTML += `[${time}] ${msg}<br/>`;
+  el.scrollTop = el.scrollHeight;
+}
+
+function setStatus(text, cls) {
+  const el = document.getElementById('status');
+  el.textContent = text;
+  el.className = cls || '';
+}
+
+function connectToServer() {
+  const url = document.getElementById('serverUrl').value.trim();
+  const username = document.getElementById('username').value.trim() || 'tester';
+
+  if (!url) {
+    log('informe a URL do servidor');
+    return;
+  }
+
+  if (socket) {
+    socket.disconnect();
+  }
+
+  document.getElementById('connectBtn').disabled = true;
+  setStatus('conectando...', 'waiting');
+  log(`conectando em ${url}...`);
+
+  socket = io(url, { transports: ['websocket', 'polling'] });
+
+  socket.on('connect', () => {
+    setStatus('conectado', 'connected');
+    log(`conectado como ${socket.id}`);
+    document.getElementById('connectBtn').disabled = false;
+
+    // ajusta o payload conforme o server espera (id/username)
+    socket.emit('join', { id: socket.id, username });
+    log(`emitido 'join' com username=${username}`);
+  });
+
+  socket.on('connect_error', (err) => {
+    setStatus('erro de conexão', 'waiting');
+    log(`erro de conexão: ${err.message}`);
+    document.getElementById('connectBtn').disabled = false;
+  });
+
+  socket.on('disconnect', () => {
+    setStatus('desconectado', '');
+    log('desconectado do servidor');
+  });
+
+  // evento principal — ajusta o nome conforme o backend real
+  socket.on('joined', (data) => {
+    log(`'joined' recebido — room ${data.roomId}`);
+    document.getElementById('roomInfo').innerHTML = `
+      <div class="stat-row"><span>room</span><span>${data.roomId}</span></div>
+      <div class="stat-row"><span>slot</span><span>${data.player?.slot ?? '-'}</span></div>
+      <div class="stat-row"><span>spawn</span><span>${data.player?.x ?? '-'}, ${data.player?.y ?? '-'}</span></div>
+    `;
+
+    if (data.map) {
+      currentMap = data.map;
+      currentPlayers = data.players || [data.player];
+      renderMap(currentMap, currentPlayers);
+    } else {
+      log('atenção: payload "joined" não trouxe "map" — confirma se o server já está emitindo o mapa');
+    }
+  });
+
+  // fallback caso o mapa venha em evento separado (ex: 'map:init')
+  socket.on('map:init', (data) => {
+    log(`'map:init' recebido`);
+    currentMap = data.map || data;
+    renderMap(currentMap, currentPlayers);
+  });
+
+  socket.on('player_joined', (username) => {
+    log(`jogador entrou: ${username}`);
+    // TODO: se o server mandar o objeto do player (não só o username),
+    // dá pra dar push em currentPlayers e re-renderizar aqui
+  });
+
+  socket.on('player_left', (username) => {
+    log(`jogador saiu: ${username}`);
+  });
+
+  socket.on('tile:updated', (data) => {
+    log(`tile atualizado: (${data.x}, ${data.y})`);
+    // TODO: aplicar update incremental no currentMap e re-renderizar se necessário
+  });
+
+  socket.onAny((event, ...args) => {
+    if (!['joined', 'map:init', 'player_joined', 'player_left', 'connect', 'disconnect', 'tile:updated'].includes(event)) {
+      log(`evento não tratado: '${event}' — ${JSON.stringify(args).slice(0, 100)}`);
+    }
+  });
+}
+
+function renderMap(map, players) {
+  players = players || [];
+  const occupiedSlots = new Set(players.map(p => p.slot));
+
+  const canvas = document.getElementById('mapCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = map.width || 100;
+  const H = map.height || 100;
+  const scale = canvas.width / W;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#2a2a24';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // grade de fundo
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= W; i += 10) {
+    ctx.beginPath();
+    ctx.moveTo(i * scale, 0);
+    ctx.lineTo(i * scale, canvas.height);
+    ctx.stroke();
+  }
+  for (let j = 0; j <= H; j += 10) {
+    ctx.beginPath();
+    ctx.moveTo(0, j * scale);
+    ctx.lineTo(canvas.width, j * scale);
+    ctx.stroke();
+  }
+
+  // castle zones — cheia se ocupada, tracejada se vaga
+  (map.castleZones || []).forEach((c) => {
+    const occupied = occupiedSlots.has(c.playerSlot);
+
+    ctx.beginPath();
+    ctx.arc(c.x * scale, c.y * scale, c.radius * scale, 0, Math.PI * 2);
+    ctx.fillStyle = occupied ? 'rgba(194, 90, 53, 0.3)' : 'rgba(194, 90, 53, 0.08)';
+    ctx.fill();
+
+    ctx.strokeStyle = '#c25a35';
+    ctx.lineWidth = occupied ? 1.5 : 1;
+    ctx.setLineDash(occupied ? [] : [4, 4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = occupied ? '#e8a082' : 'rgba(194, 90, 53, 0.4)';
+    ctx.font = '11px monospace';
+    ctx.textAlign = 'center';
+    const player = players.find(p => p.slot === c.playerSlot);
+    const label = occupied ? `slot ${c.playerSlot} · ${player.username}` : `slot ${c.playerSlot} · vago`;
+    ctx.fillText(label, c.x * scale, c.y * scale - c.radius * scale - 6);
+  });
+
+  // spawn points
+  (map.spawnPoints || []).forEach((sp) => {
+    ctx.beginPath();
+    ctx.arc(sp.x * scale, sp.y * scale, 4, 0, Math.PI * 2);
+    ctx.fillStyle = '#d4b843';
+    ctx.fill();
+  });
+
+  // obstacles
+  (map.obstacles || []).forEach((o) => {
+    ctx.beginPath();
+    ctx.arc(o.x * scale, o.y * scale, (o.radius || 2) * scale * 0.5, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(107,107,98,0.85)';
+    ctx.fill();
+  });
+
+  // resource spawns
+  (map.resourceSpawns || map.resources || []).forEach((r) => {
+    ctx.beginPath();
+    ctx.arc(r.x * scale, r.y * scale, 4, 0, Math.PI * 2);
+    ctx.fillStyle = r.type === 'wood' ? '#2e8b6f' : '#3f7bc4';
+    ctx.fill();
+  });
+
+  log(`mapa renderizado — ${(map.obstacles || []).length} obstáculos, ${(map.resourceSpawns || map.resources || []).length} recursos`);
+}
+</script>
+
+</body>
+</html>
