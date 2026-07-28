@@ -48,7 +48,7 @@ jobs:
         - name: healthcheck backend
           run: |
             echo "Waiting for backend to be healthy..."
-            timeout 120 bash -c 'until curl -sf --insecure https://localhost:8443/health; do sleep 2; done'
+            timeout 120 bash -c 'until curl -sf --insecure https://localhost:8443/api/ping; do sleep 2; done'
             echo "Backend is healthy"
 
         - name: Show logs on failure
