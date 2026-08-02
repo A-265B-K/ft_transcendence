@@ -5,9 +5,15 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   // Vite plugins to use
   plugins: [
-    react(),  // React plugin for JSX support and Fast Refresh
+	react(),  // React plugin for JSX support and Fast Refresh
   ],
   server: {
-    allowedHosts: ['localhost'],
+	allowedHosts: ['localhost'],
+	proxy: {
+	  '/register': {
+		target: 'http://backend:3000',
+		changeOrigin: true,
+	  },
+	},
   },
 })
