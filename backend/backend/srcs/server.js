@@ -12,6 +12,7 @@ import { Server } from 'socket.io'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import onConnection from './onConnection.js'
+import { registerUser } from './security/auth/auth.js'
 
 const fastify = Fastify()
 const io = new Server(fastify.server)
@@ -20,6 +21,21 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 await fastify.register(staticFiles, { root: join(__dirname, 'public')})
 fastify.get('/ping', () => ({ok: true}))
+
+// registration logic for user creation
+fastify.post('/register', async (request, reply) => {
+  console.log('[register] route reached')
+  console.log('[register] body:', request.body)
+
+  const result = await registerUser(request.body ?? {});
+
+  console.log('[register] auth result:', result)
+
+  return reply.code(result.statusCode).send({
+    message: result.message,
+    user: result.user,
+  });
+});
 
 io.on('connection', onConnection)
 
