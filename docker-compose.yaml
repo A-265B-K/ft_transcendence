@@ -52,7 +52,8 @@ services:
     postgres:
       image: postgres
       volumes:
-        - postgres_data:/var/lib/postgresql/
+        - postgres_data:/var/lib/postgresql
+        - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
       environment:
         POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is not set}
         POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is not set}
