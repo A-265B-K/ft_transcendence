@@ -4,7 +4,10 @@ type LoginProps = {
 	onBack: () => void;
 };
 
-export default function Login({ onBack }: LoginProps) {
+export default function LogIn({ onBack }: LoginProps) {
+
+	console.log("Login.tsx loaded");
+
 	//const [username, setUsername] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
@@ -12,25 +15,24 @@ export default function Login({ onBack }: LoginProps) {
 
 	async function handleSubmit(e: FormEvent<HTMLFormElement>) {
 		e.preventDefault();
-
+	
 // !username.trim() ||
 		if (!email.trim() || !password.trim()) {
 			setStatus("Please fill in all fields.");
 			return;
 		}
 
-		setStatus("Creating account...");
+		setStatus("Signing in...");
 
 // calling backend SignIn
 		try {
-			console.log("[frontend] sending signin request");
 			const response = await fetch("/signin", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
 				},
 				body: JSON.stringify({
-					username: username.trim(),
+					//username: username.trim(),
 					email: email.trim(),
 					password,
 				}),
@@ -39,7 +41,7 @@ export default function Login({ onBack }: LoginProps) {
 			const data = await response.json();
 
 			if (!response.ok) {
-				setStatus(data.message ?? "Signup failed");
+				setStatus(data.message ?? "Signin failed");
 				return;
 			}
 

@@ -27,7 +27,7 @@ export async function registerUser(payload) {
 
 		return {
 			ok: true,
-			statusCode: 201,
+			statusCode: 200,
 			message: 'User registered',
 			user: result.rows[0],
 		};
