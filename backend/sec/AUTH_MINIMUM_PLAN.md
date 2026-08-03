@@ -6,8 +6,8 @@ This is the smallest version of auth that still counts as a real security featur
 
 Build this first:
 
-- email/password registration
-- email/password login
+<!--- email/password registration-->
+<!--- email/password login-->
 - password hashing with Argon2id or bcrypt
 - a Postgres user table
 - session-based auth with `httpOnly` cookies

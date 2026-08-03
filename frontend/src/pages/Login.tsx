@@ -2,13 +2,17 @@ import { useState, type CSSProperties, type FormEvent } from "react";
 
 type LoginProps = {
 	onBack: () => void;
+	onLoginSuccess: (user: {
+		id: number;
+		username: string;
+		email: string;
+	}) => void;
 };
 
-export default function LogIn({ onBack }: LoginProps) {
+export default function LogIn({ onBack, onLoginSuccess }: LoginProps) {
 
 	console.log("Login.tsx loaded");
 
-	//const [username, setUsername] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [status, setStatus] = useState("");
@@ -32,7 +36,6 @@ export default function LogIn({ onBack }: LoginProps) {
 					"Content-Type": "application/json",
 				},
 				body: JSON.stringify({
-					//username: username.trim(),
 					email: email.trim(),
 					password,
 				}),
@@ -44,6 +47,8 @@ export default function LogIn({ onBack }: LoginProps) {
 				setStatus(data.message ?? "Signin failed");
 				return;
 			}
+			console.log("Logged in user:", data.user);
+			onLoginSuccess(data.user);
 
 			setStatus(data.message ?? "Account created");
 		} catch {
