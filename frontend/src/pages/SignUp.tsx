@@ -77,7 +77,6 @@ export default function Signup({ onBack }: SignupProps) {
 			>
 				<h2 style={{ marginTop: 0, marginBottom: "8px" }}>Create account</h2>
 				<p style={{ marginTop: 0, marginBottom: "20px", color: "rgba(244,247,251,0.7)" }}>
-					This is a signup template for your future auth and database writes.
 				</p>
 
 				<form

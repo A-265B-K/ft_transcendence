@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { socket } from "../socket";
 import { type MenuProps } from "./MenuProps";
 
-export default function Menu({ onMenu, onCreateAccount }: MenuProps) {
+export default function Menu({ onMenu, onCreateAccount, onLogin }: MenuProps) {
     const [name, setName] = useState("");
 
     function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -64,7 +64,7 @@ export default function Menu({ onMenu, onCreateAccount }: MenuProps) {
             >
             <h2 style={{ marginTop: 0, marginBottom: "8px" }}>Enter your name</h2>
             <p style={{ marginTop: 0, marginBottom: "20px", color: "rgba(244,247,251,0.7)" }}>
-                Join the game or create an account for the future auth flow.
+                Join the game or create an account.
             </p>
 
             <form
@@ -94,6 +94,7 @@ export default function Menu({ onMenu, onCreateAccount }: MenuProps) {
                 </button>
             </form>
 
+
             <button
                 type="button"
                 onClick={onCreateAccount}
@@ -110,6 +111,27 @@ export default function Menu({ onMenu, onCreateAccount }: MenuProps) {
             >
                 Create account
             </button>
+
+
+
+			<button
+				type="button"
+				onClick={onLogin}
+				style={{
+                    marginTop: "14px",
+                    width: "100%",
+                    padding: "12px 14px",
+                    borderRadius: "12px",
+                    border: "1px solid rgba(255,255,255,0.14)",
+                    background: "transparent",
+                    color: "#f4f7fb",
+                    cursor: "pointer",
+                }}
+			>
+				Sign in
+			</button>
+
+
             </div>
         </div>
     );
