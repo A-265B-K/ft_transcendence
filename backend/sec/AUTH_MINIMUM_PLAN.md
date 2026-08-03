@@ -36,8 +36,8 @@ Optional later:
 
 Start here and move down the stack:
 
-1. **Password hashing**
-   Learn the difference between hashing and encryption, and why bcrypt or Argon2id are used.
+<!--1. **Password hashing**
+   Learn the difference between hashing and encryption, and why bcrypt or Argon2id are used.-->
 
 2. **Sessions vs JWTs**
    Learn how browser auth works, especially cookies, `httpOnly`, `secure`, and `sameSite`.

@@ -7,6 +7,7 @@
 */
 
 import Fastify  from 'fastify'
+import cookie from "@fastify/cookie";
 import staticFiles from '@fastify/static'
 import { Server } from 'socket.io'
 import { fileURLToPath } from 'node:url'
@@ -16,12 +17,15 @@ import { registerUser } from './security/auth/registration.js'
 import { SignInUser } from './security/auth/signin.js'
 
 const fastify = Fastify()
+await fastify.register(cookie);
 const io = new Server(fastify.server)
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 await fastify.register(staticFiles, { root: join(__dirname, 'public')})
 fastify.get('/ping', () => ({ok: true}))
+
+
 
 // Registration logic for user creation
 fastify.post('/register', async (request, reply) => {
@@ -35,17 +39,33 @@ fastify.post('/register', async (request, reply) => {
   });
 });
 
+
+
 // Sign In logic here
 fastify.post('/signin', async (request, reply) => {
   console.log('[signin] route reached')
 
-  const result = await SignInUser(request.body ?? {});
+	const result = await SignInUser(request.body ?? {});
 
-  return reply.code(result.statusCode).send({
-    message: result.message,
-    user: result.user,
+	if (result.ok)	{
+		console.log("[signin] setting cookie:", result.sessionId);
+
+		reply.setCookie("session_id", result.sessionId, {
+			httpOnly: true,
+			secure: true,
+			sameSite: "strict",
+			maxAge: 60 * 60 * 24, // = 1 day in sec
+			path: "/"
+		});
+	}
+
+	console.log(reply.getHeader("set-cookie"));
+	return reply.code(result.statusCode).send({
+		message: result.message,
+		user: result.user,
   });
 });
+
 
 io.on('connection', onConnection)
 

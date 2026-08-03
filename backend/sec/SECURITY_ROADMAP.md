@@ -7,7 +7,7 @@ This project should stay self-hosted inside Docker for 42, so the clean path is 
 Goal: stop treating a websocket `join` payload as identity.
 
 What to do:
-- Add a real user model in Postgres with `email`, `password_hash`, `email_verified`, `created_at`, and later `totp_secret`.
+<!--- Add a real user model in Postgres with `email`, `password_hash`, `email_verified`, `created_at`, and later `totp_secret`.-->
 - Add a session or refresh-token model so login survives page reloads.
 - Replace the current in-memory `mockDB` in `backend/backend/srcs/state/gameState.js` with a repository layer that talks to Postgres.
 - Keep the current game room state in memory for now, but make it reference a real authenticated `userId`.

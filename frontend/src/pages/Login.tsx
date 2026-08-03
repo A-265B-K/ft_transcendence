@@ -1,12 +1,12 @@
 import { useState, type CSSProperties, type FormEvent } from "react";
 
 type LoginProps = {
-	onBack: () => void;
-	onLoginSuccess: (user: {
-		id: number;
-		username: string;
-		email: string;
-	}) => void;
+    onBack: () => void;
+    onLoginSuccess: (user: {
+        id: number;
+        username: string;
+        email: string;
+    }) => void;
 };
 
 export default function LogIn({ onBack, onLoginSuccess }: LoginProps) {
@@ -29,6 +29,7 @@ export default function LogIn({ onBack, onLoginSuccess }: LoginProps) {
 		try {
 			const response = await fetch("/signin", {
 				method: "POST",
+				credentials: "include",
 				headers: {
 					"Content-Type": "application/json",
 				},
@@ -41,13 +42,13 @@ export default function LogIn({ onBack, onLoginSuccess }: LoginProps) {
 			const data = await response.json();
 
 			if (!response.ok) {
-				setStatus(data.message ?? "Signin failed");
+				setStatus(data.message ?? "Login failed");
 				return;
 			}
 			//console.log("Logged in user:", data.user);
 			onLoginSuccess(data.user);
 
-			setStatus(data.message ?? "Account created");
+			setStatus(data.message ?? "Log in successful");
 		} catch {
 			setStatus("Could not reach the backend Sign up route.");
 		}

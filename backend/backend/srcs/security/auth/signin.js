@@ -20,7 +20,6 @@ export async function SignInUser(payload) {
 
 	try {
 		//console.log("Searching for:", email);
-		const passwordHash = await bcrypt.hash(password, 12);
 		const result = await query(
 			"SELECT id, username, email, password_hash FROM users WHERE email = $1",
 			[email]
@@ -34,13 +33,29 @@ export async function SignInUser(payload) {
 				message: "Invalid email or password",
 			};
 		}
-// Here compare passwords
-		//console.log('[auth.signin] db result:', result.rows[0])
+
+		const validPassword = await bcrypt.compare(password, user.password_hash);
+		if (!validPassword) {
+				return {
+					ok: false,
+					statusCode: 401,
+					message: "Invalid email or password",
+				};
+			}
+
+		const sessionId = crypto.randomUUID();
+
+		await query(
+			"INSERT INTO session_ (session_id, user_id, expires_at) VALUES ($1, $2, (NOW() + INTERVAL '1 day'))",
+			[sessionId, user.id]
+		);
+
 
 		return {
 			ok: true,
 			statusCode: 200,
 			message: 'Login successful',
+			sessionId,
 			user: {
 			id: user.id,
 			username: user.username,
