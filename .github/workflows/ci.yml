@@ -25,6 +25,8 @@ jobs:
             echo POSTGRES_PORT=5432 >> .env
             echo GRAFANA_ADMIN_USER=ci-admin >> .env
             echo GRAFANA_ADMIN_PASSWORD=ci-grafana-password >> .env
+            echo DATA_SOURCE_USER=postgres >> .env
+            echo DATA_SOURCE_PASS=postgres >> .env
 
         - name: Build and start containers
           run: docker compose up --build -d
