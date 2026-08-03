@@ -44,7 +44,7 @@ services:
             openssl req -x509 -nodes -days 365 \
               -newkey rsa:2048 \
               -subj "/CN=localhost" \
-              -addext "subjectAltName=DNS:localhost" \
+              -addext "subjectAltName=DNS:localhost,DNS:*.localhost" \
               -keyout /etc/nginx/ssl/nginx.key \
               -out /etc/nginx/ssl/nginx.crt
           fi
@@ -61,8 +61,17 @@ services:
         POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is not set}
         POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is not set}
 
+    nginx_exporter:
+      image: nginx/nginx-prometheus-exporter
+      command: -nginx.scrape-uri http://nginx:3001/stub_status
+
     postgres_exporter:
-      image: prometheuscommunity/postgres-exporter
+      image: prometheuscommunity/postgres-exporter:master
+      environment:
+        DATA_SOURCE_URI: postgres:5432/postgres?sslmode=disable
+        DATA_SOURCE_USER: ${DATA_SOURCE_USER:?DATA_SOURCE_USER is not set}
+        DATA_SOURCE_PASS: ${DATA_SOURCE_PASS:?DATA_SOURCE_PASS is not set}
+
 
     prometheus:
       image: prom/prometheus:main-distroless
@@ -76,8 +85,11 @@ services:
         GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:?GRAFANA_ADMIN_USER is not set}
         GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD is not set}
         GF_LOG_LEVEL: warn
+        GF_SERVER_ROOT_URL: "https://monitoring.localhost:8443/"
+        GF_SERVER_SERVE_FROM_SUB_PATH: "true"
       volumes:
         - ./devops/grafana/provisioning:/etc/grafana/provisioning:ro
+        - ./devops/grafana/dashboards:/var/lib/grafana/dashboards
         - grafana:/var/lib/grafana
 
 volumes:
