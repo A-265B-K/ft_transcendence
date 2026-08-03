@@ -1,6 +1,7 @@
 import GameCanvas  from "./pages/GameCanvas";
 import Menu from "./pages/Menu";
-import Signup from "./pages/Signup";
+import Signup from "./pages/SignUp";
+import Login from "./pages/Login";
 import { useState } from "react"; 
 
 /**
@@ -22,10 +23,13 @@ export default function App() {
 						setScreen("game");
 					}}
 					onCreateAccount={() => setScreen("signup")}
+					onLogin={() => setScreen("login")}
 				/>
 			);
 	if (screen === "signup")
 		return (<Signup onBack={() => setScreen("menu")} />);
+	if (screen === "login")
+		return (<Login onBack={() => setScreen("menu")} />);
 	if (screen === "game")
 		return ( <GameCanvas />);
 
