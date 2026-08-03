@@ -6,7 +6,7 @@ export default defineConfig({
     react(),
   ],
   server: {
-    allowedHosts: ['localhost'],
+    allowedHosts: true,
     proxy: {
       '/register': {
         target: 'http://backend:3000',

@@ -11,8 +11,6 @@ type LoginProps = {
 
 export default function LogIn({ onBack, onLoginSuccess }: LoginProps) {
 
-	console.log("Login.tsx loaded");
-
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [status, setStatus] = useState("");
@@ -46,7 +44,7 @@ export default function LogIn({ onBack, onLoginSuccess }: LoginProps) {
 				setStatus(data.message ?? "Signin failed");
 				return;
 			}
-			console.log("Logged in user:", data.user);
+			//console.log("Logged in user:", data.user);
 			onLoginSuccess(data.user);
 
 			setStatus(data.message ?? "Account created");
