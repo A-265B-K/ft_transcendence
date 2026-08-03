@@ -1,13 +1,14 @@
 
 import { query } from "./db.js";
+import bcrypt from "bcrypt";
 
 export async function SignInUser(payload) {
 	const { email, password } = payload;
 
-	console.log('[auth.signin] payload:', payload);
+	//console.log('[auth.signin] payload:', payload);
 
 	if (!email || !password) {
-		console.log('[auth.signin] missing fields')
+		//console.log('[auth.signin] missing fields')
 		return {
 			ok: false,
 			statusCode: 400,
@@ -15,10 +16,11 @@ export async function SignInUser(payload) {
 		};
 	}
 
-	console.log('[auth.signin] inserting user into db')
+	//console.log('[auth.signin] inserting user into db')
 
 	try {
-		console.log("Searching for:", email);
+		//console.log("Searching for:", email);
+		const passwordHash = await bcrypt.hash(password, 12);
 		const result = await query(
 			"SELECT id, username, email, password_hash FROM users WHERE email = $1",
 			[email]
@@ -33,7 +35,7 @@ export async function SignInUser(payload) {
 			};
 		}
 // Here compare passwords
-		console.log('[auth.signin] db result:', result.rows[0])
+		//console.log('[auth.signin] db result:', result.rows[0])
 
 		return {
 			ok: true,

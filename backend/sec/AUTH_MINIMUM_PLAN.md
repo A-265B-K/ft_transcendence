@@ -8,7 +8,7 @@ Build this first:
 
 <!--- email/password registration-->
 <!--- email/password login-->
-- password hashing with Argon2id or bcrypt
+<!--- password hashing with Argon2id or bcrypt-->
 <!--- a Postgres user table-->
 - session-based auth with `httpOnly` cookies
 - basic email verification

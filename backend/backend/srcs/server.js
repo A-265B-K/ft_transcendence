@@ -25,13 +25,10 @@ fastify.get('/ping', () => ({ok: true}))
 
 // Registration logic for user creation
 fastify.post('/register', async (request, reply) => {
+
   console.log('[register] route reached')
-  console.log('[register] body:', request.body)
 
   const result = await registerUser(request.body ?? {});
-
-  console.log('[register] auth result:', result)
-
   return reply.code(result.statusCode).send({
     message: result.message,
     user: result.user,
@@ -41,11 +38,8 @@ fastify.post('/register', async (request, reply) => {
 // Sign In logic here
 fastify.post('/signin', async (request, reply) => {
   console.log('[signin] route reached')
-  console.log('[signin] body:', request.body)
 
   const result = await SignInUser(request.body ?? {});
-
-  console.log('[signin] auth result:', result)
 
   return reply.code(result.statusCode).send({
     message: result.message,
