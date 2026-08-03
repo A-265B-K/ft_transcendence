@@ -1,13 +1,21 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// Vite configuration object
 export default defineConfig({
-  // Vite plugins to use
   plugins: [
-    react(),  // React plugin for JSX support and Fast Refresh
+    react(),
   ],
   server: {
     allowedHosts: ['localhost'],
+    proxy: {
+      '/register': {
+        target: 'http://backend:3000',
+        changeOrigin: true,
+      },
+      '/signin': {
+        target: 'http://backend:3000',
+        changeOrigin: true,
+      },
+    },
   },
 })

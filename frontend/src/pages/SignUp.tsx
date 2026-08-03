@@ -1,41 +1,39 @@
 import { useState, type CSSProperties, type FormEvent } from "react";
 
-type LoginProps = {
+type SignupProps = {
 	onBack: () => void;
-	onLoginSuccess: (user: {
-		id: number;
-		username: string;
-		email: string;
-	}) => void;
 };
 
-export default function LogIn({ onBack, onLoginSuccess }: LoginProps) {
-
-	console.log("Login.tsx loaded");
-
+export default function Signup({ onBack }: SignupProps) {
+	const [username, setUsername] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
+	const [confirmPassword, setConfirmPassword] = useState("");
 	const [status, setStatus] = useState("");
 
 	async function handleSubmit(e: FormEvent<HTMLFormElement>) {
 		e.preventDefault();
-	
-// !username.trim() ||
-		if (!email.trim() || !password.trim()) {
+
+		if (!username.trim() || !email.trim() || !password.trim()) {
 			setStatus("Please fill in all fields.");
 			return;
 		}
 
-		setStatus("Signing in...");
+		if (password !== confirmPassword) {
+			setStatus("Passwords do not match.");
+			return;
+		}
 
-// calling backend SignIn
+		setStatus("Creating account...");
+
 		try {
-			const response = await fetch("/signin", {
+			const response = await fetch("/register", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
 				},
 				body: JSON.stringify({
+					username: username.trim(),
 					email: email.trim(),
 					password,
 				}),
@@ -44,15 +42,13 @@ export default function LogIn({ onBack, onLoginSuccess }: LoginProps) {
 			const data = await response.json();
 
 			if (!response.ok) {
-				setStatus(data.message ?? "Signin failed");
+				setStatus(data.message ?? "Signup failed");
 				return;
 			}
-			console.log("Logged in user:", data.user);
-			onLoginSuccess(data.user);
 
 			setStatus(data.message ?? "Account created");
 		} catch {
-			setStatus("Could not reach the backend Sign up route.");
+			setStatus("Could not reach the backend register route.");
 		}
 	}
 
@@ -79,7 +75,7 @@ export default function LogIn({ onBack, onLoginSuccess }: LoginProps) {
 					backdropFilter: "blur(14px)",
 				}}
 			>
-				<h2 style={{ marginTop: 0, marginBottom: "8px" }}>Sign in</h2>
+				<h2 style={{ marginTop: 0, marginBottom: "8px" }}>Create account</h2>
 				<p style={{ marginTop: 0, marginBottom: "20px", color: "rgba(244,247,251,0.7)" }}>
 				</p>
 
@@ -87,13 +83,13 @@ export default function LogIn({ onBack, onLoginSuccess }: LoginProps) {
 					onSubmit={handleSubmit}
 					style={{ display: "grid", gap: "12px" }}
 				>
-					{/*<input
+					<input
 						type="text"
 						placeholder="Username"
 						value={username}
 						onChange={(e) => setUsername(e.target.value)}
 						style={inputStyle}
-					/>*/}
+					/>
 					<input
 						type="email"
 						placeholder="Email"
@@ -108,10 +104,16 @@ export default function LogIn({ onBack, onLoginSuccess }: LoginProps) {
 						onChange={(e) => setPassword(e.target.value)}
 						style={inputStyle}
 					/>
-
+					<input
+						type="password"
+						placeholder="Confirm password"
+						value={confirmPassword}
+						onChange={(e) => setConfirmPassword(e.target.value)}
+						style={inputStyle}
+					/>
 
 					<button type="submit" style={primaryButtonStyle}>
-						Sign In
+						Create account
 					</button>
 				</form>
 
