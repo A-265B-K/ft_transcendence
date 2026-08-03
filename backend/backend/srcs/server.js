@@ -1,4 +1,4 @@
-i* 1. Create the Fastify server
+/* 1. Create the Fastify server
 	Initializes the HTTP framework with base configuration (logging, etc).
 2. Define basic HTTP routes
 	Only the essentials for Sprint 1 — a health check to confirm the server is alive.
@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import onConnection from './onConnection.js'
 import { registerUser } from './security/auth/registration.js'
-import { signinUser } from './security/auth/signin.js'
+import { SignInUser } from './security/auth/signin.js'
 
 const fastify = Fastify()
 const io = new Server(fastify.server)
