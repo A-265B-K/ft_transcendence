@@ -2,11 +2,11 @@
 import { query } from "./db.js";
 
 export async function SignInUser(payload) {
-	const { username, email, password } = payload;
+	const { email, password } = payload;
 
 	console.log('[auth.signin] payload:', payload);
 
-	if (!username || !email || !password) {
+	if (!email || !password) {
 		console.log('[auth.signin] missing fields')
 		return {
 			ok: false,
@@ -25,14 +25,27 @@ export async function SignInUser(payload) {
 		);
 		const user = result.rows[0];
 
+
+		if (!user) {
+			return {
+				statusCode: 401,
+				message: "Invalid email or password",
+			};
+		}
+// Here compare passwords
 		console.log('[auth.signin] db result:', result.rows[0])
 
 		return {
 			ok: true,
-			statusCode: 201,
-			message: 'User Signed In',
-			user: result.rows[0],
-		};
+			statusCode: 200,
+			message: 'Login successful',
+			user: {
+			id: user.id,
+			username: user.username,
+			email: user.email,
+		}
+	};
+
 	} catch (error) {
 		console.error('[auth.signin] db access failed:', error)
 

@@ -43,7 +43,7 @@ fastify.post('/signin', async (request, reply) => {
   console.log('[signin] route reached')
   console.log('[signin] body:', request.body)
 
-  const result = await signinUser(request.body ?? {});
+  const result = await SignInUser(request.body ?? {});
 
   console.log('[signin] auth result:', result)
 

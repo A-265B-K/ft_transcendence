@@ -131,7 +131,7 @@ export default function Menu({ onMenu, onCreateAccount, onLogin }: MenuProps) {
 				Sign in
 			</button>
 
-
+			
             </div>
         </div>
     );
