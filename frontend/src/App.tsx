@@ -27,6 +27,7 @@ export default function App() {
 			/>
 		);
 
+// start game after loging in
 	if (screen === "signup")
 		return (<Signup onBack={() => setScreen("menu")} />);
 	if (screen === "login")
@@ -39,6 +40,7 @@ export default function App() {
 				}}
 			/>
 		);
+
 	if (screen === "game")
     return (
         <GameCanvas

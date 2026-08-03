@@ -20,7 +20,6 @@ export default function LogIn({ onBack, onLoginSuccess }: LoginProps) {
 	async function handleSubmit(e: FormEvent<HTMLFormElement>) {
 		e.preventDefault();
 	
-// !username.trim() ||
 		if (!email.trim() || !password.trim()) {
 			setStatus("Please fill in all fields.");
 			return;
@@ -87,13 +86,6 @@ export default function LogIn({ onBack, onLoginSuccess }: LoginProps) {
 					onSubmit={handleSubmit}
 					style={{ display: "grid", gap: "12px" }}
 				>
-					{/*<input
-						type="text"
-						placeholder="Username"
-						value={username}
-						onChange={(e) => setUsername(e.target.value)}
-						style={inputStyle}
-					/>*/}
 					<input
 						type="email"
 						placeholder="Email"

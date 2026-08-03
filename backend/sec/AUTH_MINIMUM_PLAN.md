@@ -9,7 +9,7 @@ Build this first:
 <!--- email/password registration-->
 <!--- email/password login-->
 - password hashing with Argon2id or bcrypt
-- a Postgres user table
+<!--- a Postgres user table-->
 - session-based auth with `httpOnly` cookies
 - basic email verification
 - websocket join protected by the authenticated session
@@ -22,9 +22,9 @@ Optional later:
 
 ## Recommended build order
 
-1. Create the Postgres user table.
-2. Implement register.
-3. Implement login.
+<!--1. Create the Postgres user table.-->
+<!--2. Implement register.-->
+<!--3. Implement login.-->
 4. Add session or cookie auth.
 5. Add email verification.
 6. Protect websocket join so only logged-in users can enter the game.
