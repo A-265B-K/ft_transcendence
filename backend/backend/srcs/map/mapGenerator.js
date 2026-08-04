@@ -1,6 +1,6 @@
 // mapGenerator.js
 import { randomUUID } from 'crypto'
-import { MAP_WIDTH, MAP_HEIGHT, CASTLE_RADIUS, MIN_DIST_CASTLE } from "../constants.js"
+import { MAP_WIDTH, MAP_HEIGHT, CASTLE_RADIUS, MIN_DIST_CASTLE } from "../constants.ts"
 
 
 function generateSpawnAndCastleData(maxPlayers) {

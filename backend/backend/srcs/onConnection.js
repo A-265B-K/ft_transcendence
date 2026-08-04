@@ -1,7 +1,7 @@
 
 import { createRoom } from "./rooms/gameRoom.js"
 import { rooms, players, mockDB } from "./state/gameState.js"
-import { PLAYER_DEFAULT_HP, PLAYER_DEFAULT_X, PLAYER_DEFAULT_Y, ROOM_MAX_SIZE } from "./constants.js"
+import { PLAYER_DEFAULT_HP, PLAYER_DEFAULT_X, PLAYER_DEFAULT_Y, ROOM_MAX_SIZE } from "./constants.ts"
 
 const findAvailableRoom = () => {
   return Object.entries(rooms).find(
