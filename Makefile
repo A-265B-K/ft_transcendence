@@ -18,6 +18,9 @@ cleanimages:
 cleanvolumes:
 	@docker compose down --volumes
 
-fclean: cleanimages cleanvolumes
+fclean:
+	@docker compose down --rmi all
+	@docker compose down --volumes
 
-re: cleanimages cleanvolumes up
+re: fclean
+	@docker compose up --build -d
