@@ -1,21 +1,27 @@
-import { randomUUID } from 'node:crypto'
-import { rooms, mockDB } from "../state/gameState.js"
-import { generateMap } from '../map/mapGenerator.js'
-import { ROOM_MAX_SIZE } from '../constants.js'
+import { randomUUID } from "node:crypto";
+import { rooms } from "../state/gameState.js";
+import { generateMap } from "../map/mapGenerator.js";
+import { ROOM_MAX_SIZE } from "../constants.js";
+
 
 const createRoom = () => {
-	const roomId = randomUUID()
-	rooms[roomId] = { 
+
+	const roomId = randomUUID();
+
+	rooms[roomId] = {
 		players: [],
 		map: generateMap(ROOM_MAX_SIZE)
-	}
+	};
 
-	//TODO: change it to fetch API alkuijte  - POST newroom
-	mockDB.rooms[roomId] = { roomId, playerCount: 0 }
-	console.log('Room created:', roomId) //debbug
 
-	return [rooms[roomId], roomId]
+	console.log("Room created:", roomId);
 
-}
 
-export { createRoom }
+	return [
+		rooms[roomId],
+		roomId
+	];
+};
+
+
+export { createRoom };

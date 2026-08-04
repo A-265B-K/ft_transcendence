@@ -8,9 +8,9 @@ Goal: stop treating a websocket `join` payload as identity.
 
 What to do:
 <!--- Add a real user model in Postgres with `email`, `password_hash`, `email_verified`, `created_at`, and later `totp_secret`.-->
-- Add a session or refresh-token model so login survives page reloads.
-- Replace the current in-memory `mockDB` in `backend/backend/srcs/state/gameState.js` with a repository layer that talks to Postgres.
-- Keep the current game room state in memory for now, but make it reference a real authenticated `userId`.
+<!-- - Add a session or refresh-token model so login survives page reloads. -->
+<!-- - Replace the current in-memory `mockDB` in `backend/backend/srcs/state/gameState.js` with a repository layer that talks to Postgres. -->
+<!-- - Keep the current game room state in memory for now, but make it reference a real authenticated `userId`. -->
 
 Current files involved:
 - [backend/backend/srcs/server.js](backend/backend/srcs/server.js)
@@ -27,12 +27,12 @@ What to do:
 <!-- - Hash passwords with Argon2id or bcrypt; never store raw passwords. -->
 <!-- - Use per-password salt through the hashing library, not manual salt storage. -->
 - Verify email before allowing a user into the game.
-- Prefer httpOnly secure cookies for session transport in the browser.
+<!-- - Prefer httpOnly secure cookies for session transport in the browser. -->
 
 Frontend changes:
 <!-- - Replace the current name-only menu in [frontend/src/pages/Menu.tsx](frontend/src/pages/Menu.tsx) with register/login forms. -->
 <!-- - Keep [frontend/src/App.tsx](frontend/src/App.tsx) as the screen switcher, but gate `GameCanvas` behind auth state. -->
-- Only create/connect the socket after auth succeeds.
+<!-- - Only create/connect the socket after auth succeeds. -->
 
 ## 3. Add 2FA
 
