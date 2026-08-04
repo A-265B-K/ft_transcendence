@@ -1,4 +1,4 @@
-FROM python:3.13.14-trixie
+FROM python
 WORKDIR /app
 
 RUN  pip install 'psycopg[binary]'
