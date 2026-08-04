@@ -2,15 +2,14 @@ all: up
 
 up:
 	@docker compose up --build -d
-
-debug:
-	@docker compose up --build
+	@echo Game reachable at https://localhost:8443/
 
 down:
 	@docker compose down
 
 restart:
 	@docker compose restart
+	@echo Game reachable at https://localhost:8443/
 
 cleanimages: 
 	@docker compose down --rmi all
