@@ -1,4 +1,5 @@
 import { useState, type CSSProperties, type FormEvent } from "react";
+import { connectSocket } from "../socket";
 
 type LoginProps = {
     onBack: () => void;
@@ -45,10 +46,13 @@ export default function LogIn({ onBack, onLoginSuccess }: LoginProps) {
 				setStatus(data.message ?? "Login failed");
 				return;
 			}
-			//console.log("Logged in user:", data.user);
-			onLoginSuccess(data.user);
 
+			console.log("LOGIN SUCCESS - connecting socket");
+
+			connectSocket();
+			onLoginSuccess(data.user);
 			setStatus(data.message ?? "Log in successful");
+
 		} catch {
 			setStatus("Could not reach the backend Sign up route.");
 		}

@@ -23,15 +23,15 @@ Current files involved:
 Goal: add register/login/logout before touching 2FA.
 
 What to do:
-- Add backend routes for register, login, logout, and session refresh.
-- Hash passwords with Argon2id or bcrypt; never store raw passwords.
-- Use per-password salt through the hashing library, not manual salt storage.
+<!-- - Add backend routes for register, login, logout, and session refresh. -->
+<!-- - Hash passwords with Argon2id or bcrypt; never store raw passwords. -->
+<!-- - Use per-password salt through the hashing library, not manual salt storage. -->
 - Verify email before allowing a user into the game.
 - Prefer httpOnly secure cookies for session transport in the browser.
 
 Frontend changes:
-- Replace the current name-only menu in [frontend/src/pages/Menu.tsx](frontend/src/pages/Menu.tsx) with register/login forms.
-- Keep [frontend/src/App.tsx](frontend/src/App.tsx) as the screen switcher, but gate `GameCanvas` behind auth state.
+<!-- - Replace the current name-only menu in [frontend/src/pages/Menu.tsx](frontend/src/pages/Menu.tsx) with register/login forms. -->
+<!-- - Keep [frontend/src/App.tsx](frontend/src/App.tsx) as the screen switcher, but gate `GameCanvas` behind auth state. -->
 - Only create/connect the socket after auth succeeds.
 
 ## 3. Add 2FA

@@ -1,6 +1,5 @@
-
 import { createRoom } from "./rooms/gameRoom.js"
-import { rooms, players, mockDB } from "./state/gameState.js"
+import { rooms, players } from "./state/gameState.js"
 import { PLAYER_DEFAULT_HP, PLAYER_DEFAULT_X, PLAYER_DEFAULT_Y, ROOM_MAX_SIZE } from "./constants.js"
 
 const findAvailableRoom = () => {
@@ -9,28 +8,18 @@ const findAvailableRoom = () => {
   ) || null
 }
 
-const getPlayerFromDB = (dataID) => {
-	//TODO: change it to fetch API alkuijte (auth)
-	return mockDB.players[dataID] || null
-}
-const createPlayer = (socket, data, slot, spawn) => {
-	
-	const hasPlayer = getPlayerFromDB(data.id)
+const createPlayer = (socket, user, slot, spawn) => {
 
-	if (hasPlayer)
-		return {...hasPlayer, socketID: socket.id}
-
-	console.log('Player not found, creating new') //debbug
 	return {
-		userID: data.id,
+		userID: user.id,
 		socketID: socket.id,
-		username: data.username,
+		username: user.username,
 		slot,
 		hp: PLAYER_DEFAULT_HP,
 		x: spawn.x,
 		y: spawn.y
-	}
-}
+	};
+};
 
 const findAvailableSlot = (room, maxSize) => {
 	const usedSlots = new Set(room.players.map(p => p.slot))
@@ -64,14 +53,9 @@ const onJoin = (socket, data) => {
 		return
 	}
 
-	// inform DB about the new player on that room
-	if (!mockDB.rooms[roomId])
-		mockDB.rooms[roomId] = { roomId, playerCount: 0 }
-	mockDB.rooms[roomId].playerCount = room.players.length + 1
-
 	const spawn = room.map.spawnPoints.find(sp => sp.playerSlot === slot)
 
-	const player = createPlayer(socket, data, slot, spawn)
+	const player = createPlayer(socket, socket.user, slot, spawn)
 	players[socket.id] = player
 	room.players.push(player)
 
@@ -102,25 +86,33 @@ const onDisconnection = (socket, roomId) => {
 	if (rooms[roomId].players.length === 0) {
 		// sala vazia — deleta
 		delete rooms[roomId]
-		delete mockDB.rooms[roomId]  // TODO: trocar por fetch DELETE ao alkuijte
 		console.log('Room deleted:', roomId)
 	} else {
-		// TODO: avisar DB que sala tem -1 jogador
-		mockDB.rooms[roomId].playerCount--
 		socket.to(roomId).emit('player_left', player.username)
 	}
 }
 
 const onConnection = async (socket) => {
-	console.log('Player logged in: ', socket.id)
-	let currentroomId = null
 
-	socket.on('join', (data) => {
-		currentroomId = onJoin(socket, data)
-	})
+	console.log(
+		"Player connected:",
+		socket.user.username
+	);
+	let currentroomId = null;
+
+	socket.on('join', () => {
+		currentroomId = onJoin(socket);
+	});
+
 	socket.on('disconnect', () => {
-		console.log('Player logged out:', socket.id)
-		onDisconnection(socket, currentroomId)
-	})
-}
-export default onConnection
+
+		console.log(
+			"Player disconnected:",
+			socket.user.username
+		);
+
+		onDisconnection(socket, currentroomId);
+	});
+};
+
+export default onConnection;

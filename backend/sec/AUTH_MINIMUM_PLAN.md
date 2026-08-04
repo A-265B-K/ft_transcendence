@@ -25,7 +25,7 @@ Optional later:
 <!--1. Create the Postgres user table.-->
 <!--2. Implement register.-->
 <!--3. Implement login.-->
-4. Add session or cookie auth.
+<!-- 4. Add session or cookie auth. -->
 5. Add email verification.
 6. Protect websocket join so only logged-in users can enter the game.
 7. Add 2FA.

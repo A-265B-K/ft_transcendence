@@ -1,138 +1,156 @@
-import { useEffect, useState } from "react";
-import { socket } from "../socket";
+import { useEffect } from "react";
+import { getSocket } from "../socket";
 import { type MenuProps } from "./MenuProps";
 
-export default function Menu({ onMenu, onCreateAccount, onLogin }: MenuProps) {
-    const [name, setName] = useState("");
+export default function Menu({
+	onMenu,
+	onCreateAccount,
+	onLogin,
+	user,
+}: MenuProps) {
 
-    function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-        e.preventDefault();
+	function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+		e.preventDefault();
 
-        if (name.trim() === "")
-            return;
+		const socket = getSocket();
 
-        socket.emit("join", {
-            id: crypto.randomUUID(),
-            username: name,
-        });
-    }
+		if (!socket) {
+			console.log("No socket connection");
+			return;
+		}
 
-    useEffect(() => {
-        function handleJoined(data: {
-            roomId: string;
-            player: {
-                id: string;
-                username: string;
-            };
-        }) {
-            console.log("Joined room:", data.roomId);
-            console.log("Player:", data.player);
+		console.log("Joining game as:", user?.username);
 
-            onMenu(data.player.username);
-        }
-
-        socket.on("joined", handleJoined);
-
-        return () => {
-            socket.off("joined", handleJoined);
-        };
-    }, [onMenu]);
-
-    return (
-        <div
-            className="Menu-container"
-            style={{
-                minHeight: "100vh",
-                display: "grid",
-                placeItems: "center",
-                padding: "24px",
-            }}
-        >
-            <div
-                style={{
-                    width: "100%",
-                    maxWidth: "420px",
-                    padding: "28px",
-                    borderRadius: "24px",
-                    background: "rgba(8, 16, 22, 0.78)",
-                    border: "1px solid rgba(255,255,255,0.12)",
-                    boxShadow: "0 20px 60px rgba(0,0,0,0.35)",
-                    color: "#f4f7fb",
-                    backdropFilter: "blur(14px)",
-                    textAlign: "left",
-                }}
-            >
-            <h2 style={{ marginTop: 0, marginBottom: "8px" }}>Enter your name</h2>
-            <p style={{ marginTop: 0, marginBottom: "20px", color: "rgba(244,247,251,0.7)" }}>
-                Join the game or create an account.
-            </p>
-
-            <form
-                onSubmit={handleSubmit}
-                style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "10px",
-                }}
-            >
-                <input
-                    type="text"
-                    placeholder="Your name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    style={{
-                        padding: "12px 14px",
-                        borderRadius: "12px",
-                        border: "1px solid rgba(255,255,255,0.14)",
-                        background: "rgba(255,255,255,0.06)",
-                        color: "#f4f7fb",
-                    }}
-                />
-
-                <button type="submit">
-                    Start Game
-                </button>
-            </form>
+		socket.emit("join");
+	}
 
 
-            <button
-                type="button"
-                onClick={onCreateAccount}
-                style={{
-                    marginTop: "14px",
-                    width: "100%",
-                    padding: "12px 14px",
-                    borderRadius: "12px",
-                    border: "1px solid rgba(255,255,255,0.14)",
-                    background: "transparent",
-                    color: "#f4f7fb",
-                    cursor: "pointer",
-                }}
-            >
-                Create account
-            </button>
+	useEffect(() => {
+		const socket = getSocket();
+
+		if (!socket) {
+			console.log("No socket connection yet");
+			return;
+		}
 
 
+		function handleJoined(data: {
+			roomId: string;
+			player: {
+				id: string;
+				username: string;
+			};
+		}) {
+			console.log("Joined room:", data.roomId);
+			console.log("Player:", data.player);
 
-			<button
-				type="button"
-				onClick={onLogin}
+			onMenu(data.player.username);
+		}
+
+
+		socket.on("joined", handleJoined);
+
+
+		return () => {
+			socket.off("joined", handleJoined);
+		};
+
+	}, [onMenu]);
+
+
+	return (
+		<div
+			className="Menu-container"
+			style={{
+				minHeight: "100vh",
+				display: "grid",
+				placeItems: "center",
+				padding: "24px",
+			}}
+		>
+
+			<div
 				style={{
-                    marginTop: "14px",
-                    width: "100%",
-                    padding: "12px 14px",
-                    borderRadius: "12px",
-                    border: "1px solid rgba(255,255,255,0.14)",
-                    background: "transparent",
-                    color: "#f4f7fb",
-                    cursor: "pointer",
-                }}
+					width: "100%",
+					maxWidth: "420px",
+					padding: "28px",
+					borderRadius: "24px",
+					background: "rgba(8, 16, 22, 0.78)",
+					border: "1px solid rgba(255,255,255,0.12)",
+					boxShadow: "0 20px 60px rgba(0,0,0,0.35)",
+					color: "#f4f7fb",
+					backdropFilter: "blur(14px)",
+					textAlign: "left",
+				}}
 			>
-				Sign in
-			</button>
 
-			
-            </div>
-        </div>
-    );
+				<h2 style={{ marginTop: 0, marginBottom: "8px" }}>
+					Ready to play?
+				</h2>
+
+
+				<p
+					style={{
+						marginTop: 0,
+						marginBottom: "20px",
+						color: "rgba(244,247,251,0.7)",
+					}}
+				>
+					Join the game.
+				</p>
+
+
+				{user ? (
+					<form
+						onSubmit={handleSubmit}
+						style={{
+							display: "flex",
+							flexDirection: "column",
+							gap: "10px",
+						}}
+					>
+
+						<p>
+							Welcome {user.username}
+						</p>
+
+
+						<button type="submit">
+							Start Game
+						</button>
+
+					</form>
+
+				) : (
+
+					<div
+						style={{
+							display: "flex",
+							flexDirection: "column",
+							gap: "10px",
+						}}
+					>
+
+						<button
+							type="button"
+							onClick={onCreateAccount}
+						>
+							Create account
+						</button>
+
+
+						<button
+							type="button"
+							onClick={onLogin}
+						>
+							Sign in
+						</button>
+
+					</div>
+				)}
+
+			</div>
+
+		</div>
+	);
 }

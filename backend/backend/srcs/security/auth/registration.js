@@ -5,7 +5,7 @@ import bcrypt from "bcrypt";
 export async function registerUser(payload) {
 	const { username, email, password } = payload;
 
-	//console.log('[auth.registerUser] payload:', payload);
+	// console.log('[auth.registerUser] payload:', payload);
 
 	if (!username || !email || !password) {
 		console.log('[auth.registerUser] missing fields')
@@ -15,7 +15,7 @@ export async function registerUser(payload) {
 			message: 'Missing fields',
 		};
 	}
-	//console.log('[auth.registerUser] inserting user into db')
+	// console.log('[auth.registerUser] inserting user into db')
 
 	try {
 		const passwordHash = await bcrypt.hash(password, 12);
@@ -25,7 +25,7 @@ export async function registerUser(payload) {
 			[username, email, passwordHash]
 		);
 
-		//console.log('[auth.registerUser] db result:', result.rows[0])
+		// console.log('[auth.registerUser] db result:', result.rows[0])
 
 		return {
 			ok: true,
@@ -35,7 +35,7 @@ export async function registerUser(payload) {
 		};
 		
 	} catch (error) {
-		//console.error('[auth.registerUser] db insert failed:', error)
+		// console.error('[auth.registerUser] db insert failed:', error)
 
 		return {
 			ok: false,
