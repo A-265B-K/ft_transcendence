@@ -1,12 +1,12 @@
-// mapGenerator.js
+// mapGenerator.ts
 import { randomUUID } from 'crypto'
 import { MAP_WIDTH, MAP_HEIGHT, CASTLE_RADIUS, MIN_DIST_CASTLE } from "../constants.ts"
 
 
-function generateSpawnAndCastleData(maxPlayers) {
+function generateSpawnAndCastleData(maxPlayers: number) {
   const minDistBetweenCastles = MIN_DIST_CASTLE 
 
-  const castleZones = []
+  const castleZones: { playerSlot: number; x: number; y: number; radius: number }[] = []
   let attempts = 0
   const maxAttempts = maxPlayers * 100
 
@@ -55,7 +55,13 @@ function distance(a, b) {
 }
 
 // Garante que a posição não cai em cima de castelo nem muito perto de outro objeto já colocado
-function isValidPosition(pos, castleZones, placedObjects, minDistFromCastle, minDistFromOthers) {
+function isValidPosition(
+	pos: { x: number; y: number },
+	castleZones: { playerSlot: number; x: number; y: number; radius: number; }[],
+	placedObjects: any[],
+	minDistFromCastle: number,
+	minDistFromOthers: number
+) {
   for (const castle of castleZones) {
     if (distance(pos, castle) < castle.radius + minDistFromCastle) {
       return false
@@ -71,7 +77,9 @@ function isValidPosition(pos, castleZones, placedObjects, minDistFromCastle, min
   return true
 }
 
-function generateObstacles(castleZones, count = 15) {
+function generateObstacles(castleZones: { playerSlot: number; x: number; y: number; radius: number; }[],
+	count = 15
+) {
   const obstacles = []
   const types = [
     { type: 'rock', radius: 4 },
@@ -98,7 +106,11 @@ function generateObstacles(castleZones, count = 15) {
   return obstacles
 }
 
-function generateResourceSpawns(castleZones, obstacles, count = 20) {
+function generateResourceSpawns(
+	castleZones: { playerSlot: number; x: number; y: number; radius: number; }[], 
+	obstacles: { type: string; x: number; y: number; radius: number; blocksMovement: boolean; }[],
+	count = 20
+) {
   const resources = []
   const types = [
     { type: 'wood', amount: 100, respawnTime: 30 },
@@ -115,13 +127,16 @@ function generateResourceSpawns(castleZones, obstacles, count = 20) {
     if (!isValidPosition(pos, castleZones, occupied, 6, 5)) continue
 
     const template = types[Math.floor(Math.random() * types.length)]
-    const resource = {
+    const resource: {id: string, type: string, x: number, y: number, amount: number, respawnTime: number, radius: number, blocksMovement: boolean } = {
       id: `${template.type}_${resources.length + 1}`,
       type: template.type,
       x: pos.x,
       y: pos.y,
       amount: template.amount,
       respawnTime: template.respawnTime,
+	  // Please check if these are correct values as I do not know what they do
+	  radius: 1,
+	  blocksMovement: false
     }
 
     resources.push(resource)
@@ -131,7 +146,7 @@ function generateResourceSpawns(castleZones, obstacles, count = 20) {
   return resources
 }
 
-function generateMap(maxPlayers) {
+function generateMap(maxPlayers: number) {
   const { spawnPoints, castleZones } = generateSpawnAndCastleData(maxPlayers)
   const obstacles = generateObstacles(castleZones)
   const resourceSpawns = generateResourceSpawns(castleZones, obstacles)

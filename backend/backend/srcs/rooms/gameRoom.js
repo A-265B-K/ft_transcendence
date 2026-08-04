@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { rooms, mockDB } from "../state/gameState.ts"
-import { generateMap } from '../map/mapGenerator.js'
+import { generateMap } from '../map/mapGenerator.ts'
 import { ROOM_MAX_SIZE } from '../constants.ts'
 
 const createRoom = () => {
