@@ -1,5 +1,15 @@
 import bcrypt from "bcrypt";
 import { insertUser } from "../repository/userRepository.js";
+import { randomUUID } from 'crypto'
+import nodemailer from "nodemailer";
+
+export const emailTransporter = nodemailer.createTransport({
+	service: "gmail",
+	auth: {
+		user: process.env.EMAIL_USER,
+		pass: process.env.EMAIL_PASSWORD,
+	},
+});
 
 
 export async function registerUser(payload) {
@@ -16,7 +26,6 @@ export async function registerUser(payload) {
 		};
 	}
 
-
 	try {
 
 		const passwordHash = await bcrypt.hash(
@@ -24,13 +33,39 @@ export async function registerUser(payload) {
 			12
 		);
 
-
+		const verification_token = randomUUID();
 		const user = await insertUser(
 			username,
 			email,
-			passwordHash
+			passwordHash,
+			verification_token,
+			'tomorrow'
 		);
 
+		const baseUrl = "https://localhost:8443";
+		const verificationUrl =
+		`${baseUrl}/verify-email?token=${verification_token}`;
+
+		await emailTransporter.sendMail({
+
+		from: process.env.EMAIL_USER,
+
+		to: user.email,
+
+		subject: "Verify your email",
+
+		html: `
+			<h2>Welcome!</h2>
+
+			<p>Please verify your email.</p>
+
+			<p>
+				<a href="${verificationUrl}">
+					Verify Email
+				</a>
+			</p>
+		`,
+		});
 
 		return {
 			ok:true,

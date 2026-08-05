@@ -136,6 +136,15 @@ fastify.post("/logout", async (request, reply) => {
 });
 
 
+//fastify.get("/verify-email", async (request, reply) => {
+//    // validation of token and changing email_verification to true
+//	const validated = //
+//	if (!validated) {
+//		await changeEmailVerified('yes');
+//	}
+//});
+
+
 // Socket
 io.on("connection", onConnection);
 

@@ -44,7 +44,6 @@ export async function SignInUser(payload) {
 
 
 		if (!validPassword) {
-
 			return {
 				ok: false,
 				statusCode: 401,
@@ -52,6 +51,13 @@ export async function SignInUser(payload) {
 			};
 		}
 
+		if (!user.email_verified) {
+			return {
+				ok: false,
+				statusCode: 401,
+				message: "Please verify your email address",
+			};
+		}
 
 		const sessionId = crypto.randomUUID();
 
@@ -60,7 +66,6 @@ export async function SignInUser(payload) {
 			sessionId,
 			user.id
 		);
-
 
 		return {
 			ok: true,
