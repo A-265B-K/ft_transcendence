@@ -1,6 +1,6 @@
 // mapGenerator.ts
 import { randomUUID } from 'crypto'
-import { MAP_WIDTH, MAP_HEIGHT, CASTLE_RADIUS, MIN_DIST_CASTLE } from "../constants.ts"
+import { MAP_WIDTH, MAP_HEIGHT, CASTLE_RADIUS, MIN_DIST_CASTLE } from "../constants.js"
 
 
 function generateSpawnAndCastleData(maxPlayers: number) {
@@ -50,7 +50,9 @@ function randomPos() {
   }
 }
 
-function distance(a, b) {
+function distance(
+	a: {x: number, y: number },
+	b: {x: number, y: number }) {
   return Math.hypot(a.x - b.x, a.y - b.y)
 }
 
@@ -93,7 +95,11 @@ function generateObstacles(castleZones: { playerSlot: number; x: number; y: numb
 
     if (!isValidPosition(pos, castleZones, obstacles, 5, 4)) continue
 
-    const template = types[Math.floor(Math.random() * types.length)]
+
+	if (types.length === 0) {
+  		throw new Error("types must not be empty");
+	}
+    const template = types[Math.floor(Math.random() * types.length)]!
     obstacles.push({
       type: template.type,
       x: pos.x,
@@ -126,7 +132,11 @@ function generateResourceSpawns(
 
     if (!isValidPosition(pos, castleZones, occupied, 6, 5)) continue
 
-    const template = types[Math.floor(Math.random() * types.length)]
+
+	if (types.length === 0) {
+  		throw new Error("types must not be empty");
+	}
+    const template = types[Math.floor(Math.random() * types.length)]!
     const resource: {id: string, type: string, x: number, y: number, amount: number, respawnTime: number, radius: number, blocksMovement: boolean } = {
       id: `${template.type}_${resources.length + 1}`,
       type: template.type,
