@@ -1,49 +1,25 @@
 # Minimum Auth Plan for ft_transcendence
 
-This is the smallest version of auth that still counts as a real security feature.
-
-## Minimum version
-
-Build this first:
-
-<!--- email/password registration-->
-<!--- email/password login-->
-- password hashing with Argon2id or bcrypt
-- a Postgres user table
-- session-based auth with `httpOnly` cookies
-- basic email verification
-- websocket join protected by the authenticated session
-
-Optional later:
-
-- 2FA with TOTP
-- Vault-backed secret storage
-- ModSecurity / WAF hardening
-
 ## Recommended build order
-
-1. Create the Postgres user table.
-2. Implement register.
-3. Implement login.
-4. Add session or cookie auth.
+<!--1. Create the Postgres user table.-->
+<!--2. Implement register.-->
+<!--3. Implement login.-->
+<!-- 4. Add session or cookie auth. -->
 5. Add email verification.
-6. Protect websocket join so only logged-in users can enter the game.
+<!-- 6. Protect websocket join so only logged-in users can enter the game. -->
 7. Add 2FA.
 8. Add Vault integration.
 9. Add WAF tuning.
 
 ## What to learn first
+<!--1. **Password hashing**
+   Learn the difference between hashing and encryption, and why bcrypt or Argon2id are used.-->
 
-Start here and move down the stack:
+<!-- 2. **Sessions vs JWTs**
+   Learn how browser auth works, especially cookies, `httpOnly`, `secure`, and `sameSite`. -->
 
-1. **Password hashing**
-   Learn the difference between hashing and encryption, and why bcrypt or Argon2id are used.
-
-2. **Sessions vs JWTs**
-   Learn how browser auth works, especially cookies, `httpOnly`, `secure`, and `sameSite`.
-
-3. **SQL basics**
-   Learn how to design tables for users, sessions, verification tokens, and 2FA data.
+<!-- 3. **SQL basics** -->
+   <!-- Learn how to design tables for users, sessions, verification tokens, and 2FA data. -->
 
 4. **TOTP 2FA**
    Learn how authenticator apps generate codes and how the server verifies them.
@@ -59,18 +35,18 @@ Start here and move down the stack:
 
 ## Fastest useful focus
 
-If the goal is to get a working secure auth system quickly, focus first on:
+<!-- If the goal is to get a working secure auth system quickly, focus first on:
 
 - password hashing
-- sessions and cookies
-- SQL schema design
+- sessions and cookies -->
+<!--- SQL schema design-->
 - basic 2FA
 
 Vault and WAF can come after the auth core is working.
 
 ## Day-by-day checklist
 
-### Day 1: Model the data
+<!-- ### Day 1: Model the data
 
 - define the users table
 - decide which fields are required and which are optional
@@ -92,7 +68,7 @@ Vault and WAF can come after the auth core is working.
 
 - require authentication before websocket join
 - stop trusting the client-supplied user id
-- load the authenticated user from the session
+- load the authenticated user from the session -->
 
 ### Day 5: Add email verification
 
