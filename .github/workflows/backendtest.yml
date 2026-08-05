@@ -1,8 +1,6 @@
-name: CI
+name: backend
 
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
 
@@ -28,26 +26,10 @@ jobs:
             echo DATA_SOURCE_USER=postgres >> .env
             echo DATA_SOURCE_PASS=postgres >> .env
 
-        - name: Build and start containers
-          run: docker compose up --build -d
-
-        - name: Wait for containers to be healthy
-          run: |
-            echo "Waiting for containers..."
-            timeout 120 bash -c 'until curl -sf --insecure https://localhost:8443/; do sleep 2; done'
-            echo "Containers are ready"
-
-        - name: Check all containers are running
-          run: |
-              if docker compose ps --all | grep -v "nginx-certgen" | grep -E "Exit|exited"; then
-                echo "Some containers exited unexpectedly"
-                exit 1
-              fi
-
-        - name: Check nginx is responding
-          run: curl -I -f --insecure https://localhost:8443
-        
-        - name: healthcheck backend
+        - name: Build, start, and wait for containers
+          run: docker compose up --build --detach --wait --wait-timeout 120  
+   
+        - name: healthcheck_backend
           run: |
             echo "Waiting for backend to be healthy..."
             timeout 120 bash -c 'until curl -sf --insecure https://localhost:8443/api/ping; do sleep 2; done'
@@ -56,7 +38,3 @@ jobs:
         - name: Show logs on failure
           if: failure()
           run: docker compose logs
-
-        - name: Stop containers
-          if: always()
-          run: docker compose down -v
