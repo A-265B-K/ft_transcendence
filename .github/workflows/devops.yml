@@ -29,7 +29,7 @@ jobs:
         - name: Build, start, and wait for containers
           run: docker compose up --build --detach --wait --wait-timeout 120
         - name: scrape from database
-          run: curl -v http://postgresexporter:80
+          run: docker compose exec -T prometheus wget -qO- http://localhost:9090/api/v1/targets
         - name: Show logs on failure
           if: failure()
           run: docker compose logs
