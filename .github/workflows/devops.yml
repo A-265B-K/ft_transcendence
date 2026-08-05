@@ -5,7 +5,7 @@ on:
     branches: [main]
 
 jobs:
-  docker:
+  devops:
       runs-on: ubuntu-latest
 
       steps:
