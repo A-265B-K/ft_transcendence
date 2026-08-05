@@ -14,7 +14,7 @@ services:
       volumes:
         - ./backend:/app
         - backend_node_modules:/app/node_modules
-      command: sh -c "npm install && node backend/srcs/server.js"
+      command: sh -c "npm install && npx tsx backend/srcs/server.ts"
 
     nginx:
       image: nginx:alpine

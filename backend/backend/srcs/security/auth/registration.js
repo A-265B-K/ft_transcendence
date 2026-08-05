@@ -1,4 +1,3 @@
-
 import { query } from "./db.js";
 
 export async function registerUser(payload) {
