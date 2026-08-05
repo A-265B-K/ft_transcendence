@@ -91,7 +91,13 @@ services:
         - ./devops/grafana/provisioning:/etc/grafana/provisioning:ro
         - ./devops/grafana/dashboards:/var/lib/grafana/dashboards
         - grafana:/var/lib/grafana
-
+    backups:
+      build: ./docker/backups
+      volumes:
+        - prometheus:/app/prometheus
+        - grafana:/app/grafana
+        - postgres_data:/app/postgress
+        - ./backups:/app/backups
 volumes:
   prometheus:
   grafana:
