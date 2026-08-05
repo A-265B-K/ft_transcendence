@@ -18,7 +18,6 @@ services:
         POSTGRES_USER: ${POSTGRES_USER}
         POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
         POSTGRES_HOST: postgres
-        POSTGRES_PORT: 5432
         POSTGRES_DB: ${POSTGRES_DB}
 
     nginx:
@@ -64,6 +63,12 @@ services:
         POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is not set}
         POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is not set}
         POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is not set}
+      healthcheck:
+        test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+        interval: 5s
+        timeout: 3s
+        retries: 10
+
     postgresexporter:
       build: ./docker/postgresexporter
       environment:
@@ -81,6 +86,12 @@ services:
       volumes:
         - ./devops/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
         - prometheus:/prometheus
+      healthcheck:
+        test: ["CMD", "wget", "--spider", "-q", "http://localhost:9090/-/ready"]
+        interval: 5s
+        timeout: 3s
+        retries: 10
+
 
     grafana:
       image: grafana/grafana
@@ -101,6 +112,15 @@ services:
         - grafana:/app/grafana
         - postgres_data:/app/postgress
         - ./backups:/app/backups
+      environment:
+        POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is not set}
+        PGPASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is not set}
+        POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is not set}
+      depends_on:
+        prometheus:
+          condition: service_healthy
+        postgres:
+          condition: service_healthy
 volumes:
   prometheus:
   grafana:

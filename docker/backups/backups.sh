@@ -2,18 +2,21 @@
 set -e 
 while true ; do 
     echo "backup in progress"
-    folder=$(date "+Backup-%Y-%m-%d-%H-%M")
-    archive=${folder}.tar.gz
+    archive=$(date "+Backup-%Y-%m-%d-%H-%M").tar.gz
 
-    mkdir -p "$folder" tmp
-    tar -czvf "$archive" "$folder"
+    mkdir -p tmp
+    cd tmp
+
+    pg_dump -h postgres -U "$POSTGRES_USER" -d "$POSTGRES_DB" > postgres.sql
+
+
+    tar -czvf "$archive" tmp
     rm -rf "$folder" tmp
     mv "$archive" ./backups
 
-
-    cd backups 
-    ls | sort | head -n -2 | xargs -r rm 
+    cd ../backups 
+    ls | sort | head -n -10 | xargs -r rm 
     cd ../ 
 
-    sleep 60
+    sleep 300
 done
