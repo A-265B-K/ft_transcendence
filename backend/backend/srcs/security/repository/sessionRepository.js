@@ -53,7 +53,7 @@ export async function deleteSessionById(sessionId) {
 
 	await query(
 		`
-		DELETE FROM session_
+		DELETE FROM sessions
 		WHERE session_id = $1
 		`,
 		[
