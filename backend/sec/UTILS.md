@@ -4,21 +4,6 @@ then --> psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"
 	then --> \dt
 		then --> SELECT * FROM users;
 
-
-# front end connection with backend register function
-try {
-	const response = await fetch("/register", {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-		},
-		body: JSON.stringify({
-			username: username.trim(),
-			email: email.trim(),
-			password,
-		}),
-	});
-
 # registration flow
 Signup.tsx sends POST /register
 server.js receives it
