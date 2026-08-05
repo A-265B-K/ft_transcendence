@@ -35,9 +35,10 @@ jobs:
       - name: Check backend
         run: curl --fail --insecure https://localhost:8443/api/ping
 
-      - name: Check Prometheus targets
-        run: docker compose exec -T prometheus wget -qO- http://localhost:9090/api/v1/targets
-
+      - name: Check database exporter
+        run: docker compose exec -T prometheus wget -qO- http://postgresexporter:80
+      
+    
       - name: Show logs on failure
         if: failure()
         run: docker compose logs
