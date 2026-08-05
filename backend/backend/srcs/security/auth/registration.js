@@ -15,8 +15,6 @@ export const emailTransporter = nodemailer.createTransport({
 export async function registerUser(payload) {
 
 	const { username, email, password } = payload;
-
-
 	if (!username || !email || !password) {
 
 		return {
@@ -27,7 +25,6 @@ export async function registerUser(payload) {
 	}
 
 	try {
-
 		const passwordHash = await bcrypt.hash(
 			password,
 			12
@@ -46,26 +43,31 @@ export async function registerUser(payload) {
 		const verificationUrl =
 		`${baseUrl}/verify-email?token=${verification_token}`;
 
-		await emailTransporter.sendMail({
+		try {
+			await emailTransporter.verify();
+    		console.log("SMTP server is ready");
 
-		from: process.env.EMAIL_USER,
+			await emailTransporter.sendMail({
+				from: process.env.EMAIL_USER,
+				to: user.email,
+				subject: "Verify your email",
 
-		to: user.email,
+			html: `
+				<h2>Welcome!</h2>
 
-		subject: "Verify your email",
+				<p>Please verify your email.</p>
 
-		html: `
-			<h2>Welcome!</h2>
-
-			<p>Please verify your email.</p>
-
-			<p>
-				<a href="${verificationUrl}">
-					Verify Email
-				</a>
-			</p>
-		`,
-		});
+				<p>
+					<a href="${verificationUrl}">
+						Verify Email
+					</a>
+				</p>
+			`,
+			});
+			console.log("Email sent!");
+		} catch (err) {
+			console.error("Failed to send email:", err);
+		}
 
 		return {
 			ok:true,
