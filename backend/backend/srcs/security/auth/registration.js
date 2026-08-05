@@ -1,45 +1,68 @@
+import bcrypt from "bcrypt";
+import { insertUser } from "../repository/userRepository.js";
 
-import { query } from "./db.js";
 
 export async function registerUser(payload) {
+
 	const { username, email, password } = payload;
 
-	console.log('[auth.registerUser] payload:', payload);
 
 	if (!username || !email || !password) {
-		console.log('[auth.registerUser] missing fields')
+
 		return {
-			ok: false,
-			statusCode: 400,
-			message: 'Missing fields',
+			ok:false,
+			statusCode:400,
+			message:"Missing fields",
 		};
 	}
 
-	console.log('[auth.registerUser] inserting user into db')
 
 	try {
-		const result = await query(
-			'INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3) RETURNING id, username, email',
-			[username, email, password]
+
+		const passwordHash = await bcrypt.hash(
+			password,
+			12
 		);
 
-		console.log('[auth.registerUser] db result:', result.rows[0])
+
+		const user = await insertUser(
+			username,
+			email,
+			passwordHash
+		);
+
 
 		return {
-			ok: true,
-			statusCode: 200,
-			message: 'User registered',
-			user: result.rows[0],
+			ok:true,
+			statusCode:201,
+			message:"User registered",
+			user,
 		};
-	} catch (error) {
-		console.error('[auth.registerUser] db insert failed:', error)
+
+
+	} catch(error) {
+
+
+		if (error.code === "23505") {
+
+			return {
+				ok:false,
+				statusCode:409,
+				message:"Email already exists",
+			};
+		}
+
+
+		console.error(
+			"[auth.registerUser] failed:",
+			error
+		);
+
 
 		return {
-			ok: false,
-			statusCode: 500,
-			message: 'Database insert failed',
+			ok:false,
+			statusCode:500,
+			message:"Database insert failed",
 		};
 	}
 }
-
-

@@ -1,17 +1,16 @@
 import { useState, type CSSProperties, type FormEvent } from "react";
+import { connectSocket } from "../socket";
 
 type LoginProps = {
-	onBack: () => void;
-	onLoginSuccess: (user: {
-		id: number;
-		username: string;
-		email: string;
-	}) => void;
+    onBack: () => void;
+    onLoginSuccess: (user: {
+        id: number;
+        username: string;
+        email: string;
+    }) => void;
 };
 
 export default function LogIn({ onBack, onLoginSuccess }: LoginProps) {
-
-	console.log("Login.tsx loaded");
 
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
@@ -20,7 +19,6 @@ export default function LogIn({ onBack, onLoginSuccess }: LoginProps) {
 	async function handleSubmit(e: FormEvent<HTMLFormElement>) {
 		e.preventDefault();
 	
-// !username.trim() ||
 		if (!email.trim() || !password.trim()) {
 			setStatus("Please fill in all fields.");
 			return;
@@ -32,6 +30,7 @@ export default function LogIn({ onBack, onLoginSuccess }: LoginProps) {
 		try {
 			const response = await fetch("/signin", {
 				method: "POST",
+				credentials: "include",
 				headers: {
 					"Content-Type": "application/json",
 				},
@@ -44,13 +43,16 @@ export default function LogIn({ onBack, onLoginSuccess }: LoginProps) {
 			const data = await response.json();
 
 			if (!response.ok) {
-				setStatus(data.message ?? "Signin failed");
+				setStatus(data.message ?? "Login failed");
 				return;
 			}
-			console.log("Logged in user:", data.user);
-			onLoginSuccess(data.user);
 
-			setStatus(data.message ?? "Account created");
+			console.log("LOGIN SUCCESS - connecting socket");
+
+			connectSocket();
+			onLoginSuccess(data.user);
+			setStatus(data.message ?? "Log in successful");
+
 		} catch {
 			setStatus("Could not reach the backend Sign up route.");
 		}
@@ -87,13 +89,6 @@ export default function LogIn({ onBack, onLoginSuccess }: LoginProps) {
 					onSubmit={handleSubmit}
 					style={{ display: "grid", gap: "12px" }}
 				>
-					{/*<input
-						type="text"
-						placeholder="Username"
-						value={username}
-						onChange={(e) => setUsername(e.target.value)}
-						style={inputStyle}
-					/>*/}
 					<input
 						type="email"
 						placeholder="Email"
