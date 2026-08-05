@@ -1,27 +1,6 @@
 # Minimum Auth Plan for ft_transcendence
 
-This is the smallest version of auth that still counts as a real security feature.
-
-## Minimum version
-
-Build this first:
-
-<!--- email/password registration-->
-<!--- email/password login-->
-<!--- password hashing with Argon2id or bcrypt-->
-<!--- a Postgres user table-->
-<!-- - session-based auth with `httpOnly` cookies -->
-- basic email verification
-<!-- - websocket join protected by the authenticated session -->
-
-Optional later:
-
-- 2FA with TOTP
-- Vault-backed secret storage
-- ModSecurity / WAF hardening
-
 ## Recommended build order
-
 <!--1. Create the Postgres user table.-->
 <!--2. Implement register.-->
 <!--3. Implement login.-->
@@ -33,9 +12,6 @@ Optional later:
 9. Add WAF tuning.
 
 ## What to learn first
-
-Start here and move down the stack:
-
 <!--1. **Password hashing**
    Learn the difference between hashing and encryption, and why bcrypt or Argon2id are used.-->
 
@@ -63,7 +39,7 @@ Start here and move down the stack:
 
 - password hashing
 - sessions and cookies -->
-- SQL schema design
+<!--- SQL schema design-->
 - basic 2FA
 
 Vault and WAF can come after the auth core is working.
