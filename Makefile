@@ -19,8 +19,7 @@ cleanvolumes:
 	@docker compose down --volumes
 
 fclean:
-	@docker compose down --rmi all
-	@docker compose down --volumes
+	@docker compose down --rmi all --volumes
 
 cleanbackups:
 	@rm -rf backups
