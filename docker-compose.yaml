@@ -1,14 +1,16 @@
 services:
     frontend:
-      image: node:latest
-      working_dir: /app
+      build:
+        context: ./frontend
+        dockerfile: ../docker/frontend/Dockerfile
       volumes:
         - ./frontend:/app
         - frontend_node_modules:/app/node_modules
-      command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+
     backend:
-      image: node:latest
-      working_dir: /app
+      build:
+        context: ./backend
+        dockerfile: ../docker/backend/Dockerfile
       volumes:
         - ./backend:/app
         - backend_node_modules:/app/node_modules
@@ -18,10 +20,9 @@ services:
         POSTGRES_HOST: postgres
         POSTGRES_PORT: 5432
         POSTGRES_DB: ${POSTGRES_DB}
-      command: sh -c "npm install && node backend/srcs/server.js"
 
     nginx:
-      image: nginx:alpine
+      image: nginx
       entrypoint: ["nginx", "-g", "daemon off;"]
       depends_on:
         nginx-certgen:
@@ -40,7 +41,7 @@ services:
         - ./docker/nginx/terms.html:/var/www/html/terms.html:ro
         - nginx_certs:/etc/nginx/ssl:ro
     nginx-certgen:
-      image: alpine/openssl:latest
+      image: alpine/openssl
       entrypoint: ["/bin/sh", "-c"]
       command:
         - |
@@ -54,7 +55,6 @@ services:
           fi
       volumes:
         - nginx_certs:/etc/nginx/ssl
-
     postgres:
       image: postgres
       volumes:
@@ -64,21 +64,20 @@ services:
         POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is not set}
         POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is not set}
         POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is not set}
+    postgresexporter:
+      build: ./docker/postgresexporter
+      environment:
+        POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is not set}
+        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is not set}
+        POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is not set}
+       
 
     nginx_exporter:
       image: nginx/nginx-prometheus-exporter
       command: -nginx.scrape-uri http://nginx:3001/stub_status
-
-    postgres_exporter:
-      image: prometheuscommunity/postgres-exporter:master
-      environment:
-        DATA_SOURCE_URI: postgres:5432/postgres?sslmode=disable
-        DATA_SOURCE_USER: ${DATA_SOURCE_USER:?DATA_SOURCE_USER is not set}
-        DATA_SOURCE_PASS: ${DATA_SOURCE_PASS:?DATA_SOURCE_PASS is not set}
-
-
+ 
     prometheus:
-      image: prom/prometheus:main-distroless
+      image: prom/prometheus
       volumes:
         - ./devops/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
         - prometheus:/prometheus
