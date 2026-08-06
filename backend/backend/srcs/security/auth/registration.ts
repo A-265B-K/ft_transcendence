@@ -40,9 +40,9 @@ export async function registerUser(payload) {
 			'tomorrow'
 		);
 
-		const baseUrl = "https://localhost:8443";
+		const baseUrl = process.env.HOSTNAME;
 		const verificationUrl =
-		`${baseUrl}/verify-email?token=${verification_token}`;
+		`https://${baseUrl}:8443/verify-email?token=${verification_token}`;
 
 		try {
 			await emailTransporter.verify();
