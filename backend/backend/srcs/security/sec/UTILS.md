@@ -5,7 +5,7 @@ then --> psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"
 		then --> SELECT * FROM users;
 
 # google account credentials
-EMAIL_USER=survivalgame42@proton.me
+EMAIL_USER=survivalgamecodam42@gmail.com
 EMAIL_APP_PASSWORD=rgyg pwpe nxcw oyvv
 EMAIL_PASSWORD=#764bcksu97#!@
 
