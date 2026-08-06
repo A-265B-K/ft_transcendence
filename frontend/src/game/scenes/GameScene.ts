@@ -4,11 +4,9 @@ import { Castle } from "../entities/Castle";
 import { Camera } from "../systems/Camera";
 import { GameMap } from "../world/GameMap";
 import type { GameTextures } from "../assets/loadGameTextures";
-import { MAP_SIZE } from "../config/constants";
 import { isoX, isoY } from "../world/iso";
+import type { JoinedPayload } from "../../types/game";
 
-const CASTLE_EDGE_MARGIN_X = 16;
-const CASTLE_EDGE_MARGIN_Y = 20;
 
 export class GameScene {
     readonly world: Container;
@@ -16,47 +14,48 @@ export class GameScene {
     readonly player: Player;
     readonly castle: Castle;
     readonly camera: Camera;
+    readonly joinedData: JoinedPayload;
 
-    constructor(textures: GameTextures) {
+    constructor(
+        textures: GameTextures,
+        joinedData: JoinedPayload
+    ) {
         this.world = new Container();
         this.world.sortableChildren = true;
 
-        this.map = new GameMap(textures.grass, textures.wood, textures.iron);
+        this.map = new GameMap(textures.grass, textures.wood, textures.iron, joinedData.map);
         this.world.addChild(this.map.container);
 
         this.player = new Player(textures.player);
-        this.player.placeAt(this.getRandomSpawnX(), this.getRandomSpawnY());
+        this.player.placeAt(
+            joinedData.player.x,
+            joinedData.player.y
+        );
         this.world.addChild(this.player.sprite);
 
         this.castle = new Castle(textures.castle);
-        this.castle.placeAt(this.getCastleSpawnX(), this.getCastleSpawnY());
+        
+        const myCastle = joinedData.map.castleZones.find(
+            zone => zone.playerSlot === joinedData.player.slot
+        );
+
+
+        if (myCastle) {
+
+            this.castle.placeAt(
+                myCastle.x,
+                myCastle.y
+            );
+
+        }
+
         this.map.clearTile(this.castle.gridX, this.castle.gridY);
         this.world.addChild(this.castle.container);
 
         this.camera = new Camera(this.world);
+        this.joinedData = joinedData;
     }
 
-    private getCastleSpawnX() {
-        return this.player.gridX - 10;
-    }
-
-    private getCastleSpawnY() {
-        return this.player.gridY - 5;
-    }
-
-    private getRandomSpawnX() {
-        const minX = CASTLE_EDGE_MARGIN_X + 10;
-        const maxX = MAP_SIZE - 2 - CASTLE_EDGE_MARGIN_X;
-        
-        return minX + Math.floor(Math.random() * (maxX - minX));
-    }
-
-     private getRandomSpawnY() {
-        const minY = CASTLE_EDGE_MARGIN_Y + 5;
-        const maxY = MAP_SIZE - 2 - CASTLE_EDGE_MARGIN_Y;
-        
-        return minY + Math.floor(Math.random() * (maxY - minY));
-    }
 
     update(inputState: InputState, screenWidth: number, screenHeight: number, deltaSeconds: number) {
         // Updating player input
@@ -110,10 +109,18 @@ export class GameScene {
     private clampPlayerToMap() {
         const margin = 1.5; 
         const minBound = margin;
-        const maxBound = MAP_SIZE - 1 - margin;
+        const maxX = this.joinedData.map.width - 1 - margin;
+        const maxY = this.joinedData.map.height - 1 - margin;
 
-        const boundedX = Math.max(minBound, Math.min(maxBound, this.player.gridX));
-        const boundedY = Math.max(minBound, Math.min(maxBound, this.player.gridY));
+        const boundedX = Math.max(
+            minBound,
+            Math.min(maxX, this.player.gridX)
+        );
+
+        const boundedY = Math.max(
+            minBound,
+            Math.min(maxY, this.player.gridY)
+        );
 
         this.player.placeAt(boundedX, boundedY);
     }

@@ -1,43 +1,60 @@
 import { Inventory } from "../components/Inventory";
-import { useEffect, useRef, useState } from "react"
-import { Game } from "../game/game";
-import { type CastlePointer } from "./CastlePointer"
+import { useEffect, useRef, useState } from "react";
+import { Game } from "../game/Game";
+import { type CastlePointer } from "./CastlePointer";
+import type { JoinedPayload } from "../types/game";
 
-export default function GameCanvas () {
+interface GameCanvasProps {
+    joinedData: JoinedPayload;
+}
+
+export default function GameCanvas({
+    joinedData,
+}: GameCanvasProps) {
 	const gameContainer = useRef<HTMLDivElement>(null);
 	const gameRef = useRef<Game | null>(null);
 	const [inventory, setInventory] = useState({ wood: 0, iron: 0 });
 	const [castlePointer, setCastlePointer] = useState<CastlePointer | null>(null);
 
 	// Initialize game on component mount, cleanup on unmount
-	useEffect(() => {
-		if (!gameContainer.current) return;
 
-		// Create the game instance
-		const game = new Game();
+	useEffect(() => {
+		if (!joinedData)
+			return;
+
+		if (!gameContainer.current)
+			return;
+
+		console.log("Starting game with:", joinedData);
+
+		const game = new Game(joinedData);
+
 		gameRef.current = game;
+
 		void game.start(gameContainer.current);
 
+
 		const intervalId = window.setInterval(() => {
+
 			const snapshot = game.getInventorySnapshot();
 			const pointer = game.getCastlePointerSnapshot();
 
-			if (snapshot) {
+			if (snapshot)
 				setInventory(snapshot);
-			}
 
-			if (pointer) {
+			if (pointer)
 				setCastlePointer(pointer);
-			}
+
 		}, 32);
 
-		// Cleanup function: destroy game when component unmounts
+
 		return () => {
 			window.clearInterval(intervalId);
 			gameRef.current = null;
 			game.destroy();
 		};
-	}, []);
+
+	}, [joinedData]);
 
 	return (
 		<div className="app-shell">

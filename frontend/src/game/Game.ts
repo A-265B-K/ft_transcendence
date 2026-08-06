@@ -2,11 +2,13 @@ import { Application, Ticker } from "pixi.js";
 import { loadGameTextures } from "./assets/loadGameTextures";
 import { GameScene } from "./scenes/GameScene";
 import { Input } from "./systems/Input";
+import { type JoinedPayload } from "../types/game";
 
 export class Game {
     readonly app: Application;
     readonly input = new Input();
 
+    private joinedData: JoinedPayload;
     private scene?: GameScene;
     private readonly handleTick = (ticker: Ticker) => {
         if (!this.scene) return;
@@ -21,8 +23,12 @@ export class Game {
         );
     };
 
-    constructor() {
+    constructor(joinedData: JoinedPayload) {
+
+        this.joinedData = joinedData;
+
         this.app = new Application();
+
     }
 
     async start(container: HTMLDivElement) {
@@ -36,7 +42,11 @@ export class Game {
 
         const textures = await loadGameTextures();
 
-        this.scene = new GameScene(textures);
+        this.scene = new GameScene(
+            textures,
+            this.joinedData
+        );
+        
         this.app.stage.addChild(this.scene.world);
         this.app.ticker.add(this.handleTick);
     }
