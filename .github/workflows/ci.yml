@@ -16,19 +16,27 @@ jobs:
 
       - name: Create .env file
         run: mv .env.example .env
+
       - name: Build, start, and wait for containers
         run: docker compose up --build --detach --wait --wait-timeout 60
 
+      - name: Check all containers are still alive
+        run: |
+          sleep 60
+          if docker compose ps --all | grep -v 'nginx-certgen' | grep -qi 'exited'; then
+            echo "Some containers exited unexpectedly"
+            exit 1
+          fi
+
       - name: Check frontend
-        run: curl --head --fail --insecure https://localhost:8443
+        run: test "$(curl -kso /dev/null -w '%{http_code}' https://localhost:8443/)" = "200"
 
       - name: Check backend
         run: curl --fail --insecure https://localhost:8443/api/ping
 
       - name: Check database exporter
         run: docker compose exec -T prometheus wget -qO- http://postgresexporter:80
-      
-    
+
       - name: Show logs on failure
         if: failure()
         run: docker compose logs
