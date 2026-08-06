@@ -6,4 +6,4 @@ RUN npm install
 
 
 
-CMD [ "node", "backend/srcs/server.js" ]
+CMD [ "npx", "tsx", "backend/srcs/server.ts" ]
