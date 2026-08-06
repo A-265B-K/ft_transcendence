@@ -1,6 +1,5 @@
-import { query } from "./db.js";
 import bcrypt from "bcrypt";
-import { insertUser } from "../repository/userRepository.js";
+import { insertUser, change2FAEnabed } from "../repository/userRepository.js";
 import { randomUUID } from 'crypto'
 import nodemailer from "nodemailer";
 
@@ -70,6 +69,9 @@ export async function registerUser(payload) {
 			console.error("Failed to send email:", err);
 		}
 
+// temporary automatic 2FA enabled for develpment /!\ to change later into a toggle on || off in menu
+		//const TOTP_secret = crypto.randomUUID();
+		//await change2FAEnabed(user.id, TOTP_secret);
 		return {
 			ok:true,
 			statusCode:201,

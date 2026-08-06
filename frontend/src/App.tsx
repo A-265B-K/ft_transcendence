@@ -153,8 +153,6 @@ export default function App() {
 
 	}
 
-
-
 	if(screen === "gameMenu" && user) {
 
 		return (

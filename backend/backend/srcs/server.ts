@@ -8,7 +8,7 @@ import onConnection from "./onConnection.js";
 import { registerUser } from "./security/auth/registration.js";
 import { SignInUser } from "./security/auth/signin.js";
 import { getCurrentUser } from "./security/session/session.js";
-import { deleteSessionById } from "./security/repository/sessionRepository.js";
+import { deleteSessionById, insertSessionById } from "./security/repository/sessionRepository.js";
 import { findUserByVerificationToken, changeEmailVerified } from "./security/repository/userRepository.js";
 
 const fastify = Fastify();
@@ -151,7 +151,18 @@ fastify.get("/verify-email", async (request, reply) => {
 		}
 			await changeEmailVerified(user.id);
 			console.log("[verify-email] user verified_email changed to true");
-			return reply.redirect("/");
+// creates a cookie in order to sign in directly
+			const sessionId = crypto.randomUUID();
+			await insertSessionById(sessionId, user.id);
+			reply.setCookie("session_id", sessionId, {
+				httpOnly: true,
+				secure: true,
+				sameSite: "strict",
+				maxAge: 60 * 60 * 24,
+				path: "/",
+			});
+
+		return reply.redirect("/");
 	}
 	catch (error) {
 
