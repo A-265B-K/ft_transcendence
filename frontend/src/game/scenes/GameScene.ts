@@ -6,7 +6,7 @@ import { GameMap } from "../world/GameMap";
 import type { GameTextures } from "../assets/loadGameTextures";
 import { isoX, isoY } from "../world/iso";
 import type { JoinedPayload } from "../../types/game";
-
+import { RemotePlayer } from "../entities/RemotePlayer";
 
 export class GameScene {
     readonly world: Container;
@@ -15,6 +15,7 @@ export class GameScene {
     readonly castle: Castle;
     readonly camera: Camera;
     readonly joinedData: JoinedPayload;
+    readonly remotePlayers = new Map<string, RemotePlayer>();
 
     constructor(
         textures: GameTextures,
@@ -31,7 +32,37 @@ export class GameScene {
             joinedData.player.x,
             joinedData.player.y
         );
+
         this.world.addChild(this.player.sprite);
+
+        for (const player of joinedData.players) {
+
+        if (player.userID === joinedData.player.userID)
+            continue;
+
+
+        const remote = new RemotePlayer(
+            textures.player,
+            player.userID
+        );
+
+
+        remote.placeAt(
+            player.x,
+            player.y
+        );
+
+
+        this.remotePlayers.set(
+            player.userID,
+            remote
+        );
+
+
+        this.world.addChild(
+            remote.sprite
+        );
+    }
 
         this.castle = new Castle(textures.castle);
         
@@ -197,4 +228,18 @@ export class GameScene {
 
         return this.castle.upgrade();
     }
+
+    updateRemotePlayer(
+        userID: string,
+        x: number,
+        y: number
+    ) {
+        const remote = this.remotePlayers.get(userID);
+
+        if (!remote)
+            return;
+
+        remote.updatePosition(x, y);
+    }
+
 }
