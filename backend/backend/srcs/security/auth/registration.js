@@ -64,7 +64,7 @@ export async function registerUser(payload) {
 				</p>
 			`,
 			});
-			console.log("Email sent!");
+			console.log("Email sent to:!", user.email);
 		} catch (err) {
 			console.error("Failed to send email:", err);
 		}

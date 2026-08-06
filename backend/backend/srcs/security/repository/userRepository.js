@@ -47,7 +47,8 @@ export async function findUserByEmail(email) {
 			id,
 			username,
 			email,
-			password_hash
+			password_hash,
+			email_verified
 		FROM users
 		WHERE email = $1
 		`,
@@ -60,29 +61,41 @@ export async function findUserByEmail(email) {
 	return result.rows[0] || null;
 }
 
-export async function changeEmailVerified(email_verified) {
+export async function findUserByVerificationToken(verification_token) {
 
 	const result = await query(
 		`
-		INSERT INTO users
-		(
-			email_verified,
-		)
-		VALUES
-		(
-			$1
-		)
-		RETURNING
+		SELECT
 			id,
 			username,
-			email,
-			email_verified
+			email
+		FROM users
+		WHERE verification_token = $1
+		AND verification_expires_at > NOW();
 		`,
 		[
-			email_verified,
+			verification_token
 		]
 	);
 
+
+	return result.rows[0] || null;
+}
+
+export async function changeEmailVerified(userId) {
+
+	const result = await query(
+		`
+		UPDATE users
+		SET
+			email_verified = TRUE,
+			verification_token = NULL,
+			verification_expires_at = NULL
+		WHERE id = $1
+		RETURNING id, email_verified
+		`,
+		[userId]
+	);
 
 	return result.rows[0];
 }
