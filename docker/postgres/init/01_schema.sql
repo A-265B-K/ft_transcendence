@@ -2,6 +2,9 @@ CREATE TABLE IF NOT EXISTS users (
 	id BIGSERIAL PRIMARY KEY,
 	username TEXT NOT NULL UNIQUE,
 	email TEXT NOT NULL UNIQUE,
+	email_verified BOOLEAN NOT NULL DEFAULT FALSE,
+	verification_token TEXT,
+	verification_expires_at TIMESTAMPTZ,
 	password_hash TEXT NOT NULL,
 	created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 	updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()

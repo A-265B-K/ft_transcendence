@@ -9,6 +9,7 @@ import { registerUser } from "./security/auth/registration.js";
 import { SignInUser } from "./security/auth/signin.js";
 import { getCurrentUser } from "./security/session/session.js";
 import { deleteSessionById } from "./security/repository/sessionRepository.js";
+import { findUserByVerificationToken, changeEmailVerified } from "./security/repository/userRepository.js";
 
 const fastify = Fastify();
 
@@ -25,7 +26,6 @@ await fastify.register(staticFiles, {
 fastify.get("/ping", () => ({ ok: true }));
 
 fastify.post("/register", async (request, reply) => {
-
 	const result = await registerUser(request.body ?? {});
 
 	return reply.code(result.statusCode).send({
@@ -35,7 +35,6 @@ fastify.post("/register", async (request, reply) => {
 });
 
 fastify.post("/signin", async (request, reply) => {
-
 	console.log("[signin] route reached");
 
 	const result = await SignInUser(request.body ?? {});
@@ -58,7 +57,6 @@ fastify.post("/signin", async (request, reply) => {
 });
 
 io.use(async (socket, next) => {
-
 	const cookie = socket.handshake.headers.cookie;
 
 	const sessionId = cookie
@@ -81,7 +79,6 @@ io.use(async (socket, next) => {
 });
 
 fastify.get("/me", async (request, reply) => {
-
 	const sessionId = request.cookies.session_id;
 
 	if (!sessionId) {
@@ -105,7 +102,6 @@ fastify.get("/me", async (request, reply) => {
 
 
 fastify.post("/logout", async (request, reply) => {
-
 	try {
 
 		const sessionId = request.cookies.session_id;
@@ -133,6 +129,38 @@ fastify.post("/logout", async (request, reply) => {
 			message: "Logout failed",
 		});
 	}
+});
+
+// still need to check for validated till token
+fastify.get("/verify-email", async (request, reply) => {
+	console.log("[verify-email] route reached");
+
+    const { token } = request.query;
+		if (!token) {
+		return reply.code(400).send({
+			message: "Missing token",
+		});
+	}
+	console.log("[verify-email] token:", token);
+	try {
+		const user = await findUserByVerificationToken(token);
+		if (!user) {
+			return reply.code(400).send({
+				message: "Invalid or expired verification token",
+			});
+		}
+			await changeEmailVerified(user.id);
+			console.log("[verify-email] user verified_email changed to true");
+			return reply.redirect("/");
+	}
+	catch (error) {
+
+		console.error(error);
+
+		return reply.code(500).send({
+			message: "Email verification failed",
+		});
+	}	
 });
 
 

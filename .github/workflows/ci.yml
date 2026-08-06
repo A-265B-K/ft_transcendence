@@ -16,7 +16,6 @@ jobs:
 
       - name: Create .env file
         run: mv .env.example .env
-
       - name: Build, start, and wait for containers
         run: docker compose up --build --detach --wait --wait-timeout 60
 
