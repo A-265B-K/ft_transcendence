@@ -1,3 +1,4 @@
+import { query } from "./db.js";
 import bcrypt from "bcrypt";
 import { insertUser } from "../repository/userRepository.js";
 import { randomUUID } from 'crypto'

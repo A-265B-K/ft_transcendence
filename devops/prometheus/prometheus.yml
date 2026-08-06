@@ -8,7 +8,11 @@ scrape_configs:
       - targets:
           - prometheus:9090
 
-  - job_name: postgres
+  - job_name: nginx
     static_configs:
       - targets:
-          - postgres_exporter:9187
+          - nginx_exporter:9113
+
+  - job_name: postgres
+    static_configs:
+      - targets: ["postgresexporter:80"]
