@@ -5,6 +5,10 @@ export const PLAYER_DEFAULT_HP = 100
 export const PLAYER_DEFAULT_X = 0 //GENERATE IT?
 export const PLAYER_DEFAULT_Y = 0
 
+export const PLAYER_DEFAULT_IRON = 0
+export const PLAYER_DEFAULT_WOOD = 0
+export const PLAYER_DEFAULT_CASTLE_LEVEL = 1
+
 export const ROOM_MAX_SIZE = 4
 export const GAME_TICK_RATE = 60 // 60MS
 

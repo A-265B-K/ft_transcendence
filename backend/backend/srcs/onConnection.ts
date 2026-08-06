@@ -1,7 +1,16 @@
 
 import { createRoom } from "./rooms/gameRoom.js"
 import { rooms, players, mockDB, type Room , type Player } from "./state/gameState.js"
-import { PLAYER_DEFAULT_HP, PLAYER_DEFAULT_X, PLAYER_DEFAULT_Y, ROOM_MAX_SIZE } from "./constants.js"
+import {
+	PLAYER_DEFAULT_HP,
+	PLAYER_DEFAULT_X,
+	PLAYER_DEFAULT_Y,
+	PLAYER_DEFAULT_IRON,
+	PLAYER_DEFAULT_WOOD,
+	PLAYER_DEFAULT_CASTLE_LEVEL,
+	ROOM_MAX_SIZE
+} from "./constants.js"
+
 import type { Spawn, Vec2 } from "./types.js"
 import type { Socket } from "socket.io"
 
@@ -33,7 +42,12 @@ const createPlayer = (socket: Socket, data: any, slot: any, spawn: Spawn ) => {
 		slot,
 		hp: PLAYER_DEFAULT_HP,
 		x: spawn.pos.x,
-		y: spawn.pos.y
+		y: spawn.pos.y,
+		inventory: {
+			iron: PLAYER_DEFAULT_IRON,
+			wood: PLAYER_DEFAULT_WOOD,
+			castleLevel: PLAYER_DEFAULT_CASTLE_LEVEL
+		}
 	}
 
 	return player;
