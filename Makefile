@@ -18,11 +18,15 @@ cleanimages:
 cleanvolumes:
 	@docker compose down --volumes
 
-fclean:
-	@docker compose down --rmi all --volumes
-
 cleanbackups:
 	@rm -rf backups
 
+fclean: cleanbackups
+	@docker compose down --rmi all --volumes
+
 re: fclean
 	@docker compose up --build -d
+
+resetdocker:
+	@docker system prune -af
+	@docker volume prune -af
