@@ -97,6 +97,10 @@ services:
         interval: 5s
         timeout: 3s
         retries: 10
+      command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-admin-api
 
 
     grafana:

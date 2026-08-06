@@ -13,7 +13,7 @@ while true ; do
     cd ../
     tar -czvf "backups/$archive" tmp/*
     rm -rf tmp
-
+    
     cd backups 
     ls | sort | head -n -10 | xargs -r rm 
     cd ../ 
