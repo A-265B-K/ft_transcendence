@@ -54,7 +54,6 @@ function distance(a, b) {
   return Math.hypot(a.x - b.x, a.y - b.y)
 }
 
-// Garante que a posição não cai em cima de castelo nem muito perto de outro objeto já colocado
 function isValidPosition(pos, castleZones, placedObjects, minDistFromCastle, minDistFromOthers) {
   for (const castle of castleZones) {
     if (distance(pos, castle) < castle.radius + minDistFromCastle) {

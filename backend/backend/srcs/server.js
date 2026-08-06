@@ -9,6 +9,7 @@ import { registerUser } from "./security/auth/registration.js";
 import { SignInUser } from "./security/auth/signin.js";
 import { getCurrentUser } from "./security/session/session.js";
 import { deleteSessionById } from "./security/repository/sessionRepository.js";
+import { ensureSchema } from "./security/auth/db.js";
 
 const fastify = Fastify();
 
@@ -141,6 +142,8 @@ io.on("connection", onConnection);
 
 
 // Start server
+await ensureSchema();
+
 await fastify.listen({
 	port: 3000,
 	host: "0.0.0.0",

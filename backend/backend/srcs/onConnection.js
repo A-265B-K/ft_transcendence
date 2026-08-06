@@ -1,6 +1,12 @@
 import { createRoom } from "./rooms/gameRoom.js"
 import { rooms, players } from "./state/gameState.js"
-import { PLAYER_DEFAULT_HP, PLAYER_DEFAULT_X, PLAYER_DEFAULT_Y, ROOM_MAX_SIZE } from "./constants.js"
+import { getOrCreateInventory, saveInventory } from "./state/inventoryRepository.js"
+import {
+	PLAYER_DEFAULT_HP,
+	PLAYER_DEFAULT_X,
+	PLAYER_DEFAULT_Y,
+	ROOM_MAX_SIZE
+} from "./constants.js"
 
 const findAvailableRoom = () => {
   return Object.entries(rooms).find(
@@ -8,7 +14,7 @@ const findAvailableRoom = () => {
   ) || null
 }
 
-const createPlayer = (socket, user, slot, spawn) => {
+const createPlayer = (socket, user, slot, spawn, inventory) => {
 
 	return {
 		userID: user.id,
@@ -17,7 +23,8 @@ const createPlayer = (socket, user, slot, spawn) => {
 		slot,
 		hp: PLAYER_DEFAULT_HP,
 		x: spawn.x,
-		y: spawn.y
+		y: spawn.y,
+		inventory
 	};
 };
 
@@ -31,7 +38,15 @@ const findAvailableSlot = (room, maxSize) => {
 	return null
 }
 
-const onJoin = (socket, data) => {
+const onJoin = async (socket, data) => {
+
+	const { inventory, isNewPlayer } = await getOrCreateInventory(socket.user.id)
+
+	if (isNewPlayer) {
+		console.log(`New player ${socket.user.username} — inventory created with defaults`)
+	} else {
+		console.log(`Returning player ${socket.user.username} — inventory loaded`, inventory)
+	}
 
 	let available = findAvailableRoom()
 	let room
@@ -55,7 +70,7 @@ const onJoin = (socket, data) => {
 
 	const spawn = room.map.spawnPoints.find(sp => sp.playerSlot === slot)
 
-	const player = createPlayer(socket, socket.user, slot, spawn)
+	const player = createPlayer(socket, socket.user, slot, spawn, inventory)
 	players[socket.id] = player
 	room.players.push(player)
 
@@ -67,24 +82,29 @@ const onJoin = (socket, data) => {
 		 (${room.players.length}/${ROOM_MAX_SIZE})`)
 
 	console.log(`Spawn point x: ${player.x} y: ${player.y}`)
+	player.inventory.iron++
+	console.log(`Inventory: iron ${player.inventory.iron}
+		wood ${player.inventory.wood}
+		castleLevel ${player.inventory.castleLevel}`)
 	return roomId
 }
 
-const onDisconnection = (socket, roomId) => {
+const onDisconnection = async (socket, roomId) => {
 	const player = players[socket.id]
 	if (!player) return
+
+	await saveInventory(player.userID, player.inventory)
 
 	delete players[socket.id]
 
 	if (!rooms[roomId]) return
 
-	// remove da sala
 	rooms[roomId].players = rooms[roomId].players.filter(
 		p => p.socketID !== socket.id
 	)
 
 	if (rooms[roomId].players.length === 0) {
-		// sala vazia — deleta
+		// empty room — delete it
 		delete rooms[roomId]
 		console.log('Room deleted:', roomId)
 	} else {
@@ -100,18 +120,18 @@ const onConnection = async (socket) => {
 	);
 	let currentroomId = null;
 
-	socket.on('join', () => {
-		currentroomId = onJoin(socket);
+	socket.on('join', async () => {
+		currentroomId = await onJoin(socket);
 	});
 
-	socket.on('disconnect', () => {
+	socket.on('disconnect', async () => {
 
 		console.log(
 			"Player disconnected:",
 			socket.user.username
 		);
 
-		onDisconnection(socket, currentroomId);
+		await onDisconnection(socket, currentroomId);
 	});
 };
 
