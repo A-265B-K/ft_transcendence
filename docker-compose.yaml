@@ -21,8 +21,7 @@ services:
         POSTGRES_DB: ${POSTGRES_DB}
         EMAIL_USER: ${EMAIL_USER}
         EMAIL_PASSWORD: ${EMAIL_PASSWORD}
-      extra_hosts:
-        - "host.docker.internal:host-gateway"
+        HOSTNAME: ${HOSTNAME}
 
     nginx:
       image: nginx
