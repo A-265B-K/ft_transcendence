@@ -27,11 +27,11 @@ export default function GameCanvas({
 
 		console.log("Starting game with:", joinedData);
 
-		const game = new Game(joinedData);
+		const game = new Game();
 
 		gameRef.current = game;
 
-		void game.start(gameContainer.current);
+		void game.start(gameContainer.current, joinedData);
 
 
 		const intervalId = window.setInterval(() => {

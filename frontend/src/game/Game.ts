@@ -8,7 +8,6 @@ export class Game {
     readonly app: Application;
     readonly input = new Input();
 
-    private joinedData: JoinedPayload;
     private scene?: GameScene;
     private readonly handleTick = (ticker: Ticker) => {
         if (!this.scene) return;
@@ -23,15 +22,11 @@ export class Game {
         );
     };
 
-    constructor(joinedData: JoinedPayload) {
-
-        this.joinedData = joinedData;
-
+    constructor() {
         this.app = new Application();
-
     }
 
-    async start(container: HTMLDivElement) {
+    async start(container: HTMLDivElement, joinedData: JoinedPayload) {
         await this.app.init({
             resizeTo: window,           // Automatically resize canvas with window
             autoDensity: true,          // Handle high-DPI displays
@@ -44,7 +39,7 @@ export class Game {
 
         this.scene = new GameScene(
             textures,
-            this.joinedData
+            joinedData
         );
         
         this.app.stage.addChild(this.scene.world);
