@@ -60,7 +60,7 @@ const onJoin = (socket, data) => {
 	room.players.push(player)
 
 	socket.join(roomId)
-	socket.to(roomId).emit('player_joined', player.username)
+	socket.to(roomId).emit('player_joined', player)
 	socket.emit('joined', { roomId, player, map: room.map, players: room.players })
 
 	console.log(`Player ${player.username} joined room ${roomId}

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { Game } from "../game/Game";
 import { type CastlePointer } from "./CastlePointer";
 import type { JoinedPayload } from "../types/game";
+import { connectSocket } from "../socket";
 
 interface GameCanvasProps {
     joinedData: JoinedPayload;
@@ -31,13 +32,32 @@ export default function GameCanvas({
 
 		gameRef.current = game;
 
-		void game.start(gameContainer.current, joinedData);
+		void game.start(
+			gameContainer.current,
+			joinedData
+		);
 
+		const socket = connectSocket();
+
+		function handlePlayerJoined(
+			player: JoinedPayload["players"][number]
+		) {
+			console.log("Player joined:", player);
+
+			game.addRemotePlayer(player);
+		}
+
+		socket.on(
+			"player_joined",
+			handlePlayerJoined
+		);
 
 		const intervalId = window.setInterval(() => {
+			const snapshot =
+				game.getInventorySnapshot();
 
-			const snapshot = game.getInventorySnapshot();
-			const pointer = game.getCastlePointerSnapshot();
+			const pointer =
+				game.getCastlePointerSnapshot();
 
 			if (snapshot)
 				setInventory(snapshot);
@@ -47,10 +67,16 @@ export default function GameCanvas({
 
 		}, 32);
 
-
 		return () => {
+			socket.off(
+				"player_joined",
+				handlePlayerJoined
+			);
+
 			window.clearInterval(intervalId);
+
 			gameRef.current = null;
+
 			game.destroy();
 		};
 

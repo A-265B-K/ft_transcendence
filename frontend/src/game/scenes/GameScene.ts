@@ -16,6 +16,7 @@ export class GameScene {
     readonly camera: Camera;
     readonly joinedData: JoinedPayload;
     readonly remotePlayers = new Map<string, RemotePlayer>();
+    readonly playerTexture: GameTextures;
 
     constructor(
         textures: GameTextures,
@@ -27,6 +28,8 @@ export class GameScene {
         this.map = new GameMap(textures.grass, textures.wood, textures.iron, joinedData.map);
         this.world.addChild(this.map.container);
 
+        this.playerTexture = textures;
+        
         this.player = new Player(textures.player);
         this.player.placeAt(
             joinedData.player.x,
@@ -37,32 +40,32 @@ export class GameScene {
 
         for (const player of joinedData.players) {
 
-        if (player.userID === joinedData.player.userID)
-            continue;
+            if (player.socketID === joinedData.player.socketID)
+                continue;
 
 
-        const remote = new RemotePlayer(
-            textures.player,
-            player.userID
-        );
+            const remote = new RemotePlayer(
+                textures.player,
+                player.userID
+            );
 
 
-        remote.placeAt(
-            player.x,
-            player.y
-        );
+            remote.placeAt(
+                player.x,
+                player.y
+            );
 
 
-        this.remotePlayers.set(
-            player.userID,
-            remote
-        );
+            this.remotePlayers.set(
+                player.socketID,
+                remote
+            );
 
 
-        this.world.addChild(
-            remote.sprite
-        );
-    }
+            this.world.addChild(
+                remote.sprite
+            );
+        }
 
         this.castle = new Castle(textures.castle);
         
@@ -87,6 +90,23 @@ export class GameScene {
         this.joinedData = joinedData;
     }
 
+    addRemotePlayer(player: JoinedPayload["players"][number]) {
+        if (player.socketID === this.joinedData.player.socketID)
+            return;
+
+        if (this.remotePlayers.has(player.socketID))
+            return;
+
+        const remote = new RemotePlayer(
+            this.playerTexture.player,
+            player.userID
+        );
+
+        remote.placeAt(player.x, player.y);
+
+        this.remotePlayers.set(player.socketID, remote);
+        this.world.addChild(remote.sprite);
+    }
 
     update(inputState: InputState, screenWidth: number, screenHeight: number, deltaSeconds: number) {
         // Updating player input
@@ -230,11 +250,11 @@ export class GameScene {
     }
 
     updateRemotePlayer(
-        userID: string,
+        socketID: string,
         x: number,
         y: number
     ) {
-        const remote = this.remotePlayers.get(userID);
+        const remote = this.remotePlayers.get(socketID);
 
         if (!remote)
             return;

@@ -26,6 +26,20 @@ export class Game {
         this.app = new Application();
     }
 
+    addRemotePlayer(
+        player: JoinedPayload["players"][number]
+    ) {
+        this.scene?.addRemotePlayer(player);
+    }
+
+    updateRemotePlayer(
+        userID: string,
+        x: number,
+        y: number
+    ) {
+        this.scene?.updateRemotePlayer(userID, x, y);
+    }
+
     async start(container: HTMLDivElement, joinedData: JoinedPayload) {
         await this.app.init({
             resizeTo: window,           // Automatically resize canvas with window
@@ -59,4 +73,5 @@ export class Game {
     getCastlePointerSnapshot() {
         return this.scene?.getCastlePointer() ?? null;
     }
+
 }
