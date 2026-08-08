@@ -5,10 +5,7 @@ import { findUserByEmail } from "../repository/userRepository.js";
 
 
 export async function SignInUser(payload) {
-
 	const { email, password } = payload;
-
-
 	if (!email || !password) {
 
 		return {
@@ -17,32 +14,17 @@ export async function SignInUser(payload) {
 			message: "Missing fields",
 		};
 	}
-
-
 	try {
-
 		console.log("Searching for:", email);
-
-
 		const user = await findUserByEmail(email);
-
-
 		if (!user) {
-
 			return {
 				ok: false,
 				statusCode: 401,
 				message: "Invalid email or password",
 			};
 		}
-
-
-		const validPassword = await bcrypt.compare(
-			password,
-			user.password_hash
-		);
-
-
+		const validPassword = await bcrypt.compare(password, user.password_hash);
 		if (!validPassword) {
 			return {
 				ok: false,
@@ -50,7 +32,6 @@ export async function SignInUser(payload) {
 				message: "Invalid email or password",
 			};
 		}
-
 		if (!user.email_verified) {
 			return {
 				ok: false,
@@ -58,38 +39,30 @@ export async function SignInUser(payload) {
 				message: "Please verify your email address",
 			};
 		}
-
+		if (user.two_factor_enabled) {
+			return {
+				ok: true,
+				statusCode: 200,
+				message: "2FA required",
+				requireTwoFactor: true,
+				userId: user.id
+			};
+		}
 		const sessionId = crypto.randomUUID();
-
-
-		await insertSessionById(
-			sessionId,
-			user.id
-		);
-
+		await insertSessionById(sessionId, user.id);
 		return {
 			ok: true,
 			statusCode: 200,
 			message: "Login successful",
-
 			sessionId,
-
 			user: {
 				id: user.id,
 				username: user.username,
 				email: user.email,
 			}
 		};
-
-
 	} catch (error) {
-
-		console.error(
-			"[auth.signin] failed:",
-			error
-		);
-
-
+		console.error("[auth.signin] failed:", error);
 		return {
 			ok: false,
 			statusCode: 500,

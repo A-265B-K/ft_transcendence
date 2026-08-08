@@ -1,7 +1,6 @@
 import { query } from "../auth/db.js";
 
 export async function insertUser(username, email, passwordHash, verification_token, verification_expires_at) {
-
 	const result = await query(
 		`
 		INSERT INTO users
@@ -24,7 +23,8 @@ export async function insertUser(username, email, passwordHash, verification_tok
 			id,
 			username,
 			email,
-			email_verified
+			email_verified,
+			enabled_2FA
 		`,
 		[
 			username,
@@ -40,7 +40,6 @@ export async function insertUser(username, email, passwordHash, verification_tok
 }
 
 export async function findUserByEmail(email) {
-
 	const result = await query(
 		`
 		SELECT
@@ -62,7 +61,6 @@ export async function findUserByEmail(email) {
 }
 
 export async function findUserByVerificationToken(verification_token) {
-
 	const result = await query(
 		`
 		SELECT
@@ -83,7 +81,6 @@ export async function findUserByVerificationToken(verification_token) {
 }
 
 export async function changeEmailVerified(userId) {
-
 	const result = await query(
 		`
 		UPDATE users
@@ -95,6 +92,37 @@ export async function changeEmailVerified(userId) {
 		RETURNING id, email_verified
 		`,
 		[userId]
+	);
+
+	return result.rows[0];
+}
+
+export async function change2FAEnabed(userId, token) {
+	const result = await query(
+		`
+		UPDATE users
+		SET
+			enabled_2FA = TRUE,
+			TOTP_secret = $2
+		WHERE id = $1
+		RETURNING id, enabled_2FA
+		`,
+		[userId, token]
+	);
+
+	return result.rows[0];
+}
+
+export async function change2FATOTP(TOTP, userId) {
+	const result = await query(
+		`
+		UPDATE users
+		SET
+			TOTP_secret = $2
+		WHERE id = $1
+		RETURNING id, TOTP_secret
+		`,
+		[userId, TOTP]
 	);
 
 	return result.rows[0];
