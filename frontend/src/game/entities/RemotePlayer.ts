@@ -16,6 +16,7 @@ export class RemotePlayer {
 
         this.sprite = new Sprite(texture);
         this.sprite.anchor.set(0.5, 0.8);
+        this.sprite.scale.set(0.5);  
     }
 
 
