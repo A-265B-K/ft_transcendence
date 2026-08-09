@@ -1,4 +1,5 @@
 import { connectSocket } from "../socket";
+import { type JoinedPayload } from "../types/game";
 
 type GameMenuProps = {
 	user: {
@@ -8,7 +9,7 @@ type GameMenuProps = {
 	};
 
 	onLogout: () => void;
-	onStartGame: () => void;
+	onStartGame: (data: JoinedPayload) => void;
 };
 
 
@@ -26,7 +27,7 @@ export default function GameMenu({
 		const socket = connectSocket();
 
 
-		socket.once("joined", (data) => {
+		socket.once("joined", (data: JoinedPayload) => {
 
 			console.log(
 				"Joined game:",

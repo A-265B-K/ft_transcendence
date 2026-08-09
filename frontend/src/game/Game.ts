@@ -3,6 +3,7 @@ import { loadGameTextures } from "./assets/loadGameTextures";
 import { GameScene } from "./scenes/GameScene";
 import { Input } from "./systems/Input";
 import { type JoinedPayload } from "../types/game";
+import type { Socket } from "socket.io-client";
 
 export class Game {
     readonly app: Application;
