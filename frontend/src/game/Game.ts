@@ -9,6 +9,7 @@ export class Game {
     readonly input = new Input();
 
     private scene?: GameScene;
+
     private readonly handleTick = (ticker: Ticker) => {
         if (!this.scene) return;
 
@@ -20,6 +21,7 @@ export class Game {
             this.app.renderer.height,
             deltaSeconds,
         );
+
     };
 
     constructor() {
@@ -33,14 +35,15 @@ export class Game {
     }
 
     updateRemotePlayer(
-        userID: string,
+        socketID: string,
         x: number,
         y: number
     ) {
-        this.scene?.updateRemotePlayer(userID, x, y);
+        this.scene?.updateRemotePlayer(socketID, x, y);
     }
 
-    async start(container: HTMLDivElement, joinedData: JoinedPayload) {
+    async start(container: HTMLDivElement, joinedData: JoinedPayload, socket: Socket) {
+
         await this.app.init({
             resizeTo: window,           // Automatically resize canvas with window
             autoDensity: true,          // Handle high-DPI displays
@@ -53,7 +56,8 @@ export class Game {
 
         this.scene = new GameScene(
             textures,
-            joinedData
+            joinedData,
+            socket,
         );
         
         this.app.stage.addChild(this.scene.world);

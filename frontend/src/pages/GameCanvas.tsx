@@ -28,16 +28,17 @@ export default function GameCanvas({
 
 		console.log("Starting game with:", joinedData);
 
+		const socket = connectSocket();
+
 		const game = new Game();
 
 		gameRef.current = game;
 
 		void game.start(
 			gameContainer.current,
-			joinedData
+			joinedData,
+			socket,
 		);
-
-		const socket = connectSocket();
 
 		function handlePlayerJoined(
 			player: JoinedPayload["players"][number]
@@ -47,10 +48,20 @@ export default function GameCanvas({
 			game.addRemotePlayer(player);
 		}
 
-		socket.on(
-			"player_joined",
-			handlePlayerJoined
-		);
+		function handlePlayerMove({
+			socketID,
+			x,
+			y
+		}: {
+			socketID: string;
+			x: number;
+			y: number;
+		}) {
+			game.updateRemotePlayer(socketID, x, y);
+		}
+
+		socket.on("player_joined", handlePlayerJoined);
+		socket.on("player_move", handlePlayerMove);
 
 		const intervalId = window.setInterval(() => {
 			const snapshot =
@@ -68,15 +79,12 @@ export default function GameCanvas({
 		}, 32);
 
 		return () => {
-			socket.off(
-				"player_joined",
-				handlePlayerJoined
-			);
+			socket.off("player_joined", handlePlayerJoined);
+			socket.off("player_move", handlePlayerMove);
 
 			window.clearInterval(intervalId);
 
 			gameRef.current = null;
-
 			game.destroy();
 		};
 

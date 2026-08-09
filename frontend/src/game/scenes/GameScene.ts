@@ -7,6 +7,7 @@ import type { GameTextures } from "../assets/loadGameTextures";
 import { isoX, isoY } from "../world/iso";
 import type { JoinedPayload } from "../../types/game";
 import { RemotePlayer } from "../entities/RemotePlayer";
+import type { Socket } from "socket.io-client";
 
 export class GameScene {
     readonly world: Container;
@@ -17,11 +18,17 @@ export class GameScene {
     readonly joinedData: JoinedPayload;
     readonly remotePlayers = new Map<string, RemotePlayer>();
     readonly playerTexture: GameTextures;
+    readonly socket: Socket;
 
     constructor(
         textures: GameTextures,
-        joinedData: JoinedPayload
+        joinedData: JoinedPayload,
+        socket: Socket,
     ) {
+        this.socket = socket;
+
+        this.world = new Container();
+
         this.world = new Container();
         this.world.sortableChildren = true;
 
@@ -110,7 +117,22 @@ export class GameScene {
 
     update(inputState: InputState, screenWidth: number, screenHeight: number, deltaSeconds: number) {
         // Updating player input
+        const oldX = this.player.gridX;
+        const oldY = this.player.gridY;
+
         this.player.update(inputState, deltaSeconds);
+
+        const movedDistance = Math.hypot(
+            this.player.gridX - oldX,
+            this.player.gridY - oldY
+        );
+
+        if (movedDistance > 0.05) {
+            this.socket.emit("player_move", {
+                x: this.player.gridX,
+                y: this.player.gridY,
+            });
+        }
 
         // 1. The collision of the edges of the map
         this.clampPlayerToMap();
