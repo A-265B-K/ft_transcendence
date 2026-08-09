@@ -15,7 +15,7 @@ export class RemotePlayer {
         this.userID = userID;
 
         this.sprite = new Sprite(texture);
-        this.sprite.anchor.set(0.5, 0.8);
+        this.sprite.anchor.set(0.5, 1);
         this.sprite.scale.set(0.5);  
     }
 
@@ -26,6 +26,7 @@ export class RemotePlayer {
 
         this.sprite.x = isoX(x, y);
         this.sprite.y = isoY(x, y);
+        this.sprite.zIndex = x + y + 1;
     }
 
 

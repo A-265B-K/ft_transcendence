@@ -14,6 +14,7 @@ export class GameScene {
     readonly map: GameMap;
     readonly player: Player;
     readonly castle: Castle;
+    readonly castles = new Map<number, Castle>();
     readonly camera: Camera;
     readonly joinedData: JoinedPayload;
     readonly remotePlayers = new Map<string, RemotePlayer>();
@@ -26,8 +27,6 @@ export class GameScene {
         socket: Socket,
     ) {
         this.socket = socket;
-
-        this.world = new Container();
 
         this.world = new Container();
         this.world.sortableChildren = true;
@@ -74,24 +73,28 @@ export class GameScene {
             );
         }
 
-        this.castle = new Castle(textures.castle);
-        
-        const myCastle = joinedData.map.castleZones.find(
-            zone => zone.playerSlot === joinedData.player.slot
-        );
+        let ownCastle: Castle | undefined;
 
+        for (const zone of joinedData.map.castleZones) {
+            const castle = new Castle(textures.castle);
 
-        if (myCastle) {
+            castle.placeAt(zone.x, zone.y);
 
-            this.castle.placeAt(
-                myCastle.x,
-                myCastle.y
-            );
+            this.map.clearTile(castle.gridX, castle.gridY);
 
+            this.castles.set(zone.playerSlot, castle);
+            this.world.addChild(castle.container);
+
+            if (zone.playerSlot === joinedData.player.slot) {
+                ownCastle = castle;
+            }
         }
 
-        this.map.clearTile(this.castle.gridX, this.castle.gridY);
-        this.world.addChild(this.castle.container);
+        if (!ownCastle) {
+            throw new Error("Own castle was not found");
+        }
+
+        this.castle = ownCastle;
 
         this.camera = new Camera(this.world);
         this.joinedData = joinedData;
