@@ -8,6 +8,10 @@ export const PLAYER_DEFAULT_Y = 0
 export const ROOM_MAX_SIZE = 4
 export const GAME_TICK_RATE = 60 // 60MS
 
+export const PLAYER_DEFAULT_IRON = 0
+export const PLAYER_DEFAULT_WOOD = 0
+export const PLAYER_DEFAULT_CASTLE_LEVEL = 1
+
 export const MAP_WIDTH = 100
 export const MAP_HEIGHT = 100
 export const CASTLE_RADIUS = 8

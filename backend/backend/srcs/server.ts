@@ -25,8 +25,14 @@ await fastify.register(staticFiles, {
 
 fastify.get("/ping", () => ({ ok: true }));
 
-fastify.post("/register", async (request, reply) => {
-	const result = await registerUser(request.body ?? {});
+type RegisterBody = {
+	username : string;
+	email: string;
+	password: string;
+};
+
+fastify.post<{ Body: RegisterBody }>("/register", async (request, reply) => {
+	const result = await registerUser(request.body);
 
 	return reply.code(result.statusCode).send({
 		message: result.message,
@@ -34,22 +40,29 @@ fastify.post("/register", async (request, reply) => {
 	});
 });
 
-fastify.post("/signin", async (request, reply) => {
+type SignInBody = {
+	email: string;
+	password: string;
+};
+
+fastify.post<{ Body: SignInBody }>("/signin", async (request, reply) => {
 	console.log("[signin] route reached");
 
-	const result = await SignInUser(request.body ?? {});
+	const result = await SignInUser(request.body);
 
-	if (result.ok) {
-
-		reply.setCookie("session_id", result.sessionId, {
-			httpOnly: true,
-			secure: true,
-			sameSite: "strict",
-			maxAge: 60 * 60 * 24,
-			path: "/",
+	if (!result.ok) {
+		return reply.code(result.statusCode).send({
+			message: result.message,
 		});
 	}
 
+	reply.setCookie("session_id", result.sessionId, {
+		httpOnly: true,
+		secure: true,
+		sameSite: "strict",
+		maxAge: 60 * 60 * 24,
+		path: "/",
+	});
 	return reply.code(result.statusCode).send({
 		message: result.message,
 		user: result.user,
@@ -64,6 +77,10 @@ io.use(async (socket, next) => {
 		.find(row => row.startsWith("session_id="))
 		?.split("=")[1];
 
+	if (!sessionId) {
+        console.log("Socket rejected: no session");
+        return next(new Error("Unauthorized"));
+    }
 	const user = await getCurrentUser(sessionId);
 
 	if (!user) {
@@ -131,8 +148,12 @@ fastify.post("/logout", async (request, reply) => {
 	}
 });
 
+type VerifyEmailQuery = {
+    token: string;
+};
+
 // still need to check for validated till token
-fastify.get("/verify-email", async (request, reply) => {
+fastify.get<{ Querystring: VerifyEmailQuery }>("/verify-email", async (request, reply) => {
 	console.log("[verify-email] route reached");
 
     const { token } = request.query;
