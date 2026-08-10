@@ -1,4 +1,4 @@
-import { Pool } from 'pg'
+import { Pool } from "pg";
 
 const db = new Pool({
 	user: process.env.POSTGRES_USER,
@@ -10,7 +10,7 @@ const db = new Pool({
 
 export default db
 
-export async function query(text, params = []) {
+export async function query(text: string, params: unknown[] = []) {
 	console.log('[db.query] text:', text)
 	console.log('[db.query] params:', params)
 

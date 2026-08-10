@@ -1,6 +1,6 @@
 import { selectFromSession } from "../repository/sessionRepository.js"
 
-export async function getCurrentUser(sessionId) {
+export async function getCurrentUser(sessionId: string) {
 
 	if (!sessionId) {
 		return null;

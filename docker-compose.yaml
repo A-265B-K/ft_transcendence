@@ -158,6 +158,15 @@ services:
           condition: service_healthy
         postgres:
           condition: service_healthy
+
+    vault:
+      image: hashicorp/vault
+      volumes:
+        - vault_data:/vault/data
+        - ./vault/vault.hcl:/vault/config/vault.hcl
+      ports:
+        - "8200:8200"
+
 volumes:
   prometheus:
   grafana:
@@ -166,3 +175,4 @@ volumes:
   frontend_node_modules:
   backend_node_modules:
   logs:
+  vault_data:

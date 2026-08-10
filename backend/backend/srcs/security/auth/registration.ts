@@ -11,8 +11,13 @@ export const emailTransporter = nodemailer.createTransport({
 	},
 });
 
+type registerPayload = {
+	username : string;
+	email: string;
+	password: string;
+};
 
-export async function registerUser(payload) {
+export async function registerUser(payload: registerPayload) {
 
 	const { username, email, password } = payload;
 	if (!username || !email || !password) {
@@ -35,8 +40,7 @@ export async function registerUser(payload) {
 			username,
 			email,
 			passwordHash,
-			verification_token,
-			'tomorrow'
+			verification_token
 		);
 
 		const baseUrl = process.env.HOSTNAME;

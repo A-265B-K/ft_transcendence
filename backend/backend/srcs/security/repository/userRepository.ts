@@ -1,6 +1,6 @@
 import { query } from "../auth/db.js";
 
-export async function insertUser(username, email, passwordHash, verification_token, verification_expires_at) {
+export async function insertUser(username: string, email: string, passwordHash: string, verification_token: string) {
 	const result = await query(
 		`
 		INSERT INTO users
@@ -17,7 +17,7 @@ export async function insertUser(username, email, passwordHash, verification_tok
 			$2,
 			$3,
 			$4,
-			$5
+			NOW() + INTERVAL '24 hours'
 		)
 		RETURNING
 			id,
@@ -30,8 +30,7 @@ export async function insertUser(username, email, passwordHash, verification_tok
 			username,
 			email,
 			passwordHash,
-			verification_token,
-			verification_expires_at
+			verification_token
 		]
 	);
 
@@ -39,7 +38,7 @@ export async function insertUser(username, email, passwordHash, verification_tok
 	return result.rows[0];
 }
 
-export async function findUserByEmail(email) {
+export async function findUserByEmail(email: string) {
 	const result = await query(
 		`
 		SELECT
@@ -60,7 +59,7 @@ export async function findUserByEmail(email) {
 	return result.rows[0] || null;
 }
 
-export async function findUserByVerificationToken(verification_token) {
+export async function findUserByVerificationToken(verification_token: string) {
 	const result = await query(
 		`
 		SELECT
@@ -80,7 +79,7 @@ export async function findUserByVerificationToken(verification_token) {
 	return result.rows[0] || null;
 }
 
-export async function changeEmailVerified(userId) {
+export async function changeEmailVerified(userId: number) {
 	const result = await query(
 		`
 		UPDATE users
@@ -97,7 +96,7 @@ export async function changeEmailVerified(userId) {
 	return result.rows[0];
 }
 
-export async function change2FAEnabed(userId, token) {
+export async function change2FAEnabed(userId: number, token: string) {
 	const result = await query(
 		`
 		UPDATE users
@@ -113,7 +112,7 @@ export async function change2FAEnabed(userId, token) {
 	return result.rows[0];
 }
 
-export async function change2FATOTP(TOTP, userId) {
+export async function change2FATOTP(TOTP: string, userId: number) {
 	const result = await query(
 		`
 		UPDATE users

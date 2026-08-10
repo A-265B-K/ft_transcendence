@@ -17,13 +17,13 @@ Current files involved:
 
 ## 2. Build email/password auth
 
-Goal: add register/login/logout before touching 2FA.
+<!--Goal: add register/login/logout before touching 2FA.
 
-What to do:
+What to do:-->
 <!-- - Add backend routes for register, login, logout, and session refresh. -->
 <!-- - Hash passwords with Argon2id or bcrypt; never store raw passwords. -->
 <!-- - Use per-password salt through the hashing library, not manual salt storage. -->
-- Verify email before allowing a user into the game.
+<!--- Verify email before allowing a user into the game.-->
 <!-- - Prefer httpOnly secure cookies for session transport in the browser. -->
 
 <!--Frontend changes:-->
@@ -63,9 +63,6 @@ What to do:
 - Use Vault Agent or rendered files so the backend gets secrets at runtime.
 - Keep application code reading from environment variables or files only.
 - Remove hardcoded secret values from `docker-compose.yaml`.
-
-Important 42 note:
-- Keep Vault self-hosted in the Docker stack; do not rely on a third-party hosted secret service.
 
 ## 5. Put ModSecurity/WAF at the edge
 

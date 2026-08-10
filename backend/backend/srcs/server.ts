@@ -25,8 +25,14 @@ await fastify.register(staticFiles, {
 
 fastify.get("/ping", () => ({ ok: true }));
 
-fastify.post("/register", async (request, reply) => {
-	const result = await registerUser(request.body ?? {});
+type RegisterBody = {
+	username : string;
+	email: string;
+	password: string;
+};
+
+fastify.post<{ Body: RegisterBody }>("/register", async (request, reply) => {
+	const result = await registerUser(request.body);
 
 	return reply.code(result.statusCode).send({
 		message: result.message,
@@ -34,12 +40,31 @@ fastify.post("/register", async (request, reply) => {
 	});
 });
 
-fastify.post("/signin", async (request, reply) => {
-	console.log("[signin] route reached");
+type SignInBody = {
+	email: string;
+	password: string;
+};
 
-	const result = await SignInUser(request.body ?? {});
+fastify.post<{ Body: SignInBody }>(
+	"/signin",
+	async (request, reply) => {
+		console.log("[signin] route reached");
 
-	if (result.ok) {
+		const result = await SignInUser(request.body);
+
+		if (!result.ok) {
+			return reply.code(result.statusCode).send({
+				message: result.message,
+			});
+		}
+
+		if (result.requireTwoFactor) {
+			return reply.code(200).send({
+				message: result.message,
+				requireTwoFactor: true,
+				userId: result.userId,
+			});
+		}
 
 		reply.setCookie("session_id", result.sessionId, {
 			httpOnly: true,
@@ -48,13 +73,13 @@ fastify.post("/signin", async (request, reply) => {
 			maxAge: 60 * 60 * 24,
 			path: "/",
 		});
-	}
 
-	return reply.code(result.statusCode).send({
-		message: result.message,
-		user: result.user,
-	});
-});
+		return reply.code(result.statusCode).send({
+			message: result.message,
+			user: result.user,
+		});
+	}
+);
 
 io.use(async (socket, next) => {
 	const cookie = socket.handshake.headers.cookie;
@@ -64,6 +89,10 @@ io.use(async (socket, next) => {
 		.find(row => row.startsWith("session_id="))
 		?.split("=")[1];
 
+	if (!sessionId) {
+		console.log("Socket rejected: no session");
+		return next(new Error("Unauthorized"));
+	}
 	const user = await getCurrentUser(sessionId);
 
 	if (!user) {
@@ -131,11 +160,15 @@ fastify.post("/logout", async (request, reply) => {
 	}
 });
 
+type VerifyEmailQuery = {
+	token: string;
+};
+
 // still need to check for validated till token
-fastify.get("/verify-email", async (request, reply) => {
+fastify.get<{ Querystring: VerifyEmailQuery }>("/verify-email", async (request, reply) => {
 	console.log("[verify-email] route reached");
 
-    const { token } = request.query;
+	const { token } = request.query;
 		if (!token) {
 		return reply.code(400).send({
 			message: "Missing token",

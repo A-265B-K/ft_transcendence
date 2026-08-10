@@ -1,6 +1,6 @@
 import { query } from "../auth/db.js";
 
-export async function insertSessionById(sessionId, userId) {
+export async function insertSessionById(sessionId: string, userId: number) {
 
 	await query(
 		`
@@ -26,7 +26,7 @@ export async function insertSessionById(sessionId, userId) {
 	return sessionId;
 }
 
-export async function selectFromSession(sessionId) {
+export async function selectFromSession(sessionId: string) {
 
 	const result = await query(
 		`
@@ -49,7 +49,7 @@ export async function selectFromSession(sessionId) {
 	return result.rows[0] || null;
 }
 
-export async function deleteSessionById(sessionId) {
+export async function deleteSessionById(sessionId: string) {
 
 	await query(
 		`
