@@ -11,7 +11,7 @@ export type Room = {
   map: ReturnType<typeof generateMap>;
 };
 export type Player = {
-	userId: number;
+	userId: string;
 	socketId: string;
 	username: string;
 	hp: number;
