@@ -27,6 +27,6 @@ fclean: cleanbackups
 re: fclean
 	@docker compose up --build -d
 
-resetdocker:
+resetdocker: fclean
 	@docker system prune -af
 	@docker volume prune -af
