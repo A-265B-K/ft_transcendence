@@ -81,6 +81,6 @@ export class Player {
         // Update sprite position using isometric projection
         this.sprite.x = isoX(this.gridX, this.gridY);
         this.sprite.y = isoY(this.gridX, this.gridY);
-        this.sprite.zIndex = this.gridX + this.gridY;
+        this.sprite.zIndex = this.gridX + this.gridY + 1;
     }
 }

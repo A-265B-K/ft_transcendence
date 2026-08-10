@@ -2,12 +2,15 @@ import { Application, Ticker } from "pixi.js";
 import { loadGameTextures } from "./assets/loadGameTextures";
 import { GameScene } from "./scenes/GameScene";
 import { Input } from "./systems/Input";
+import { type JoinedPayload } from "../types/game";
+import type { Socket } from "socket.io-client";
 
 export class Game {
     readonly app: Application;
     readonly input = new Input();
 
     private scene?: GameScene;
+
     private readonly handleTick = (ticker: Ticker) => {
         if (!this.scene) return;
 
@@ -19,13 +22,29 @@ export class Game {
             this.app.renderer.height,
             deltaSeconds,
         );
+
     };
 
     constructor() {
         this.app = new Application();
     }
 
-    async start(container: HTMLDivElement) {
+    addRemotePlayer(
+        player: JoinedPayload["players"][number]
+    ) {
+        this.scene?.addRemotePlayer(player);
+    }
+
+    updateRemotePlayer(
+        socketID: string,
+        x: number,
+        y: number
+    ) {
+        this.scene?.updateRemotePlayer(socketID, x, y);
+    }
+
+    async start(container: HTMLDivElement, joinedData: JoinedPayload, socket: Socket) {
+
         await this.app.init({
             resizeTo: window,           // Automatically resize canvas with window
             autoDensity: true,          // Handle high-DPI displays
@@ -36,7 +55,12 @@ export class Game {
 
         const textures = await loadGameTextures();
 
-        this.scene = new GameScene(textures);
+        this.scene = new GameScene(
+            textures,
+            joinedData,
+            socket,
+        );
+        
         this.app.stage.addChild(this.scene.world);
         this.app.ticker.add(this.handleTick);
     }
@@ -54,4 +78,5 @@ export class Game {
     getCastlePointerSnapshot() {
         return this.scene?.getCastlePointer() ?? null;
     }
+
 }

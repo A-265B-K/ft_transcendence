@@ -4,7 +4,7 @@ import Signup from "./pages/SignUp";
 import LogIn from "./pages/Login";
 import GameMenu from "./pages/GameMenu";
 import { useState, useEffect } from "react";
-
+import { type JoinedPayload } from "./types/game";
 
 type User = {
 	id: number;
@@ -21,7 +21,7 @@ export default function App() {
 
 
 	const [user, setUser] = useState<User | null>(null);
-
+	const [joinedData, setJoinedData] = useState<JoinedPayload | null>(null);
 
 
 	useEffect(() => {
@@ -157,17 +157,14 @@ export default function App() {
 
 		return (
 			<GameMenu
+			user={user}
 
-				user={user}
-
-
-				onStartGame={()=>{
-					setScreen("game");
-				}}
-
+			onStartGame={(data)=>{
+				setJoinedData(data);
+				setScreen("game");
+			}}
 
 				onLogout={logout}
-
 			/>
 		);
 
@@ -175,11 +172,11 @@ export default function App() {
 
 
 
-	if(screen === "game" && user) {
+	if(screen === "game" && user && joinedData) {
 
 		return (
 			<GameCanvas
-				username={user.username}
+				joinedData={joinedData}
 			/>
 		);
 

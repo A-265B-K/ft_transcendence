@@ -60,7 +60,7 @@ const onJoin = (socket, data) => {
 	room.players.push(player)
 
 	socket.join(roomId)
-	socket.to(roomId).emit('player_joined', player.username)
+	socket.to(roomId).emit('player_joined', player)
 	socket.emit('joined', { roomId, player, map: room.map, players: room.players })
 
 	console.log(`Player ${player.username} joined room ${roomId}
@@ -102,6 +102,37 @@ const onConnection = async (socket) => {
 
 	socket.on('join', () => {
 		currentroomId = onJoin(socket);
+	});
+
+	socket.on("player_move", ({ x, y }) => {
+		const player = players[socket.id];
+
+		if (!player || !currentroomId)
+			return;
+
+		if (
+			typeof x !== "number" ||
+			typeof y !== "number" ||
+			!Number.isFinite(x) ||
+			!Number.isFinite(y)
+		) {
+			return;
+		}
+
+		const maxX = 100 - 1;
+		const maxY = 100 - 1;
+
+		if (x < 0 || x > maxX || y < 0 || y > maxY)
+			return;
+
+		player.x = x;
+		player.y = y;
+
+		socket.to(currentroomId).emit("player_move", {
+			socketID: socket.id,
+			x: player.x,
+			y: player.y,
+		});
 	});
 
 	socket.on('disconnect', () => {
