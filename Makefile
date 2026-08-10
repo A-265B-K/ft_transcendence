@@ -25,8 +25,3 @@ fclean: cleanbackups
 	@docker compose down --rmi all --volumes
 
 re: fclean up
-
-resetdocker: fclean
-	@docker compose kill
-	@docker system prune -af
-	@docker volume prune -af
