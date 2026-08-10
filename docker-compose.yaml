@@ -150,4 +150,3 @@ volumes:
   nginx_certs:
   frontend_node_modules:
   backend_node_modules:
-  logs:
