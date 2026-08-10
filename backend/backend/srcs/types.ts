@@ -5,5 +5,11 @@ export type Vec2 = {
 
 export type Spawn = {
 	pos: Vec2;
-	playerId: number;
+	playerSlot: number;
+}
+
+export type Inventory = {
+	iron: number;
+	wood: number;
+	castleLevel: number;
 }

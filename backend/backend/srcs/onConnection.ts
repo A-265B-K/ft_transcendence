@@ -1,6 +1,10 @@
 import { createRoom } from "./rooms/gameRoom.js"
-import { rooms, players } from "./state/gameState.js"
-import { PLAYER_DEFAULT_HP, PLAYER_DEFAULT_X, PLAYER_DEFAULT_Y, ROOM_MAX_SIZE } from "./constants.js"
+import { rooms, players, type Room } from "./state/gameState.js"
+import { PLAYER_DEFAULT_HP, ROOM_MAX_SIZE, 
+	PLAYER_DEFAULT_WOOD, PLAYER_DEFAULT_IRON,
+	PLAYER_DEFAULT_CASTLE_LEVEL } from "./constants.js"
+import type { Socket } from "socket.io"
+import type { Spawn } from "./types.js"
 
 const findAvailableRoom = () => {
   return Object.entries(rooms).find(
@@ -8,20 +12,24 @@ const findAvailableRoom = () => {
   ) || null
 }
 
-const createPlayer = (socket, user, slot, spawn) => {
+const createPlayer = (socket: Socket, user: any, slot: number, spawn: Spawn) => {
 
 	return {
-		userID: user.id,
-		socketID: socket.id,
+		userId: user.id,
+		socketId: socket.id,
 		username: user.username,
 		slot,
 		hp: PLAYER_DEFAULT_HP,
-		x: spawn.x,
-		y: spawn.y
+		x: spawn.pos.x,
+		y: spawn.pos.y,
+		inventory: { 
+			iron: PLAYER_DEFAULT_IRON, 
+			wood: PLAYER_DEFAULT_WOOD, 
+			castleLevel: PLAYER_DEFAULT_CASTLE_LEVEL }
 	};
 };
 
-const findAvailableSlot = (room, maxSize) => {
+const findAvailableSlot = (room: Room, maxSize: number) => {
 	const usedSlots = new Set(room.players.map(p => p.slot))
 
 	for (let slot = 1; slot <= maxSize; slot++) {
@@ -31,11 +39,11 @@ const findAvailableSlot = (room, maxSize) => {
 	return null
 }
 
-const onJoin = (socket, data) => {
+const onJoin = (socket: Socket): string | null => {
 
 	let available = findAvailableRoom()
-	let room
-	let roomId
+	let room: Room
+	let roomId: string
 
 	if (!available) {
 		const [newRoom, newRoomId] = createRoom()
@@ -50,7 +58,7 @@ const onJoin = (socket, data) => {
 	if (slot === null) {
 		console.error(`Room ${roomId} has no available slot even though it should have space`)
 		socket.emit('join_error', { message: 'Room is full' })
-		return
+		return null
 	}
 
 	const spawn = room.map.spawnPoints.find(sp => sp.playerSlot === slot)
@@ -70,7 +78,7 @@ const onJoin = (socket, data) => {
 	return roomId
 }
 
-const onDisconnection = (socket, roomId) => {
+const onDisconnection = (socket: Socket, roomId) => {
 	const player = players[socket.id]
 	if (!player) return
 
@@ -80,7 +88,7 @@ const onDisconnection = (socket, roomId) => {
 
 	// remove da sala
 	rooms[roomId].players = rooms[roomId].players.filter(
-		p => p.socketID !== socket.id
+		p => p.socketId !== socket.id
 	)
 
 	if (rooms[roomId].players.length === 0) {
@@ -98,7 +106,7 @@ const onConnection = async (socket) => {
 		"Player connected:",
 		socket.user.username
 	);
-	let currentroomId = null;
+	let currentroomId: string | null = null;
 
 	socket.on('join', () => {
 		currentroomId = onJoin(socket);
