@@ -1,5 +1,4 @@
 FROM debian:trixie-slim
-
 WORKDIR /app
 COPY backups.sh /app
 
