@@ -1,4 +1,4 @@
-FROM node
+FROM node:trixie-slim
 WORKDIR /app
 
 COPY package.json package-lock.json ./
