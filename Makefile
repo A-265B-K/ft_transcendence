@@ -24,8 +24,7 @@ cleanbackups:
 fclean: cleanbackups
 	@docker compose down --rmi all --volumes
 
-re: fclean
-	@docker compose up --build -d
+re: fclean up
 
 resetdocker: fclean
 	@docker system prune -af
