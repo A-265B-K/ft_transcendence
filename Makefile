@@ -2,7 +2,7 @@ all: up
 
 up:
 	@mkdir -p ./backups
-	@docker compose up --build -d
+	@docker compose up -d
 	@echo Game reachable at https://localhost:8443/
 
 down:
