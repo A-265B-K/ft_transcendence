@@ -25,7 +25,7 @@ services:
         HOSTNAME: ${HOSTNAME:?HOSTNAME is not set}
 
     nginx:
-      image: nginx
+      image: nginx:1.30.4
       entrypoint: ["nginx", "-g", "daemon off;"]
       depends_on:
         nginx-certgen:
@@ -47,7 +47,7 @@ services:
         - logs:/nginxlogs/
         - nginx_certs:/etc/nginx/ssl:ro
     nginx-certgen:
-      image: alpine/openssl
+      image: alpine/openssl:3.5.7
       entrypoint: ["/bin/sh", "-c"]
       command:
         - |
@@ -64,7 +64,7 @@ services:
         - logs:/app/logs
 
     postgres:
-      image: postgres
+      image: postgres:18.4
       volumes:
         - postgres_data:/var/lib/postgresql
         - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
@@ -90,13 +90,13 @@ services:
         - logs:/app/logs
 
     nginx_exporter:
-      image: nginx/nginx-prometheus-exporter
+      image: nginx/nginx-prometheus-exporter:1.5.1
       command: ["--nginx.scrape-uri", "http://nginx:3001/stub_status"]
       volumes:
         - logs:/app/logs
  
     prometheus:
-      image: prom/prometheus
+      image: prom/prometheus:v3.13.1
       volumes:
         - ./devops/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
         - prometheus:/prometheus
@@ -113,7 +113,7 @@ services:
 
 
     grafana:
-      image: grafana/grafana
+      image: grafana/grafana:13.0-slim
       environment:
         GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:?GRAFANA_ADMIN_USER is not set}
         GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD is not set}
