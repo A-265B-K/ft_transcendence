@@ -126,21 +126,6 @@ services:
         - grafana:/var/lib/grafana
         - logs:/app/logs
 
-    elasticsearch:
-      image: elasticsearch:9.4.4
-      volumes:
-      - logs:/app/logs
-    
-    logstash:
-      image: logstash:9.4.4
-      volumes:
-        - logs:/app/logs
-    
-    kibana:
-      image: kibana:9.4.4
-      volumes:
-        - logs:/app/logs
-
     backups:
       build: ./docker/backups
       volumes:
