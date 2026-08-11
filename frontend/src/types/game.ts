@@ -1,6 +1,6 @@
 export interface PlayerData {
-    userID: string;
-    socketID: string;
+    userId: string;
+    socketId: string;
     username: string;
     slot: number;
     hp: number;

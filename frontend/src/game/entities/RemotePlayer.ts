@@ -4,15 +4,15 @@ import { isoX, isoY } from "../world/iso";
 export class RemotePlayer {
     readonly sprite: Sprite;
 
-    userID: string;
+    userId: string;
     gridX = 0;
     gridY = 0;
 
     constructor(
         texture: Texture,
-        userID: string
+        userId: string
     ) {
-        this.userID = userID;
+        this.userId = userId;
 
         this.sprite = new Sprite(texture);
         this.sprite.anchor.set(0.5, 1);
