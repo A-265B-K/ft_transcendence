@@ -32,7 +32,7 @@ jobs:
         run: test "$(curl -kso /dev/null -w '%{http_code}' https://localhost:8443/)" = "200"
 
       - name: Check backend
-        run: curl --fail --insecure https://localhost:8443/api/ping
+        run: curl --fail --insecure https://localhost:8443/ping
 
       - name: Check database exporter
         run: docker compose exec -T prometheus wget -qO- http://postgresexporter:80
