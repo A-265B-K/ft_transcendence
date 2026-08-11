@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
-import { insertUser, change2FAEnabed } from "../repository/userRepository.js";
-import { randomUUID } from 'crypto'
+import { insertUser } from "../repository/userRepository.js";
+import { randomUUID } from 'crypto';
 import nodemailer from "nodemailer";
 
 export const emailTransporter = nodemailer.createTransport({
@@ -11,8 +11,13 @@ export const emailTransporter = nodemailer.createTransport({
 	},
 });
 
+type registerPayload = {
+	username : string;
+	email: string;
+	password: string;
+};
 
-export async function registerUser(payload) {
+export async function registerUser(payload: registerPayload) {
 
 	const { username, email, password } = payload;
 	if (!username || !email || !password) {
@@ -35,8 +40,7 @@ export async function registerUser(payload) {
 			username,
 			email,
 			passwordHash,
-			verification_token,
-			'tomorrow'
+			verification_token
 		);
 
 		const baseUrl = process.env.HOSTNAME;
@@ -69,9 +73,6 @@ export async function registerUser(payload) {
 			console.error("Failed to send email:", err);
 		}
 
-// temporary automatic 2FA enabled for develpment /!\ to change later into a toggle on || off in menu
-		//const TOTP_secret = crypto.randomUUID();
-		//await change2FAEnabed(user.id, TOTP_secret);
 		return {
 			ok:true,
 			statusCode:201,

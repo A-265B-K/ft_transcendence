@@ -1,6 +1,7 @@
 import Fastify from "fastify";
 import cookie from "@fastify/cookie";
 import staticFiles from "@fastify/static";
+import { randomUUID } from 'crypto';
 import { Server } from "socket.io";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
@@ -10,6 +11,7 @@ import { SignInUser } from "./security/auth/signin.js";
 import { getCurrentUser } from "./security/session/session.js";
 import { deleteSessionById, insertSessionById } from "./security/repository/sessionRepository.js";
 import { findUserByVerificationToken, changeEmailVerified } from "./security/repository/userRepository.js";
+import { enableUser2FA, disableUser2FA, confirm2FASetup, verify2FALogin } from "./security/2FA/twoFA.js";
 
 const fastify = Fastify();
 
@@ -25,8 +27,14 @@ await fastify.register(staticFiles, {
 
 fastify.get("/ping", () => ({ ok: true }));
 
-fastify.post("/register", async (request, reply) => {
-	const result = await registerUser(request.body ?? {});
+type RegisterBody = {
+	username : string;
+	email: string;
+	password: string;
+};
+
+fastify.post<{ Body: RegisterBody }>("/register", async (request, reply) => {
+	const result = await registerUser(request.body);
 
 	return reply.code(result.statusCode).send({
 		message: result.message,
@@ -34,12 +42,32 @@ fastify.post("/register", async (request, reply) => {
 	});
 });
 
-fastify.post("/signin", async (request, reply) => {
-	console.log("[signin] route reached");
+type SignInBody = {
+	email: string;
+	password: string;
+};
 
-	const result = await SignInUser(request.body ?? {});
+fastify.post<{ Body: SignInBody }>(
+	"/signin",
+	async (request, reply) => {
+		console.log("[signin] route reached");
 
-	if (result.ok) {
+		const result = await SignInUser(request.body);
+		console.log("[signin] result:", result);
+		
+		if (!result.ok) {
+			return reply.code(result.statusCode).send({
+				message: result.message,
+			});
+		}
+
+		if (result.requireTwoFactor) {
+			return reply.code(200).send({
+				message: result.message,
+				requireTwoFactor: true,
+				userId: result.userId,
+			});
+		}
 
 		reply.setCookie("session_id", result.sessionId, {
 			httpOnly: true,
@@ -48,13 +76,13 @@ fastify.post("/signin", async (request, reply) => {
 			maxAge: 60 * 60 * 24,
 			path: "/",
 		});
-	}
 
-	return reply.code(result.statusCode).send({
-		message: result.message,
-		user: result.user,
-	});
-});
+		return reply.code(result.statusCode).send({
+			message: result.message,
+			user: result.user,
+		});
+	}
+);
 
 io.use(async (socket, next) => {
 	const cookie = socket.handshake.headers.cookie;
@@ -64,6 +92,10 @@ io.use(async (socket, next) => {
 		.find(row => row.startsWith("session_id="))
 		?.split("=")[1];
 
+	if (!sessionId) {
+		console.log("Socket rejected: no session");
+		return next(new Error("Unauthorized"));
+	}
 	const user = await getCurrentUser(sessionId);
 
 	if (!user) {
@@ -131,11 +163,15 @@ fastify.post("/logout", async (request, reply) => {
 	}
 });
 
+type VerifyEmailQuery = {
+	token: string;
+};
+
 // still need to check for validated till token
-fastify.get("/verify-email", async (request, reply) => {
+fastify.get<{ Querystring: VerifyEmailQuery }>("/verify-email", async (request, reply) => {
 	console.log("[verify-email] route reached");
 
-    const { token } = request.query;
+	const { token } = request.query;
 		if (!token) {
 		return reply.code(400).send({
 			message: "Missing token",
@@ -151,8 +187,8 @@ fastify.get("/verify-email", async (request, reply) => {
 		}
 			await changeEmailVerified(user.id);
 			console.log("[verify-email] user verified_email changed to true");
-// creates a cookie in order to sign in directly
-			const sessionId = crypto.randomUUID();
+
+			const sessionId = randomUUID();
 			await insertSessionById(sessionId, user.id);
 			reply.setCookie("session_id", sessionId, {
 				httpOnly: true,
@@ -173,6 +209,51 @@ fastify.get("/verify-email", async (request, reply) => {
 		});
 	}	
 });
+
+/*2FA___2FA___2FA___2FA___2FA___2FA___2FA___2FA___2FA___2FA___2FA___2FA___2FA___2FA___2FA___2FA*/
+fastify.post("/api/2fa/setup", async (request, reply) => {
+	const { email } = request.body;
+	return await enableUser2FA(email);
+});
+
+fastify.post("/api/2fa/confirm", async (request, reply) => {
+	const { email, token } = request.body;
+	return await confirm2FASetup(
+		email,
+		token
+	);
+
+});
+
+fastify.post("/api/2fa/disable", async (request, reply) => {
+	const { email } = request.body as {email: string};
+
+	const result = await disableUser2FA(email);
+	return {
+		ok: true,
+		message: "2FA disabled"
+	};
+});
+
+fastify.post("/api/2fa/login", async (request, reply) => {
+	const { email, token } = request.body;
+
+	return await verify2FALogin(
+		email,
+		token
+	);
+
+});
+// 2FA pages temporatry to public pages to check workflow
+fastify.get("/setup-2fa", async (request, reply) => {
+	console.log("SETUP 2FA ROUTE REACHED");
+	return reply.sendFile("setup-2fa.html");
+});
+
+fastify.get("/verify-2fa", async (request, reply) => {
+	return reply.sendFile("verify-2fa.html");
+});
+/*2FA___2FA___2FA___2FA___2FA___2FA___2FA___2FA___2FA___2FA___2FA___2FA___2FA___2FA___2FA___2FA*/
 
 
 // Socket

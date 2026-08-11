@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Verify 2FA</title>
+</head>
+
+
+<body>
+
+
+<h1>Two-Factor Authentication</h1>
+
+
+<label>
+    Email:
+
+    <input id="email" type="email">
+
+</label>
+
+
+<br><br>
+
+
+<label>
+    Authentication code:
+
+    <input id="token" maxlength="6">
+
+</label>
+
+
+<br><br>
+
+
+<button onclick="verify2FA()">
+    Verify
+</button>
+
+
+<p id="message"></p>
+
+
+
+<script>
+
+
+async function verify2FA(){
+
+
+    const email =
+        document.getElementById("email").value;
+
+
+    const token =
+        document.getElementById("token").value;
+
+
+
+    const response = await fetch(
+        "/api/2fa/login",
+        {
+            method:"POST",
+
+            headers:{
+                "Content-Type":"application/json"
+            },
+
+            body:JSON.stringify({
+                email,
+                token
+            })
+        }
+    );
+
+
+
+    const data = await response.json();
+
+
+
+    if(data.ok){
+
+        document.getElementById("message")
+            .innerText =
+            "2FA verified successfully";
+
+        /*
+          Later:
+          redirect to game/dashboard
+        */
+
+    }
+    else {
+
+        document.getElementById("message")
+            .innerText =
+            data.message;
+
+    }
+
+
+}
+
+
+
+</script>
+
+
+</body>
+</html>

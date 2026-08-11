@@ -17,13 +17,13 @@ Current files involved:
 
 ## 2. Build email/password auth
 
-Goal: add register/login/logout before touching 2FA.
+<!-- Goal: add register/login/logout before touching 2FA. -->
 
-What to do:
+<!-- What to do: -->
 <!-- - Add backend routes for register, login, logout, and session refresh. -->
 <!-- - Hash passwords with Argon2id or bcrypt; never store raw passwords. -->
 <!-- - Use per-password salt through the hashing library, not manual salt storage. -->
-- Verify email before allowing a user into the game.
+<!-- - Verify email before allowing a user into the game. -->
 <!-- - Prefer httpOnly secure cookies for session transport in the browser. -->
 
 <!--Frontend changes:-->
@@ -97,7 +97,7 @@ What to do:
 
 <!--1. Add Postgres-backed user/session storage.-->
 <!--2. Implement register/login/logout with password hashing.-->
-3. Add email verification.
+<!-- 3. Add email verification. -->
 4. Add TOTP 2FA and backup codes.
 5. Gate websocket joins on authenticated sessions.
 6. Add Vault and remove secrets from compose.

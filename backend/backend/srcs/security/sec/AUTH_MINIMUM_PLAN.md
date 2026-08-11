@@ -5,7 +5,7 @@
 <!--2. Implement register.-->
 <!--3. Implement login.-->
 <!-- 4. Add session or cookie auth. -->
-5. Add email verification.
+<!-- 5. Add email verification. -->
 <!-- 6. Protect websocket join so only logged-in users can enter the game. -->
 7. Add 2FA.
 8. Add Vault integration.
@@ -69,12 +69,12 @@ Vault and WAF can come after the auth core is working.
 - require authentication before websocket join
 - stop trusting the client-supplied user id
 - load the authenticated user from the session -->
-
+<!-- 
 ### Day 5: Add email verification
 
 - generate a verification token
 - send a verification email
-- block gameplay until the email is verified
+- block gameplay until the email is verified -->
 
 ### Day 6: Add basic 2FA
 
