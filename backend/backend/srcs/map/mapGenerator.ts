@@ -1,6 +1,7 @@
 // mapGenerator.ts
 import { randomUUID } from 'crypto'
 import { MAP_WIDTH, MAP_HEIGHT, CASTLE_RADIUS, MIN_DIST_CASTLE } from "../constants.js"
+import type { Spawn } from "../types.js"
 
 
 function generateSpawnAndCastleData(maxPlayers: number) {
@@ -34,10 +35,9 @@ function generateSpawnAndCastleData(maxPlayers: number) {
 	)
   }
 
-  const spawnPoints = castleZones.map((c) => ({
+  const spawnPoints: Spawn[] = castleZones.map((c) => ({
     playerSlot: c.playerSlot,
-    x: c.x,
-    y: c.y,
+    pos: { x: c.x, y: c.y },
   }))
 
   return { spawnPoints, castleZones }
