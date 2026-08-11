@@ -1,6 +1,5 @@
 import QRCode from "qrcode";
-import { generateSecret, verify } from "otplib";
-import { generateTOTP } from "@otplib/uri";
+import { generateSecret, verify, generateURI } from "otplib";
 import { enable2FA, disable2FA, addTOTP, findUserByEmail } from "../repository/userRepository.js";
 
 export async function enableUser2FA(email: string) {
@@ -9,7 +8,7 @@ export async function enableUser2FA(email: string) {
 
 		await addTOTP(email, totp_secret);
 
-		const otpauth = generateTOTP({
+		const otpauth = generateURI({
 			issuer: "SurvivalGame42",
 			label: email,
 			secret: totp_secret
@@ -110,7 +109,6 @@ export async function verify2FALogin(email: string, token: string) {
 				message: "2FA is not enabled"
 			};
 		}
-
 		const result = await verify({
 			token,
 			secret: user.totp_secret
@@ -123,9 +121,9 @@ export async function verify2FALogin(email: string, token: string) {
 				message: "Invalid code"
 			};
 		}
-
 		return {
 			ok: true,
+			statusCode: 200,
 			message: "2FA verified"
 		};
 

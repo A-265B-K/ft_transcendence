@@ -1,8 +1,13 @@
-all: up
+all: up upd
 
 up:
 	@mkdir -p ./backups
 	@docker compose up --build -d
+	@echo Game reachable at https://localhost:8443/
+
+upd:
+	@mkdir -p ./backups
+	@docker compose up --build
 	@echo Game reachable at https://localhost:8443/
 
 down:

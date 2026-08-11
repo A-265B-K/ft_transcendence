@@ -8,8 +8,8 @@ import { dirname, join } from "node:path";
 import onConnection from "./onConnection.js";
 import { registerUser } from "./security/auth/registration.js";
 import { SignInUser } from "./security/auth/signin.js";
-import { getCurrentUser } from "./security/session/session.js";
-import { deleteSessionById, insertSessionById } from "./security/repository/sessionRepository.js";
+import { getCurrentUser, getCurrentUserByTemporary2FA } from "./security/session/session.js";
+import { deleteSessionById, insertSessionById, deleteTemporary2FA } from "./security/repository/sessionRepository.js";
 import { findUserByVerificationToken, changeEmailVerified } from "./security/repository/userRepository.js";
 import { enableUser2FA, disableUser2FA, confirm2FASetup, verify2FALogin } from "./security/2FA/twoFA.js";
 
@@ -62,10 +62,18 @@ fastify.post<{ Body: SignInBody }>(
 		}
 
 		if (result.requireTwoFactor) {
+			console.log("[signin] requireTwoFactor activated");
+			reply.setCookie("temporary_auth", result.temporary_auth, {
+				httpOnly: true,
+				secure: true,
+				sameSite: "strict",
+				maxAge: 60 * 5, // 5 minutes
+				path: "/",
+			});
 			return reply.code(200).send({
 				message: result.message,
 				requireTwoFactor: true,
-				userId: result.userId,
+				userId: result.user.id,
 			});
 		}
 
@@ -73,12 +81,13 @@ fastify.post<{ Body: SignInBody }>(
 			httpOnly: true,
 			secure: true,
 			sameSite: "strict",
-			maxAge: 60 * 60 * 24,
+			maxAge: 60 * 60 * 24, // 24h
 			path: "/",
 		});
 
 		return reply.code(result.statusCode).send({
 			message: result.message,
+			requireTwoFactor: false,
 			user: result.user,
 		});
 	}
@@ -167,7 +176,6 @@ type VerifyEmailQuery = {
 	token: string;
 };
 
-// still need to check for validated till token
 fastify.get<{ Querystring: VerifyEmailQuery }>("/verify-email", async (request, reply) => {
 	console.log("[verify-email] route reached");
 
@@ -210,13 +218,19 @@ fastify.get<{ Querystring: VerifyEmailQuery }>("/verify-email", async (request, 
 	}	
 });
 
-/*2FA___2FA___2FA___2FA___2FA___2FA___2FA___2FA___2FA___2FA___2FA___2FA___2FA___2FA___2FA___2FA*/
-fastify.post("/api/2fa/setup", async (request, reply) => {
+type twoFAenable = {
+	email: string;
+};
+fastify.post<{ Body: twoFAenable }>("/api/2fa/setup", async (request, reply) => {
 	const { email } = request.body;
 	return await enableUser2FA(email);
 });
 
-fastify.post("/api/2fa/confirm", async (request, reply) => {
+type twoFAconfirmBody = {
+	email: string;
+	token: string;
+};
+fastify.post<{ Body: twoFAconfirmBody }>("/api/2fa/confirm", async (request, reply) => {
 	const { email, token } = request.body;
 	return await confirm2FASetup(
 		email,
@@ -225,7 +239,10 @@ fastify.post("/api/2fa/confirm", async (request, reply) => {
 
 });
 
-fastify.post("/api/2fa/disable", async (request, reply) => {
+type twoFAdisable = {
+	email: string;
+};
+fastify.post<{ Body: twoFAdisable }>("/api/2fa/disable", async (request, reply) => {
 	const { email } = request.body as {email: string};
 
 	const result = await disableUser2FA(email);
@@ -235,26 +252,87 @@ fastify.post("/api/2fa/disable", async (request, reply) => {
 	};
 });
 
-fastify.post("/api/2fa/login", async (request, reply) => {
-	const { email, token } = request.body;
+type twoFAlogin = {
+	token: string
+};
+fastify.post<{ Body: twoFAlogin }>("/api/2fa/login", async (request, reply) => {
+	const twoFAId = request.cookies.temporary_auth;
+	if (!twoFAId) {
+		return reply.redirect("/");
+	}
+		if (!twoFAId) {
+		return reply.code(401).send({
+			ok: false,
+			message: "2FA authentication expired",
+		});
+	}
+	const { token } = request.body;
+	const user = await getCurrentUserByTemporary2FA(twoFAId);
 
-	return await verify2FALogin(
-		email,
+	if (!user) {
+		return reply.code(401).send({
+			ok: false,
+			message: "Invalid authentication state",
+		});
+	}
+
+	const result = await verify2FALogin(
+		user.email,
 		token
 	);
+	if (!result.ok) {
+		return reply
+			.code(result.statusCode)
+			.send({
+				ok: false,
+				message: result.message,
+			});
+	}
+	const sessionId = randomUUID();
+	await insertSessionById(sessionId, user.id);
+	reply.setCookie(
+		"session_id",
+		sessionId,
+		{
+			httpOnly: true,
+			secure: true,
+			sameSite: "strict",
+			maxAge: 60 * 60 * 24,
+			path: "/",
+		}
+	);
+	reply.clearCookie(
+		"temporary_auth",
+		{
+			httpOnly: true,
+			secure: true,
+			sameSite: "strict",
+			path: "/",
+		}
+	);
+	await deleteTemporary2FA(user.id);
 
+		return reply.send({
+			ok: true,
+			message: "2FA verified",
+		});
 });
-// 2FA pages temporatry to public pages to check workflow
+
 fastify.get("/setup-2fa", async (request, reply) => {
 	console.log("SETUP 2FA ROUTE REACHED");
 	return reply.sendFile("setup-2fa.html");
 });
-
 fastify.get("/verify-2fa", async (request, reply) => {
+	const twoFAId = request.cookies.temporary_auth;
+	if (!twoFAId) {
+		return reply.redirect("/");
+	}
+	const user = await getCurrentUserByTemporary2FA(twoFAId);
+	if (!user) {
+		return reply.redirect("/");
+	}
 	return reply.sendFile("verify-2fa.html");
 });
-/*2FA___2FA___2FA___2FA___2FA___2FA___2FA___2FA___2FA___2FA___2FA___2FA___2FA___2FA___2FA___2FA*/
-
 
 // Socket
 io.on("connection", onConnection);

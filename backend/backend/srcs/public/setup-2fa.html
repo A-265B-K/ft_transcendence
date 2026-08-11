@@ -1,64 +1,61 @@
 <!DOCTYPE html>
+
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <title>Setup 2FA</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        max-width: 500px;
+        margin: 50px auto;
+    }
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 500px;
-            margin: 50px auto;
-        }
+    input {
+        width: 100%;
+        padding: 8px;
+        margin: 8px 0;
+        box-sizing: border-box;
+    }
 
-        input {
-            width: 100%;
-            padding: 8px;
-            margin: 8px 0;
-        }
+    button {
+        padding: 10px 15px;
+        margin: 5px 0;
+        cursor: pointer;
+    }
 
-        button {
-            padding: 10px 15px;
-            margin: 5px 0;
-            cursor: pointer;
-        }
+    img {
+        margin-top: 20px;
+        width: 250px;
+        display: block;
+    }
 
-        img {
-            margin-top: 20px;
-            width: 250px;
-        }
+    #message {
+        margin-top: 20px;
+    }
+</style>
 
-        #message {
-            margin-top: 20px;
-        }
-    </style>
 </head>
 
-
 <body>
-
 <h1>Enable Two-Factor Authentication</h1>
 
-
-<label>
+<label for="email">
     Email:
 </label>
 
-<input 
+<input
     id="email"
     type="email"
     placeholder="your@email.com"
 >
 
-
-<button onclick="setup2FA()">
+<button type="button" onclick="setup2FA()">
     Generate QR Code
 </button>
 
-
 <hr>
-
 
 <h2>Scan QR Code</h2>
 
@@ -66,23 +63,18 @@
     Scan this QR code using Google Authenticator.
 </p>
 
-
-<img 
+<img
     id="qr"
     alt="QR Code will appear here"
 >
 
-
 <hr>
-
 
 <h2>Confirm Setup</h2>
 
-
-<label>
+<label for="token">
     Enter the 6 digit code from your authenticator app:
 </label>
-
 
 <input
     id="token"
@@ -91,225 +83,198 @@
     placeholder="123456"
 >
 
-
-<button onclick="confirm2FA()">
+<button type="button" onclick="confirm2FA()">
     Confirm 2FA
 </button>
 
-
 <hr>
-
 
 <h2>Disable 2FA</h2>
 
-
-<button onclick="disable2FA()">
+<button type="button" onclick="disable2FA()">
     Disable 2FA
 </button>
 
-
-
 <p id="message"></p>
-
-
 
 <script>
 
+    async function setup2FA() {
 
-async function setup2FA() {
+        const email =
+            document.getElementById("email").value;
 
-
-    const email =
-        document.getElementById("email").value;
-
-
-    if (!email) {
-
-        showMessage("Enter an email first");
-        return;
-
-    }
-
-
-    const response = await fetch(
-        "/api/2fa/setup",
-        {
-            method: "POST",
-
-            headers: {
-                "Content-Type": "application/json"
-            },
-
-            body: JSON.stringify({
-                email
-            })
+        if (!email) {
+            showMessage("Enter an email first");
+            return;
         }
-    );
 
+        try {
 
-    const data = await response.json();
+            const response = await fetch(
+                "/api/2fa/setup",
+                {
+                    method: "POST",
 
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
 
-    if (!data.ok) {
+                    body: JSON.stringify({
+                        email
+                    })
+                }
+            );
 
-        showMessage(
-            data.message ?? "Setup failed"
-        );
+            const data = await response.json();
 
-        return;
+            console.log("setup2FA response:", data);
 
-    }
+            if (!data.ok) {
+                showMessage(
+                    data.message ?? "2FA setup failed"
+                );
+                return;
+            }
 
+            document.getElementById("qr").src =
+                data.qrCode;
 
-    document.getElementById("qr").src =
-        data.qrCode;
+            showMessage(
+                "QR code generated. Scan it with your authenticator app."
+            );
 
+        } catch (error) {
 
-    showMessage(
-        "QR code generated. Scan it with Google Authenticator."
-    );
+            console.error(error);
 
-}
-
-
-
-
-async function confirm2FA() {
-
-
-    const email =
-        document.getElementById("email").value;
-
-
-    const token =
-        document.getElementById("token").value;
-
-
-
-    if (!email || !token) {
-
-        showMessage(
-            "Email and code required"
-        );
-
-        return;
-
-    }
-
-
-
-    const response = await fetch(
-        "/api/2fa/confirm",
-        {
-            method:"POST",
-
-            headers:{
-                "Content-Type":"application/json"
-            },
-
-            body:JSON.stringify({
-                email,
-                token
-            })
+            showMessage(
+                "Could not connect to the server."
+            );
         }
-    );
-
-
-    const data = await response.json();
-
-
-
-    if(data.ok) {
-
-        showMessage(
-            "2FA successfully enabled"
-        );
-
-    }
-    else {
-
-        showMessage(
-            data.message ?? "Invalid code"
-        );
-
-    }
-
-}
-
-
-
-
-async function disable2FA() {
-
-
-    const email =
-        document.getElementById("email").value;
-
-
-
-    if (!email) {
-
-        showMessage(
-            "Enter an email first"
-        );
-
-        return;
-
     }
 
 
+    async function confirm2FA() {
 
-    const response = await fetch(
-        "/api/2fa/disable",
-        {
-            method:"POST",
+        const email =
+            document.getElementById("email").value;
 
-            headers:{
-                "Content-Type":"application/json"
-            },
+        const token =
+            document.getElementById("token").value;
 
-            body:JSON.stringify({
-                email
-            })
+        if (!email || !token) {
+            showMessage(
+                "Email and code required"
+            );
+            return;
         }
-    );
 
+        try {
 
+            const response = await fetch(
+                "/api/2fa/confirm",
+                {
+                    method: "POST",
 
-    const data = await response.json();
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
 
+                    body: JSON.stringify({
+                        email,
+                        token
+                    })
+                }
+            );
 
+            const data = await response.json();
 
-    if(data.ok) {
+            console.log("confirm2FA response:", data);
 
-        showMessage(
-            "2FA disabled"
-        );
+            if (!data.ok) {
+                showMessage(
+                    data.message ?? "Invalid code"
+                );
+                return;
+            }
 
+            showMessage(
+                "2FA successfully enabled."
+            );
+        } catch (error) {
+
+            console.error(error);
+
+            showMessage(
+                "Could not connect to the server."
+            );
+        }
     }
-    else {
 
-        showMessage(
-            data.message ?? "Failed"
-        );
 
+    async function disable2FA() {
+
+        const email =
+            document.getElementById("email").value;
+
+        if (!email) {
+            showMessage("Enter an email first");
+            return;
+        }
+
+        try {
+
+            const response = await fetch(
+                "/api/2fa/disable",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        email
+                    })
+                }
+            );
+
+            const data = await response.json();
+
+            console.log("disable2FA response:", data);
+
+            if (data.ok) {
+
+                showMessage(
+                    "2FA disabled"
+                );
+
+            } else {
+
+                showMessage(
+                    data.message ?? "Failed to disable 2FA"
+                );
+            }
+
+        } catch (error) {
+
+            console.error(error);
+
+            showMessage(
+                "Could not connect to the server."
+            );
+        }
     }
 
-}
 
+    function showMessage(text) {
 
-
-
-function showMessage(text) {
-
-    document.getElementById("message")
-        .innerText = text;
-
-}
-
+        document.getElementById("message")
+            .innerText = text;
+    }
 
 </script>
-
 
 </body>
 

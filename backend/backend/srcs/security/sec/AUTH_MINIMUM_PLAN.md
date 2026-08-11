@@ -7,7 +7,7 @@
 <!-- 4. Add session or cookie auth. -->
 <!-- 5. Add email verification. -->
 <!-- 6. Protect websocket join so only logged-in users can enter the game. -->
-7. Add 2FA.
+<!--7. Add 2FA.-->
 8. Add Vault integration.
 9. Add WAF tuning.
 
@@ -21,8 +21,8 @@
 <!-- 3. **SQL basics** -->
    <!-- Learn how to design tables for users, sessions, verification tokens, and 2FA data. -->
 
-4. **TOTP 2FA**
-   Learn how authenticator apps generate codes and how the server verifies them.
+<!--4. **TOTP 2FA**
+   Learn how authenticator apps generate codes and how the server verifies them.-->
 
 5. **Secrets management**
    Learn why secrets should not live in code or `.env` files long-term, and what Vault solves.
@@ -40,7 +40,7 @@
 - password hashing
 - sessions and cookies -->
 <!--- SQL schema design-->
-- basic 2FA
+<!--- basic 2FA-->
 
 Vault and WAF can come after the auth core is working.
 
@@ -76,11 +76,11 @@ Vault and WAF can come after the auth core is working.
 - send a verification email
 - block gameplay until the email is verified -->
 
-### Day 6: Add basic 2FA
+<!--### Day 6: Add basic 2FA
 
 - generate a TOTP secret
 - show a QR code or manual setup key
-- verify the one-time code during login
+- verify the one-time code during login-->
 
 ### Day 7: Harden the basics
 

@@ -13,7 +13,9 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 CREATE TABLE IF NOT EXISTS session_ (
-    session_id TEXT PRIMARY KEY,
+    session_id TEXT,
     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    expires_at TIMESTAMPTZ NOT NULL
+    expires_at TIMESTAMPTZ,
+	temporary_auth TEXT,
+	temporary_auth_expires_at TIMESTAMPTZ
 );
