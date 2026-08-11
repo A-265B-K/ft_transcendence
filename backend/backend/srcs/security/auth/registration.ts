@@ -18,7 +18,6 @@ type registerPayload = {
 };
 
 export async function registerUser(payload: registerPayload) {
-
 	const { username, email, password } = payload;
 	if (!username || !email || !password) {
 
@@ -72,34 +71,29 @@ export async function registerUser(payload: registerPayload) {
 		} catch (err) {
 			console.error("Failed to send email:", err);
 		}
-
 		return {
 			ok:true,
 			statusCode:201,
 			message:"User registered",
 			user,
 		};
-
-
 	} catch(error) {
-
-
-		if (error.code === "23505") {
-
+		if (
+			error &&
+			typeof error === "object" &&
+			"code" in error &&
+			error.code === "23505"
+		) {
 			return {
-				ok:false,
-				statusCode:409,
-				message:"Email already exists",
+				ok: false,
+				statusCode: 409,
+				message: "Email already exists",
 			};
 		}
-
-
 		console.error(
 			"[auth.registerUser] failed:",
 			error
 		);
-
-
 		return {
 			ok:false,
 			statusCode:500,
