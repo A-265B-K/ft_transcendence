@@ -1,43 +1,94 @@
 import { Inventory } from "../components/Inventory";
-import { useEffect, useRef, useState } from "react"
-import { Game } from "../game/game";
-import { type CastlePointer } from "./CastlePointer"
+import { useEffect, useRef, useState } from "react";
+import { Game } from "../game/Game";
+import { type CastlePointer } from "./CastlePointer";
+import type { JoinedPayload } from "../types/game";
+import { connectSocket } from "../socket";
 
-export default function GameCanvas () {
+interface GameCanvasProps {
+    joinedData: JoinedPayload;
+}
+
+export default function GameCanvas({
+    joinedData,
+}: GameCanvasProps) {
 	const gameContainer = useRef<HTMLDivElement>(null);
 	const gameRef = useRef<Game | null>(null);
 	const [inventory, setInventory] = useState({ wood: 0, iron: 0 });
 	const [castlePointer, setCastlePointer] = useState<CastlePointer | null>(null);
 
 	// Initialize game on component mount, cleanup on unmount
-	useEffect(() => {
-		if (!gameContainer.current) return;
 
-		// Create the game instance
+	useEffect(() => {
+		if (!joinedData)
+			return;
+
+		if (!gameContainer.current)
+			return;
+
+		console.log("Starting game with:", joinedData);
+
+		const socket = connectSocket();
+
 		const game = new Game();
+
 		gameRef.current = game;
-		void game.start(gameContainer.current);
+
+		void game.start(
+			gameContainer.current,
+			joinedData,
+			socket,
+		);
+
+		function handlePlayerJoined(
+			player: JoinedPayload["players"][number]
+		) {
+			console.log("Player joined:", player);
+
+			game.addRemotePlayer(player);
+		}
+
+		function handlePlayerMove({
+			socketID,
+			x,
+			y
+		}: {
+			socketID: string;
+			x: number;
+			y: number;
+		}) {
+			game.updateRemotePlayer(socketID, x, y);
+		}
+
+		socket.on("player_joined", handlePlayerJoined);
+		socket.on("player_move", handlePlayerMove);
 
 		const intervalId = window.setInterval(() => {
-			const snapshot = game.getInventorySnapshot();
-			const pointer = game.getCastlePointerSnapshot();
+			const snapshot =
+				game.getInventorySnapshot();
 
-			if (snapshot) {
+			const pointer =
+				game.getCastlePointerSnapshot();
+
+			if (snapshot)
 				setInventory(snapshot);
-			}
 
-			if (pointer) {
+			if (pointer)
 				setCastlePointer(pointer);
-			}
+
 		}, 32);
 
-		// Cleanup function: destroy game when component unmounts
 		return () => {
+			socket.off("player_joined", handlePlayerJoined);
+			socket.off("player_move", handlePlayerMove);
+
 			window.clearInterval(intervalId);
+
 			gameRef.current = null;
 			game.destroy();
 		};
-	}, []);
+
+	}, [joinedData]);
 
 	return (
 		<div className="app-shell">

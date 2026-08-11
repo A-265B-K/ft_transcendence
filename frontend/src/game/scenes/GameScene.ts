@@ -4,63 +4,138 @@ import { Castle } from "../entities/Castle";
 import { Camera } from "../systems/Camera";
 import { GameMap } from "../world/GameMap";
 import type { GameTextures } from "../assets/loadGameTextures";
-import { MAP_SIZE } from "../config/constants";
 import { isoX, isoY } from "../world/iso";
-
-const CASTLE_EDGE_MARGIN_X = 16;
-const CASTLE_EDGE_MARGIN_Y = 20;
+import type { JoinedPayload } from "../../types/game";
+import { RemotePlayer } from "../entities/RemotePlayer";
+import type { Socket } from "socket.io-client";
 
 export class GameScene {
     readonly world: Container;
     readonly map: GameMap;
     readonly player: Player;
     readonly castle: Castle;
+    readonly castles = new Map<number, Castle>();
     readonly camera: Camera;
+    readonly joinedData: JoinedPayload;
+    readonly remotePlayers = new Map<string, RemotePlayer>();
+    readonly playerTexture: GameTextures;
+    readonly socket: Socket;
 
-    constructor(textures: GameTextures) {
+    constructor(
+        textures: GameTextures,
+        joinedData: JoinedPayload,
+        socket: Socket,
+    ) {
+        this.socket = socket;
+
         this.world = new Container();
         this.world.sortableChildren = true;
 
-        this.map = new GameMap(textures.grass, textures.wood, textures.iron);
+        this.map = new GameMap(textures.grass, textures.wood, textures.iron, joinedData.map);
         this.world.addChild(this.map.container);
 
+        this.playerTexture = textures;
+        
         this.player = new Player(textures.player);
-        this.player.placeAt(this.getRandomSpawnX(), this.getRandomSpawnY());
+        this.player.placeAt(
+            joinedData.player.x,
+            joinedData.player.y
+        );
+
         this.world.addChild(this.player.sprite);
 
-        this.castle = new Castle(textures.castle);
-        this.castle.placeAt(this.getCastleSpawnX(), this.getCastleSpawnY());
-        this.map.clearTile(this.castle.gridX, this.castle.gridY);
-        this.world.addChild(this.castle.container);
+        for (const player of joinedData.players) {
+
+            if (player.socketID === joinedData.player.socketID)
+                continue;
+
+
+            const remote = new RemotePlayer(
+                textures.player,
+                player.userID
+            );
+
+
+            remote.placeAt(
+                player.x,
+                player.y
+            );
+
+
+            this.remotePlayers.set(
+                player.socketID,
+                remote
+            );
+
+
+            this.world.addChild(
+                remote.sprite
+            );
+        }
+
+        let ownCastle: Castle | undefined;
+
+        for (const zone of joinedData.map.castleZones) {
+            const castle = new Castle(textures.castle);
+
+            castle.placeAt(zone.x, zone.y);
+
+            this.map.clearTile(castle.gridX, castle.gridY);
+
+            this.castles.set(zone.playerSlot, castle);
+            this.world.addChild(castle.container);
+
+            if (zone.playerSlot === joinedData.player.slot) {
+                ownCastle = castle;
+            }
+        }
+
+        if (!ownCastle) {
+            throw new Error("Own castle was not found");
+        }
+
+        this.castle = ownCastle;
 
         this.camera = new Camera(this.world);
+        this.joinedData = joinedData;
     }
 
-    private getCastleSpawnX() {
-        return this.player.gridX - 10;
-    }
+    addRemotePlayer(player: JoinedPayload["players"][number]) {
+        if (player.socketID === this.joinedData.player.socketID)
+            return;
 
-    private getCastleSpawnY() {
-        return this.player.gridY - 5;
-    }
+        if (this.remotePlayers.has(player.socketID))
+            return;
 
-    private getRandomSpawnX() {
-        const minX = CASTLE_EDGE_MARGIN_X + 10;
-        const maxX = MAP_SIZE - 2 - CASTLE_EDGE_MARGIN_X;
-        
-        return minX + Math.floor(Math.random() * (maxX - minX));
-    }
+        const remote = new RemotePlayer(
+            this.playerTexture.player,
+            player.userID
+        );
 
-     private getRandomSpawnY() {
-        const minY = CASTLE_EDGE_MARGIN_Y + 5;
-        const maxY = MAP_SIZE - 2 - CASTLE_EDGE_MARGIN_Y;
-        
-        return minY + Math.floor(Math.random() * (maxY - minY));
+        remote.placeAt(player.x, player.y);
+
+        this.remotePlayers.set(player.socketID, remote);
+        this.world.addChild(remote.sprite);
     }
 
     update(inputState: InputState, screenWidth: number, screenHeight: number, deltaSeconds: number) {
         // Updating player input
+        const oldX = this.player.gridX;
+        const oldY = this.player.gridY;
+
         this.player.update(inputState, deltaSeconds);
+
+        const movedDistance = Math.hypot(
+            this.player.gridX - oldX,
+            this.player.gridY - oldY
+        );
+
+        if (movedDistance > 0.05) {
+            this.socket.emit("player_move", {
+                x: this.player.gridX,
+                y: this.player.gridY,
+            });
+        }
 
         // 1. The collision of the edges of the map
         this.clampPlayerToMap();
@@ -110,10 +185,18 @@ export class GameScene {
     private clampPlayerToMap() {
         const margin = 1.5; 
         const minBound = margin;
-        const maxBound = MAP_SIZE - 1 - margin;
+        const maxX = this.joinedData.map.width - 1 - margin;
+        const maxY = this.joinedData.map.height - 1 - margin;
 
-        const boundedX = Math.max(minBound, Math.min(maxBound, this.player.gridX));
-        const boundedY = Math.max(minBound, Math.min(maxBound, this.player.gridY));
+        const boundedX = Math.max(
+            minBound,
+            Math.min(maxX, this.player.gridX)
+        );
+
+        const boundedY = Math.max(
+            minBound,
+            Math.min(maxY, this.player.gridY)
+        );
 
         this.player.placeAt(boundedX, boundedY);
     }
@@ -190,4 +273,18 @@ export class GameScene {
 
         return this.castle.upgrade();
     }
+
+    updateRemotePlayer(
+        socketID: string,
+        x: number,
+        y: number
+    ) {
+        const remote = this.remotePlayers.get(socketID);
+
+        if (!remote)
+            return;
+
+        remote.updatePosition(x, y);
+    }
+
 }
