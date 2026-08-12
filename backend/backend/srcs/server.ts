@@ -25,7 +25,7 @@ await fastify.register(staticFiles, {
 	root: join(__dirname, "public"),
 });
 
-fastify.get("/ping", () => ({ ok: true }));
+fastify.get("/api/ping", () => ({ ok: true }));
 
 type RegisterBody = {
 	username : string;
