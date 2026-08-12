@@ -1,10 +1,7 @@
-FROM debian:trixie-slim
+FROM alpine:20260805
 WORKDIR /app
-COPY backups.sh /app
+COPY backups.sh .
 
-RUN apt-get update
-RUN apt-get install -y postgresql-common ca-certificates curl
-RUN /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
-RUN apt-get install -y postgresql-client-18
+RUN apk add --no-cache postgresql18-client
 
 CMD ["./backups.sh"]
