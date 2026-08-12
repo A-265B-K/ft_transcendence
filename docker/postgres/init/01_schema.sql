@@ -6,14 +6,16 @@ CREATE TABLE IF NOT EXISTS users (
 	verification_token TEXT,
 	verification_expires_at TIMESTAMPTZ,
 	password_hash TEXT NOT NULL,
-	enabled_2FA BOOLEAN NOT NULL DEFAULT FALSE,
-	TOTP_secret TEXT,
+	enabled_2fa BOOLEAN NOT NULL DEFAULT FALSE,
+	totp_secret TEXT,
 	created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 	updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS session_ (
-    session_id TEXT PRIMARY KEY,
+    session_id TEXT,
     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    expires_at TIMESTAMPTZ NOT NULL
+    expires_at TIMESTAMPTZ,
+	temporary_auth TEXT,
+	temporary_auth_expires_at TIMESTAMPTZ
 );
