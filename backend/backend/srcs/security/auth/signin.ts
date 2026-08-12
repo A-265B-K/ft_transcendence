@@ -62,7 +62,7 @@ export async function SignInUser(payload: singinPayload): Promise<SignInResult> 
 			return {
 				ok: false,
 				statusCode: 401,
-				message: "Invalid email",
+				message: "Invalid email or password",
 			};
 		}
 		const validPassword = await bcrypt.compare(password, user.password_hash);
@@ -70,7 +70,7 @@ export async function SignInUser(payload: singinPayload): Promise<SignInResult> 
 			return {
 				ok: false,
 				statusCode: 401,
-				message: "Invalid password",
+				message: "Invalid email or password",
 			};
 		}
 		if (!user.email_verified) {
