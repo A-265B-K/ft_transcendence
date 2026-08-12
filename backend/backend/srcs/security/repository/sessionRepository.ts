@@ -101,14 +101,14 @@ export async function deleteSessionById(sessionId: string) {
 	return true;
 }
 
-export async function deleteTemporary2FA(user_id: string) {
+export async function deleteTemporary2FA(temporary_auth: string) {
 	await query(
 		`
 		DELETE FROM session_
 		WHERE temporary_auth = $1
 		`,
 		[
-			user_id
+			temporary_auth
 		]
 	);
 	return true;

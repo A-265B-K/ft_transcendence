@@ -258,9 +258,6 @@ type twoFAlogin = {
 fastify.post<{ Body: twoFAlogin }>("/api/2fa/login", async (request, reply) => {
 	const twoFAId = request.cookies.temporary_auth;
 	if (!twoFAId) {
-		return reply.redirect("/");
-	}
-		if (!twoFAId) {
 		return reply.code(401).send({
 			ok: false,
 			message: "2FA authentication expired",
@@ -276,10 +273,7 @@ fastify.post<{ Body: twoFAlogin }>("/api/2fa/login", async (request, reply) => {
 		});
 	}
 
-	const result = await verify2FALogin(
-		user.email,
-		token
-	);
+	const result = await verify2FALogin(user.email, token);
 	if (!result.ok) {
 		return reply
 			.code(result.statusCode)
@@ -301,21 +295,19 @@ fastify.post<{ Body: twoFAlogin }>("/api/2fa/login", async (request, reply) => {
 			path: "/",
 		}
 	);
-	reply.clearCookie(
-		"temporary_auth",
-		{
+	reply.clearCookie("temporary_auth", {
 			httpOnly: true,
 			secure: true,
 			sameSite: "strict",
 			path: "/",
 		}
 	);
-	await deleteTemporary2FA(user.id);
+	await deleteTemporary2FA(twoFAId);
 
-		return reply.send({
-			ok: true,
-			message: "2FA verified",
-		});
+	return reply.send({
+		ok: true,
+		message: "2FA verified",
+	});
 });
 
 fastify.get("/setup-2fa", async (request, reply) => {
