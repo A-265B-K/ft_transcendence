@@ -1,19 +1,13 @@
 # Security Roadmap for ft_transcendence
-<!--## 1. Establish identity and persistence
+## 1. Establish identity and persistence
 
-Goal: stop treating a websocket `join` payload as identity.
+<!-- Goal: stop treating a websocket `join` payload as identity. -->
 
-What to do:
+<!-- What to do: -->
 <!--- Add a real user model in Postgres with `email`, `password_hash`, `email_verified`, `created_at`, and later `totp_secret`.-->
 <!-- - Add a session or refresh-token model so login survives page reloads. -->
 <!-- - Replace the current in-memory `mockDB` in `backend/backend/srcs/state/gameState.js` with a repository layer that talks to Postgres. -->
 <!-- - Keep the current game room state in memory for now, but make it reference a real authenticated `userId`. -->
-<!--
-Current files involved:
-- [backend/backend/srcs/server.js](backend/backend/srcs/server.js)
-- [backend/backend/srcs/onConnection.js](backend/backend/srcs/onConnection.js)
-- [backend/backend/srcs/state/gameState.js](backend/backend/srcs/state/gameState.js)
-- [docker-compose.yaml](docker-compose.yaml)-->
 
 ## 2. Build email/password auth
 
@@ -64,9 +58,6 @@ What to do:
 - Keep application code reading from environment variables or files only.
 - Remove hardcoded secret values from `docker-compose.yaml`.
 
-Important 42 note:
-- Keep Vault self-hosted in the Docker stack; do not rely on a third-party hosted secret service.
-
 ## 5. Put ModSecurity/WAF at the edge
 
 Goal: harden the public edge after auth exists.
@@ -77,10 +68,6 @@ What to do:
 - Keep websocket upgrade paths working for `/socket.io/`.
 - Write explicit allow rules for the routes that must accept browser traffic.
 - Make login and registration endpoints the main WAF focus.
-
-Files involved:
-- [docker/nginx/config.conf](docker/nginx/config.conf)
-- [docker-compose.yaml](docker-compose.yaml)
 
 ## 6. Add hardening around the auth flow
 

@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import { randomUUID } from 'crypto';
-import { insertSessionById, insertTemporary2FAstate } from "../repository/sessionRepository.js";
+import { insertSessionById, insertTemporary2FAstate, deleteTemporary2FAByUserId } from "../repository/sessionRepository.js";
 import { findUserByEmail } from "../repository/userRepository.js";
 
 type singinPayload = {
@@ -81,6 +81,7 @@ export async function SignInUser(payload: singinPayload): Promise<SignInResult> 
 			};
 		}
 		if (user.enabled_2fa) {
+			await deleteTemporary2FAByUserId(user.id);
 			const temporary_auth = randomUUID();
 			await insertTemporary2FAstate(temporary_auth, user.id);
 			return {

@@ -30,7 +30,7 @@ export default function App() {
 
 			try {
 
-				const response = await fetch("/me", {
+				const response = await fetch("/api/auth/me", {
 					credentials: "include",
 				});
 
@@ -75,7 +75,7 @@ export default function App() {
 
 	async function logout() {
 
-		await fetch("/logout", {
+		await fetch("/api/auth/logout", {
 			method:"POST",
 			credentials:"include",
 		});
