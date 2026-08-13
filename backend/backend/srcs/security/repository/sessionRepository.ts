@@ -113,3 +113,15 @@ export async function deleteTemporary2FA(temporary_auth: string) {
 	);
 	return true;
 }
+
+export async function deleteTemporary2FAByUserId(userId: string) {
+	await query(
+		`
+		DELETE FROM session_
+		WHERE user_id = $1
+		  AND temporary_auth IS NOT NULL
+		  AND temporary_auth_expires_at > NOW()
+		`,
+		[userId]
+	);
+}

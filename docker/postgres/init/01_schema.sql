@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS users (
-	id BIGSERIAL PRIMARY KEY,
+	id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 	username TEXT NOT NULL UNIQUE,
 	email TEXT NOT NULL UNIQUE,
 	email_verified BOOLEAN NOT NULL DEFAULT FALSE,
@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS session_ (
     session_id TEXT,
-    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     expires_at TIMESTAMPTZ,
 	temporary_auth TEXT,
 	temporary_auth_expires_at TIMESTAMPTZ
