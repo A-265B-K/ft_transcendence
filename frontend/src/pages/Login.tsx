@@ -42,6 +42,11 @@ export default function LogIn({ onBack, onLoginSuccess }: LoginProps) {
 
 			const data = await response.json();
 
+			if (data.requireTwoFactor) {
+				window.location.href = "/verify-2fa";
+				return;
+			}
+
 			if (!response.ok) {
 				setStatus(data.message ?? "Login failed");
 				return;

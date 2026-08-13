@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { randomUUID } from 'crypto';
 import { rooms } from "../state/gameState.js";
 import type { Room } from "../state/gameState.js";
 import { generateMap } from "../map/mapGenerator.js";

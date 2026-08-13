@@ -17,13 +17,13 @@ Current files involved:
 
 ## 2. Build email/password auth
 
-Goal: add register/login/logout before touching 2FA.
+<!-- Goal: add register/login/logout before touching 2FA. -->
 
-What to do:
+<!-- What to do: -->
 <!-- - Add backend routes for register, login, logout, and session refresh. -->
 <!-- - Hash passwords with Argon2id or bcrypt; never store raw passwords. -->
 <!-- - Use per-password salt through the hashing library, not manual salt storage. -->
-- Verify email before allowing a user into the game.
+<!-- - Verify email before allowing a user into the game. -->
 <!-- - Prefer httpOnly secure cookies for session transport in the browser. -->
 
 <!--Frontend changes:-->
@@ -33,9 +33,9 @@ What to do:
 
 ## 3. Add 2FA
 
-Goal: make 2FA an account property, not a separate login mode.
+<!--Goal: make 2FA an account property, not a separate login mode.-->
 
-What to do:
+<!--What to do:
 - Add TOTP setup after the password flow works.
 - Store the TOTP secret encrypted at rest or in Vault, not in plain DB fields.
 - Generate backup codes and store only hashed backup codes.
@@ -45,7 +45,7 @@ What to do:
 Backend files likely to grow:
 - new auth routes and service modules under `backend/backend/srcs/`
 - session handling inside `backend/backend/srcs/server.js`
-- websocket auth gating in `backend/backend/srcs/onConnection.js`
+- websocket auth gating in `backend/backend/srcs/onConnection.js`-->
 
 ## 4. Introduce Vault for secrets
 
@@ -97,9 +97,9 @@ What to do:
 
 <!--1. Add Postgres-backed user/session storage.-->
 <!--2. Implement register/login/logout with password hashing.-->
-3. Add email verification.
-4. Add TOTP 2FA and backup codes.
-5. Gate websocket joins on authenticated sessions.
+<!-- 3. Add email verification. -->
+<!--4. Add TOTP 2FA and backup codes.-->
+<!--5. Gate websocket joins on authenticated sessions.-->
 6. Add Vault and remove secrets from compose.
 7. Add ModSecurity/WAF at the Nginx edge and tune it.
 8. Add rate limiting, lockout, and audit logging.
