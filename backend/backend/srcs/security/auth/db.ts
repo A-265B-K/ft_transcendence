@@ -11,11 +11,6 @@ const db = new Pool({
 export default db
 
 export async function query(text: string, params: unknown[] = []) {
-	console.log('[db.query] text:', text)
-	console.log('[db.query] params:', params)
-
 	const result = await db.query(text, params)
-
-	console.log('[db.query] rowCount:', result.rowCount)
 	return result
 }

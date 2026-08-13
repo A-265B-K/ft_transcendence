@@ -27,7 +27,7 @@ export default function Signup({ onBack }: SignupProps) {
 		setStatus("Creating account...");
 
 		try {
-			const response = await fetch("/register", {
+			const response = await fetch("/api/auth/register", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",

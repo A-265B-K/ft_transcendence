@@ -28,7 +28,7 @@ export default function LogIn({ onBack, onLoginSuccess }: LoginProps) {
 
 // calling backend SignIn
 		try {
-			const response = await fetch("/signin", {
+			const response = await fetch("/api/auth/signin", {
 				method: "POST",
 				credentials: "include",
 				headers: {
