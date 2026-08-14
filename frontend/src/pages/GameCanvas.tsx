@@ -49,15 +49,15 @@ export default function GameCanvas({
 		}
 
 		function handlePlayerMove({
-			socketID,
+			socketId,
 			x,
 			y
 		}: {
-			socketID: string;
+			socketId: string;
 			x: number;
 			y: number;
 		}) {
-			game.updateRemotePlayer(socketID, x, y);
+			game.updateRemotePlayer(socketId, x, y);
 		}
 
 		socket.on("player_joined", handlePlayerJoined);
