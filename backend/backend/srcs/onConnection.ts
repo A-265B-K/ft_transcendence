@@ -134,36 +134,36 @@ const onConnection = async (socket: Socket) => {
 	});
 	//handle currentroomId is null
 
-	// socket.on("player_move", ({ x, y }) => {
-	// 	const player = players[user.id];
+	socket.on("player_move", ({ x, y }: {x: unknown; y: unknown}) => {
+		const player = players[user.id];
 
-	// 	if (!player || !currentroomId)
-	// 		return;
+		if (!player || !currentroomId)
+			return;
 
-	// 	if (
-	// 		typeof x !== "number" ||
-	// 		typeof y !== "number" ||
-	// 		!Number.isFinite(x) ||
-	// 		!Number.isFinite(y)
-	// 	) {
-	// 		return;
-	// 	}
+		if (
+			typeof x !== "number" ||
+			typeof y !== "number" ||
+			!Number.isFinite(x) ||
+			!Number.isFinite(y)
+		) {
+			return;
+		}
 
-	// 	const maxX = 100 - 1;
-	// 	const maxY = 100 - 1;
+		const maxX = 100 - 1;
+		const maxY = 100 - 1;
 
-	// 	if (x < 0 || x > maxX || y < 0 || y > maxY)
-	// 		return;
+		if (x < 0 || x > maxX || y < 0 || y > maxY)
+			return;
 
-	// 	player.x = x;
-	// 	player.y = y;
+		player.x = x;
+		player.y = y;
 
-	// 	socket.to(currentroomId).emit("player_move", {
-	// 		socketId: socket.id,
-	// 		x: player.x,
-	// 		y: player.y,
-	// 	});
-	// });
+		socket.to(currentroomId).emit("player_move", {
+			socketId: socket.id,
+			x: player.x,
+			y: player.y,
+		});
+	});
 
 	socket.on('disconnect', () => {
 
