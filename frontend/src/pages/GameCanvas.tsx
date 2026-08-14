@@ -46,6 +46,7 @@ export default function GameCanvas({
 			console.log("Player joined:", player);
 
 			game.addRemotePlayer(player);
+			game.addRemoteCastle(player);
 		}
 
 		function handlePlayerMove({

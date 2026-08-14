@@ -125,6 +125,27 @@ export class GameScene {
         this.world.addChild(remote.sprite);
     }
 
+    addRemoteCastle(player: JoinedPayload["players"][number]) {
+        if (this.castles.has(player.slot))
+            return;
+
+        const zone = this.joinedData.map.castleZones.find(
+            zone => zone.playerSlot === player.slot
+        );
+
+        if (!zone)
+            return;
+
+        const castle = new Castle(this.playerTexture.castle);
+
+        castle.placeAt(zone.x, zone.y);
+
+        this.map.clearTile(castle.gridX, castle.gridY);
+
+        this.castles.set(player.slot, castle);
+        this.world.addChild(castle.container);
+    }
+
     update(inputState: InputState, screenWidth: number, screenHeight: number, deltaSeconds: number) {
         // Updating player input
         const oldX = this.player.gridX;
