@@ -1,11 +1,11 @@
 import { query } from "../auth/db.js";
 
-export async function insertSessionById(sessionId: string, userId: number) {
+export async function insertSessionById(session_id_hash: string, userId: number) {
 	await query(
 		`
 		INSERT INTO session_
 		(
-			session_id,
+			session_id_hash,
 			user_id,
 			expires_at
 		)
@@ -17,19 +17,19 @@ export async function insertSessionById(sessionId: string, userId: number) {
 		)
 		`,
 		[
-			sessionId,
+			session_id_hash,
 			userId
 		]
 	);
-	return sessionId;
+	return session_id_hash;
 }
 
-export async function insertTemporary2FAstate(temporary_auth: string, userId: number) {
+export async function insertTemporary2FAstate(temporary_auth_hash: string, userId: number) {
 	await query(
 		`
 		INSERT INTO session_
 		(
-			temporary_auth,
+			temporary_auth_hash,
 			user_id,
 			temporary_auth_expires_at
 		)
@@ -41,14 +41,14 @@ export async function insertTemporary2FAstate(temporary_auth: string, userId: nu
 		)
 		`,
 		[
-			temporary_auth,
+			temporary_auth_hash,
 			userId
 		]
 	);
-	return temporary_auth;
+	return temporary_auth_hash;
 }
 
-export async function selectTemporary2FAFromSession(temporary_auth: string) {
+export async function selectTemporary2FAFromSession(temporary_auth_hash: string) {
 	const result = await query(
 		`
 		SELECT
@@ -58,17 +58,17 @@ export async function selectTemporary2FAFromSession(temporary_auth: string) {
 		FROM session_
 		JOIN users
 			ON users.id = session_.user_id
-		WHERE session_.temporary_auth = $1
+		WHERE session_.temporary_auth_hash = $1
 		AND session_.temporary_auth_expires_at > NOW()
 		`,
 		[
-			temporary_auth
+			temporary_auth_hash
 		]
 	);
 	return result.rows[0] || null;
 }
 
-export async function selectFromSession(sessionId: string) {
+export async function selectFromSession(session_id_hash: string) {
 	const result = await query(
 		`
 		SELECT
@@ -78,37 +78,37 @@ export async function selectFromSession(sessionId: string) {
 		FROM session_
 		JOIN users
 			ON users.id = session_.user_id
-		WHERE session_.session_id = $1
+		WHERE session_.session_id_hash = $1
 		AND session_.expires_at > NOW()
 		`,
 		[
-			sessionId
+			session_id_hash
 		]
 	);
 	return result.rows[0] || null;
 }
 
-export async function deleteSessionById(sessionId: string) {
+export async function deleteSessionById(session_id_hash: string) {
 	await query(
 		`
 		DELETE FROM session_
-		WHERE session_id = $1
+		WHERE session_id_hash = $1
 		`,
 		[
-			sessionId
+			session_id_hash
 		]
 	);
 	return true;
 }
 
-export async function deleteTemporary2FA(temporary_auth: string) {
+export async function deleteTemporary2FA(temporary_auth_hash: string) {
 	await query(
 		`
 		DELETE FROM session_
-		WHERE temporary_auth = $1
+		WHERE temporary_auth_hash = $1
 		`,
 		[
-			temporary_auth
+			temporary_auth_hash
 		]
 	);
 	return true;
@@ -119,7 +119,7 @@ export async function deleteTemporary2FAByUserId(userId: string) {
 		`
 		DELETE FROM session_
 		WHERE user_id = $1
-		  AND temporary_auth IS NOT NULL
+		  AND temporary_auth_hash IS NOT NULL
 		  AND temporary_auth_expires_at > NOW()
 		`,
 		[userId]

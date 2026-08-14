@@ -60,8 +60,8 @@ export async function registerUser(payload: registerPayload) {
 
 		const verification_token = randomBytes(32).toString("hex");
 		const verification_token_hash = createHash("sha256")
-		.update(verification_token)
-		.digest("hex");
+			.update(verification_token)
+			.digest("hex");
 		const user = await insertUser(
 			username,
 			email,
