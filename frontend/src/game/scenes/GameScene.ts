@@ -76,6 +76,13 @@ export class GameScene {
         let ownCastle: Castle | undefined;
 
         for (const zone of joinedData.map.castleZones) {
+            const player = joinedData.players.find(
+                p => p.slot === zone.playerSlot
+            );
+
+            if (!player)
+                continue;
+
             const castle = new Castle(textures.castle);
 
             castle.placeAt(zone.x, zone.y);

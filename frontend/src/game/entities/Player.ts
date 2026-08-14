@@ -26,7 +26,7 @@ export class Player {
     gridY = 0;
 
     // Movement speed (tiles per second)
-    speed = 15;
+    speed = 10;
 
     /**
      * Constructor - creates a player sprite
