@@ -2,6 +2,7 @@ import Fastify from "fastify";
 import cookie from "@fastify/cookie";
 import staticFiles from "@fastify/static";
 import { randomUUID } from 'crypto';
+import { createHash } from "node:crypto";
 import { Server } from "socket.io";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
@@ -13,8 +14,6 @@ import { deleteSessionById, insertSessionById, deleteTemporary2FA } from "./secu
 import { findUserByVerificationToken, changeEmailVerified } from "./security/repository/userRepository.js";
 import { enableUser2FA, disableUser2FA, confirm2FASetup, verify2FALogin } from "./security/2FA/twoFA.js";
 // import { passwordReset } from "./security/auth/passwordReset.js";
-// import { request } from "node:http";
-// import { ratelimiter } from "./security/limiter/limiter.js";
 
 const fastify = Fastify();
 
@@ -256,37 +255,39 @@ fastify.get<{ Querystring: VerifyEmailQuery }>("/verify-email", async (request, 
 			});
 		}
 		try {
+			const verification_token_hash = createHash("sha256")
+				.update(token)
+				.digest("hex");
+			
+		const user = await findUserByVerificationToken(verification_token_hash);
+		if (!user) {
+			return reply.code(400).send({
+				message:
+					"Invalid or expired verification token",
+			});
+		}
 
-			const user = await findUserByVerificationToken(token);
+		await changeEmailVerified(user.id);
 
-			if (!user) {
-				return reply.code(400).send({
-					message:
-						"Invalid or expired verification token",
-				});
+		const sessionId = randomUUID();
+		await insertSessionById(
+			sessionId,
+			user.id
+		);
+
+		reply.setCookie(
+			"session_id",
+			sessionId,
+			{
+				httpOnly: true,
+				secure: true,
+				sameSite: "strict",
+				maxAge: 60 * 60 * 24,
+				path: "/",
 			}
+		);
 
-			await changeEmailVerified(user.id);
-
-			const sessionId = randomUUID();
-			await insertSessionById(
-				sessionId,
-				user.id
-			);
-
-			reply.setCookie(
-				"session_id",
-				sessionId,
-				{
-					httpOnly: true,
-					secure: true,
-					sameSite: "strict",
-					maxAge: 60 * 60 * 24,
-					path: "/",
-				}
-			);
-
-			return reply.redirect("/");
+		return reply.redirect("/");
 		} catch (error) {
 
 			console.error(
@@ -303,9 +304,10 @@ fastify.get<{ Querystring: VerifyEmailQuery }>("/verify-email", async (request, 
 	}
 );
 
-// fastify.post("/api/auth/password-reset", async (request, reply) => {
-// 	}
-// );
+//fastify.post("/api/auth/password-reset", async (request, reply) => {
+
+//}
+//);
 
 // Web pages ............................................................................
 fastify.get("/setup-2fa", async (request, reply) => {

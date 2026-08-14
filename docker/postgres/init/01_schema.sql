@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS users (
 	username TEXT NOT NULL UNIQUE,
 	email TEXT NOT NULL UNIQUE,
 	email_verified BOOLEAN NOT NULL DEFAULT FALSE,
-	verification_token TEXT,
+	verification_token_hash TEXT,
 	verification_expires_at TIMESTAMPTZ,
 	password_hash TEXT NOT NULL,
 	enabled_2fa BOOLEAN NOT NULL DEFAULT FALSE,
