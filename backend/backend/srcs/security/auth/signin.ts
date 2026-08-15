@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import { randomUUID } from 'crypto';
+import { randomBytes, createHash } from "node:crypto";
 import { insertSessionById, insertTemporary2FAstate, deleteTemporary2FAByUserId } from "../repository/sessionRepository.js";
 import { findUserByEmail } from "../repository/userRepository.js";
 
@@ -13,7 +13,7 @@ type SignInSuccess = {
 	statusCode: 200;
 	message: "Login successful";
 	requireTwoFactor: false;
-	sessionId: string;
+	session_id: string;
 	user: {
 		id: string;
 		username: string;
@@ -82,8 +82,11 @@ export async function SignInUser(payload: singinPayload): Promise<SignInResult> 
 		}
 		if (user.enabled_2fa) {
 			await deleteTemporary2FAByUserId(user.id);
-			const temporary_auth = randomUUID();
-			await insertTemporary2FAstate(temporary_auth, user.id);
+			const temporary_auth = randomBytes(32).toString("hex");
+			const temporary_auth_hash = createHash("sha256")
+				.update(temporary_auth)
+				.digest("hex");
+			await insertTemporary2FAstate(temporary_auth_hash, user.id);
 			return {
 				ok: true,
 				statusCode: 200,
@@ -98,14 +101,17 @@ export async function SignInUser(payload: singinPayload): Promise<SignInResult> 
 			};
 		}
 
-		const sessionId = randomUUID();
-		await insertSessionById(sessionId, user.id);
+		const session_id = randomBytes(32).toString("hex");
+		const session_id_hash = createHash("sha256")
+			.update(session_id)
+			.digest("hex");
+		await insertSessionById(session_id_hash, user.id);
 		return {
 			ok: true,
 			statusCode: 200,
 			message: "Login successful",
 			requireTwoFactor: false,
-			sessionId,
+			session_id,
 			user: {
 				id: user.id,
 				username: user.username,

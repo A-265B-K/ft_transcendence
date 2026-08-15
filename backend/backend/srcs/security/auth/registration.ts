@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import { insertUser } from "../repository/userRepository.js";
-import { randomUUID } from 'crypto';
+import { randomBytes, createHash } from "node:crypto";
 import nodemailer from "nodemailer";
 
 export const emailTransporter = nodemailer.createTransport({
@@ -38,7 +38,6 @@ type registerPayload = {
 export async function registerUser(payload: registerPayload) {
 	const { username, email, password } = payload;
 	if (!username || !email || !password) {
-
 		return {
 			ok:false,
 			statusCode:400,
@@ -59,12 +58,15 @@ export async function registerUser(payload: registerPayload) {
 			12
 		);
 
-		const verification_token = randomUUID();
+		const verification_token = randomBytes(32).toString("hex");
+		const verification_token_hash = createHash("sha256")
+			.update(verification_token)
+			.digest("hex");
 		const user = await insertUser(
 			username,
 			email,
 			passwordHash,
-			verification_token
+			verification_token_hash
 		);
 
 		const baseUrl = process.env.HOSTNAME;

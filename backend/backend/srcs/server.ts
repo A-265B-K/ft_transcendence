@@ -1,7 +1,7 @@
 import Fastify from "fastify";
 import cookie from "@fastify/cookie";
 import staticFiles from "@fastify/static";
-import { randomUUID } from 'crypto';
+import { randomBytes, createHash } from "node:crypto";
 import { Server } from "socket.io";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
@@ -13,8 +13,6 @@ import { deleteSessionById, insertSessionById, deleteTemporary2FA } from "./secu
 import { findUserByVerificationToken, changeEmailVerified } from "./security/repository/userRepository.js";
 import { enableUser2FA, disableUser2FA, confirm2FASetup, verify2FALogin } from "./security/2FA/twoFA.js";
 // import { passwordReset } from "./security/auth/passwordReset.js";
-// import { request } from "node:http";
-// import { ratelimiter } from "./security/limiter/limiter.js";
 
 const fastify = Fastify();
 
@@ -78,7 +76,7 @@ fastify.post<{ Body: SignInBody }>("/api/auth/signin", async (request, reply) =>
 		}
 		reply.setCookie(
 			"session_id",
-			result.sessionId,
+			result.session_id,
 			{
 				httpOnly: true,
 				secure: true,
@@ -97,14 +95,18 @@ fastify.post<{ Body: SignInBody }>("/api/auth/signin", async (request, reply) =>
 );
 
 fastify.get("/api/auth/me", async (request, reply) => {
-	const sessionId = request.cookies.session_id;
-	if (!sessionId) {
+	const session_id = request.cookies.session_id;
+	if (!session_id) {
 		return reply.code(401).send({
 			message: "Not logged in",
 		});
 	}
 
-	const user = await getCurrentUser(sessionId);
+	const session_id_hash = createHash("sha256")
+		.update(session_id)
+		.digest("hex");
+
+	const user = await getCurrentUser(session_id_hash);
 	if (!user) {
 		return reply.code(401).send({
 			message: "Invalid session",
@@ -118,10 +120,13 @@ fastify.get("/api/auth/me", async (request, reply) => {
 
 fastify.post("/api/auth/logout", async (request, reply) => {
 	try {
-		const sessionId = request.cookies.session_id;
+		const session_id = request.cookies.session_id;
 
-		if (sessionId) {
-			await deleteSessionById(sessionId);
+		if (session_id) {
+			const session_id_hash = createHash("sha256")
+				.update(session_id)
+				.digest("hex");
+			await deleteSessionById(session_id_hash);
 		}
 		reply.clearCookie("session_id", {
 			httpOnly: true,
@@ -181,68 +186,72 @@ type TwoFALoginBody = {
 	token: string;
 };
 fastify.post<{ Body: TwoFALoginBody }>("/api/auth/2fa/verify", async (request, reply) => {
-		const twoFAId = request.cookies.temporary_auth;
+	const temporary_auth = request.cookies.temporary_auth;
 
-		if (!twoFAId) {
-			return reply.code(401).send({
-				ok: false,
-				message: "2FA authentication expired",
-			});
-		}
-
-		const { token } = request.body;
-		const user = await getCurrentUserByTemporary2FA(twoFAId);
-		if (!user) {
-			return reply.code(401).send({
-				ok: false,
-				message: "Invalid authentication state",
-			});
-		}
-
-		const result = await verify2FALogin(user.email, token);
-		if (!result.ok) {
-			return reply.code(result.statusCode).send({
-				ok: false,
-				message: result.message,
-			});
-		}
-
-		const sessionId = randomUUID();
-		await insertSessionById(
-			sessionId,
-			user.id
-		);
-		console.log("token =:", twoFAId);
-		await deleteTemporary2FA(twoFAId);
-
-		reply.setCookie(
-			"session_id",
-			sessionId,
-			{
-				httpOnly: true,
-				secure: true,
-				sameSite: "strict",
-				maxAge: 60 * 60 * 24,
-				path: "/",
-			}
-		);
-
-		reply.clearCookie(
-			"temporary_auth",
-			{
-				httpOnly: true,
-				secure: true,
-				sameSite: "strict",
-				path: "/",
-			}
-		);
-
-		return {
-			ok: true,
-			message: "2FA verified",
-		};
+	if (!temporary_auth) {
+		return reply.code(401).send({
+			ok: false,
+			message: "2FA authentication expired",
+		});
 	}
-);
+
+	const temporary_auth_hash = createHash("sha256")
+		.update(temporary_auth)
+		.digest("hex");
+	const { token } = request.body;
+	const user = await getCurrentUserByTemporary2FA(temporary_auth_hash);
+	if (!user) {
+		return reply.code(401).send({
+			ok: false,
+			message: "Invalid authentication state",
+		});
+	}
+
+	const result = await verify2FALogin(user.email, token);
+	if (!result.ok) {
+		return reply.code(result.statusCode).send({
+			ok: false,
+			message: result.message,
+		});
+	}
+
+	const session_id = randomBytes(32).toString("hex");
+	const session_id_hash = createHash("sha256")
+		.update(session_id)
+		.digest("hex");
+	await insertSessionById(
+		session_id_hash,
+		user.id
+	);
+	await deleteTemporary2FA(temporary_auth_hash);
+
+	reply.setCookie(
+		"session_id",
+		session_id,
+		{
+			httpOnly: true,
+			secure: true,
+			sameSite: "strict",
+			maxAge: 60 * 60 * 24,
+			path: "/",
+		}
+	);
+
+	reply.clearCookie(
+		"temporary_auth",
+		{
+			httpOnly: true,
+			secure: true,
+			sameSite: "strict",
+			path: "/",
+		}
+	);
+
+	return {
+		ok: true,
+		message: "2FA verified",
+	};
+});
 
 type VerifyEmailQuery = {
 	token: string;
@@ -256,37 +265,42 @@ fastify.get<{ Querystring: VerifyEmailQuery }>("/verify-email", async (request, 
 			});
 		}
 		try {
+			const verification_token_hash = createHash("sha256")
+				.update(token)
+				.digest("hex");
+			
+		const user = await findUserByVerificationToken(verification_token_hash);
+		if (!user) {
+			return reply.code(400).send({
+				message:
+					"Invalid or expired verification token",
+			});
+		}
 
-			const user = await findUserByVerificationToken(token);
+		await changeEmailVerified(user.id);
 
-			if (!user) {
-				return reply.code(400).send({
-					message:
-						"Invalid or expired verification token",
-				});
+		const session_id = randomBytes(32).toString("hex");
+		const session_id_hash = createHash("sha256")
+			.update(session_id)
+			.digest("hex");
+		await insertSessionById(
+			session_id_hash,
+			user.id
+		);
+
+		reply.setCookie(
+			"session_id",
+			session_id,
+			{
+				httpOnly: true,
+				secure: true,
+				sameSite: "strict",
+				maxAge: 60 * 60 * 24,
+				path: "/",
 			}
+		);
 
-			await changeEmailVerified(user.id);
-
-			const sessionId = randomUUID();
-			await insertSessionById(
-				sessionId,
-				user.id
-			);
-
-			reply.setCookie(
-				"session_id",
-				sessionId,
-				{
-					httpOnly: true,
-					secure: true,
-					sameSite: "strict",
-					maxAge: 60 * 60 * 24,
-					path: "/",
-				}
-			);
-
-			return reply.redirect("/");
+		return reply.redirect("/");
 		} catch (error) {
 
 			console.error(
@@ -303,9 +317,10 @@ fastify.get<{ Querystring: VerifyEmailQuery }>("/verify-email", async (request, 
 	}
 );
 
-// fastify.post("/api/auth/password-reset", async (request, reply) => {
-// 	}
-// );
+//fastify.post("/api/auth/password-reset", async (request, reply) => {
+
+//}
+//);
 
 // Web pages ............................................................................
 fastify.get("/setup-2fa", async (request, reply) => {
@@ -314,15 +329,16 @@ fastify.get("/setup-2fa", async (request, reply) => {
 );
 
 fastify.get("/verify-2fa", async (request, reply) => {
-		const twoFAId =
-			request.cookies.temporary_auth;
+		const temporary_auth = request.cookies.temporary_auth;
 
-		if (!twoFAId) {
+		if (!temporary_auth) {
 			return reply.redirect("/");
 		}
 
-		const user =
-			await getCurrentUserByTemporary2FA(twoFAId);
+		const temporary_auth_hash = createHash("sha256")
+			.update(temporary_auth)
+			.digest("hex");
+		const user = await getCurrentUserByTemporary2FA(temporary_auth_hash);
 		if (!user) {
 			return reply.redirect("/");
 		}
@@ -335,16 +351,19 @@ fastify.get("/verify-2fa", async (request, reply) => {
 io.use(async (socket, next) => {
 	const cookie = socket.handshake.headers.cookie;
 
-	const sessionId = cookie
+	const session_id = cookie
 		?.split("; ")
 		.find(row => row.startsWith("session_id="))
 		?.split("=")[1];
 
-	if (!sessionId) {
+	if (!session_id) {
 		console.log("Socket rejected: no session");
 		return next(new Error("Unauthorized"));
 	}
-	const user = await getCurrentUser(sessionId);
+	const session_id_hash = createHash("sha256")
+		.update(session_id)
+		.digest("hex");
+	const user = await getCurrentUser(session_id_hash);
 
 	if (!user) {
 		console.log("Socket rejected: no valid session");

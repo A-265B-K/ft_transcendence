@@ -1,6 +1,6 @@
 import { query } from "../auth/db.js";
 
-export async function insertUser(username: string, email: string, passwordHash: string, verification_token: string) {
+export async function insertUser(username: string, email: string, passwordHash: string, verification_token_hash: string) {
 	const result = await query(
 		`
 		INSERT INTO users
@@ -8,7 +8,7 @@ export async function insertUser(username: string, email: string, passwordHash: 
 			username,
 			email,
 			password_hash,
-			verification_token,
+			verification_token_hash,
 			verification_expires_at
 		)
 		VALUES
@@ -30,7 +30,7 @@ export async function insertUser(username: string, email: string, passwordHash: 
 			username,
 			email,
 			passwordHash,
-			verification_token,
+			verification_token_hash,
 		]
 	);
 	return result.rows[0];
@@ -57,7 +57,7 @@ export async function findUserByEmail(email: string) {
 	return result.rows[0] || null;
 }
 
-export async function findUserByVerificationToken(verification_token: string) {
+export async function findUserByVerificationToken(verification_token_hash: string) {
 	const result = await query(
 		`
 		SELECT
@@ -65,11 +65,11 @@ export async function findUserByVerificationToken(verification_token: string) {
 			username,
 			email
 		FROM users
-		WHERE verification_token = $1
+		WHERE verification_token_hash = $1
 		AND verification_expires_at > NOW();
 		`,
 		[
-			verification_token
+			verification_token_hash
 		]
 	);
 	return result.rows[0] || null;
@@ -81,7 +81,7 @@ export async function changeEmailVerified(userId: number) {
 		UPDATE users
 		SET
 			email_verified = TRUE,
-			verification_token = NULL,
+			verification_token_hash = NULL,
 			verification_expires_at = NULL
 		WHERE id = $1
 		RETURNING id, email_verified
