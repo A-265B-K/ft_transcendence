@@ -35,6 +35,12 @@ export class Game {
         this.scene?.addRemotePlayer(player);
     }
 
+    addRemoteCastle(
+        player: JoinedPayload["players"][number]
+    ) {
+        this.scene?.addRemoteCastle(player);
+    }
+
     updateRemotePlayer(
         socketId: string,
         x: number,
