@@ -3,84 +3,68 @@ import {
 	type CSSProperties,
 	type FormEvent,
 } from "react";
-import { connectSocket } from "../socket";
 
-type LoginProps = {
+type ForgotPasswordProps = {
 	onBack: () => void;
-	onLoginSuccess: (user: {
-		id: number;
-		username: string;
-		email: string;
-	}) => void;
-	onForgotPassword: () => void;
 };
 
-export default function LogIn({
+export default function ForgotPassword({
 	onBack,
-	onLoginSuccess,
-	onForgotPassword,
-}: LoginProps) {
+}: ForgotPasswordProps) {
 	const [email, setEmail] = useState("");
-	const [password, setPassword] = useState("");
 	const [status, setStatus] = useState("");
+	const [success, setSuccess] = useState(false);
+	const [loading, setLoading] = useState(false);
 
 	async function handleSubmit(
 		e: FormEvent<HTMLFormElement>
 	) {
 		e.preventDefault();
 
-		if (!email.trim() || !password.trim()) {
-			setStatus("Please fill in all fields.");
+		if (!email.trim()) {
+			setStatus("Please enter your email.");
 			return;
 		}
 
-		setStatus("Signing in...");
+		setLoading(true);
+		setStatus("");
 
 		try {
 			const response = await fetch(
-				"/api/auth/signin",
+				"/api/auth/password-reset/request",
 				{
 					method: "POST",
-					credentials: "include",
 					headers: {
 						"Content-Type": "application/json",
 					},
 					body: JSON.stringify({
 						email: email.trim(),
-						password,
 					}),
 				}
 			);
 
 			const data = await response.json();
 
-			if (data.requireTwoFactor) {
-				window.location.href = "/verify-2fa";
-				return;
-			}
-
 			if (!response.ok) {
 				setStatus(
-					data.message ?? "Login failed"
+					data.message ??
+						"Could not request password reset."
 				);
 				return;
 			}
 
-			console.log(
-				"LOGIN SUCCESS - connecting socket"
-			);
-
-			connectSocket();
-
-			onLoginSuccess(data.user);
+			setSuccess(true);
 
 			setStatus(
-				data.message ?? "Log in successful"
+				data.message ??
+					"If an account exists for this email, a reset link has been sent."
 			);
 		} catch {
 			setStatus(
-				"Could not reach the backend Sign in route."
+				"Could not reach the backend."
 			);
+		} finally {
+			setLoading(false);
 		}
 	}
 
@@ -117,7 +101,7 @@ export default function LogIn({
 						marginBottom: "8px",
 					}}
 				>
-					Sign in
+					Forgot password
 				</h2>
 
 				<p
@@ -128,60 +112,50 @@ export default function LogIn({
 							"rgba(244,247,251,0.7)",
 					}}
 				>
-					Sign in to your account.
+					Enter your email address and we'll
+					send you a password reset link.
 				</p>
 
-				<form
-					onSubmit={handleSubmit}
-					style={{
-						display: "grid",
-						gap: "12px",
-					}}
-				>
-					<input
-						type="email"
-						placeholder="Email"
-						value={email}
-						onChange={(e) =>
-							setEmail(e.target.value)
-						}
-						style={inputStyle}
-						autoComplete="email"
-					/>
-
-					<input
-						type="password"
-						placeholder="Password"
-						value={password}
-						onChange={(e) =>
-							setPassword(e.target.value)
-						}
-						style={inputStyle}
-						autoComplete="current-password"
-					/>
-
-					<button
-						type="button"
-						onClick={onForgotPassword}
-						style={forgotPasswordStyle}
+				{!success ? (
+					<form
+						onSubmit={handleSubmit}
+						style={{
+							display: "grid",
+							gap: "12px",
+						}}
 					>
-						Forgot your password?
-					</button>
+						<input
+							type="email"
+							placeholder="Email"
+							value={email}
+							onChange={(e) =>
+								setEmail(e.target.value)
+							}
+							style={inputStyle}
+							autoComplete="email"
+							disabled={loading}
+						/>
 
-					<button
-						type="submit"
-						style={primaryButtonStyle}
-					>
-						Sign In
-					</button>
-				</form>
+						<button
+							type="submit"
+							style={primaryButtonStyle}
+							disabled={loading}
+						>
+							{loading
+								? "Sending..."
+								: "Send reset link"}
+						</button>
+					</form>
+				) : null}
 
 				{status ? (
 					<p
 						style={{
 							marginTop: "14px",
 							marginBottom: 0,
-							color: "#ffcf5c",
+							color: success
+								? "#8ee6a8"
+								: "#ffcf5c",
 						}}
 					>
 						{status}
@@ -193,7 +167,7 @@ export default function LogIn({
 					onClick={onBack}
 					style={secondaryButtonStyle}
 				>
-					Back to menu
+					Back to login
 				</button>
 			</div>
 		</div>
@@ -208,16 +182,6 @@ const inputStyle: CSSProperties = {
 	background: "rgba(255,255,255,0.06)",
 	color: "#f4f7fb",
 	outline: "none",
-};
-
-const forgotPasswordStyle: CSSProperties = {
-	padding: 0,
-	border: "none",
-	background: "transparent",
-	color: "#ffcf5c",
-	textAlign: "right",
-	cursor: "pointer",
-	fontSize: "14px",
 };
 
 const primaryButtonStyle: CSSProperties = {

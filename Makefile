@@ -5,11 +5,6 @@ up:
 	@docker compose up -d
 	@echo Game reachable at https://localhost:8443/
 
-upd:
-	@mkdir -p ./backups
-	@docker compose up
-	@echo Game reachable at https://localhost:8443/
-
 down:
 	@docker compose down
 
