@@ -46,18 +46,19 @@ export default function GameCanvas({
 			console.log("Player joined:", player);
 
 			game.addRemotePlayer(player);
+			game.addRemoteCastle(player);
 		}
 
 		function handlePlayerMove({
-			socketID,
+			socketId,
 			x,
 			y
 		}: {
-			socketID: string;
+			socketId: string;
 			x: number;
 			y: number;
 		}) {
-			game.updateRemotePlayer(socketID, x, y);
+			game.updateRemotePlayer(socketId, x, y);
 		}
 
 		socket.on("player_joined", handlePlayerJoined);

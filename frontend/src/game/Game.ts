@@ -35,12 +35,18 @@ export class Game {
         this.scene?.addRemotePlayer(player);
     }
 
+    addRemoteCastle(
+        player: JoinedPayload["players"][number]
+    ) {
+        this.scene?.addRemoteCastle(player);
+    }
+
     updateRemotePlayer(
-        socketID: string,
+        socketId: string,
         x: number,
         y: number
     ) {
-        this.scene?.updateRemotePlayer(socketID, x, y);
+        this.scene?.updateRemotePlayer(socketId, x, y);
     }
 
     async start(container: HTMLDivElement, joinedData: JoinedPayload, socket: Socket) {
