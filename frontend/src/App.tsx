@@ -5,6 +5,8 @@ import LogIn from "./pages/Login";
 import GameMenu from "./pages/GameMenu";
 import { useState, useEffect } from "react";
 import { type JoinedPayload } from "./types/game";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 type User = {
 	id: number;
@@ -16,7 +18,7 @@ type User = {
 export default function App() {
 
 	const [screen, setScreen] = useState<
-		"loading" | "menu" | "signup" | "login" | "gameMenu" | "game"
+		"loading" | "menu" | "signup" | "login" | "gameMenu" | "game" | "forgotPassword" | "resetPassword"
 	>("loading");
 
 
@@ -26,6 +28,13 @@ export default function App() {
 
 	useEffect(() => {
 
+
+		const path = window.location.pathname;
+
+		if (path === "/reset-password") {
+			setScreen("resetPassword");
+			return;
+		}
 		async function checkSession() {
 
 			try {
@@ -131,28 +140,44 @@ export default function App() {
 	}
 
 
-
-	if(screen === "login") {
-
+	if (screen === "login") {
 		return (
 			<LogIn
-
 				onBack={() => {
 					setScreen("menu");
 				}}
 
-				onLoginSuccess={(loggedUser)=>{
-
-					setUser(loggedUser);
-					setScreen("gameMenu");
-
+				onForgotPassword={() => {
+					setScreen("forgotPassword");
 				}}
 
+				onLoginSuccess={(loggedUser) => {
+					setUser(loggedUser);
+					setScreen("gameMenu");
+				}}
 			/>
 		);
-
 	}
 
+	if (screen === "forgotPassword") {
+		return (
+			<ForgotPassword
+				onBack={() => {
+					setScreen("login");
+				}}
+			/>
+		);
+	}
+
+		if (screen === "resetPassword") {
+		return (
+			<ResetPassword
+				onBack={() => {
+					setScreen("login");
+				}}
+			/>
+		);
+	}
 	if(screen === "gameMenu" && user) {
 
 		return (

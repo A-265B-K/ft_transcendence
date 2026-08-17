@@ -8,17 +8,21 @@ type LoginProps = {
 		username: string;
 		email: string;
 	}) => void;
+	onForgotPassword: () => void;
 };
 
 export default function LogIn({
 	onBack,
 	onLoginSuccess,
+	onForgotPassword,
 }: LoginProps) {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [status, setStatus] = useState("");
 
-	async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+	async function handleSubmit(
+		e: FormEvent<HTMLFormElement>,
+	) {
 		e.preventDefault();
 
 		if (!email.trim() || !password.trim()) {
@@ -29,17 +33,20 @@ export default function LogIn({
 		setStatus("Signing in...");
 
 		try {
-			const response = await fetch("/api/auth/signin", {
-				method: "POST",
-				credentials: "include",
-				headers: {
-					"Content-Type": "application/json",
+			const response = await fetch(
+				"/api/auth/signin",
+				{
+					method: "POST",
+					credentials: "include",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({
+						email: email.trim(),
+						password,
+					}),
 				},
-				body: JSON.stringify({
-					email: email.trim(),
-					password,
-				}),
-			});
+			);
 
 			const data = await response.json();
 
@@ -49,18 +56,25 @@ export default function LogIn({
 			}
 
 			if (!response.ok) {
-				setStatus(data.message ?? "Login failed");
+				setStatus(
+					data.message ?? "Login failed",
+				);
 				return;
 			}
 
-			console.log("LOGIN SUCCESS - connecting socket");
+			console.log(
+				"LOGIN SUCCESS - connecting socket",
+			);
 
 			connectSocket();
 			onLoginSuccess(data.user);
-			setStatus(data.message ?? "Log in successful");
+
+			setStatus(
+				data.message ?? "Log in successful",
+			);
 		} catch {
 			setStatus(
-				"Could not reach the backend sign in route."
+				"Could not reach the backend sign in route.",
 			);
 		}
 	}
@@ -84,7 +98,10 @@ export default function LogIn({
 						type="email"
 						placeholder="Email"
 						value={email}
-						onChange={(e) => setEmail(e.target.value)}
+						onChange={(e) =>
+							setEmail(e.target.value)
+						}
+						autoComplete="email"
 						className="rounded-xl border border-white/15 bg-white/[0.06] px-3.5 py-3 text-[#f4f7fb] outline-none placeholder:text-white/40 focus:border-[#ffcf5c]"
 					/>
 
@@ -92,9 +109,20 @@ export default function LogIn({
 						type="password"
 						placeholder="Password"
 						value={password}
-						onChange={(e) => setPassword(e.target.value)}
+						onChange={(e) =>
+							setPassword(e.target.value)
+						}
+						autoComplete="current-password"
 						className="rounded-xl border border-white/15 bg-white/[0.06] px-3.5 py-3 text-[#f4f7fb] outline-none placeholder:text-white/40 focus:border-[#ffcf5c]"
 					/>
+
+					<button
+						type="button"
+						onClick={onForgotPassword}
+						className="self-end border-0 bg-transparent p-0 text-sm text-[#ffcf5c] hover:text-[#ff9f43]"
+					>
+						Forgot your password?
+					</button>
 
 					<button
 						type="submit"

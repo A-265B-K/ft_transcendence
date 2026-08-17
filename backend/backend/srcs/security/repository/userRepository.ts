@@ -1,5 +1,6 @@
 import { query } from "../auth/db.js";
 
+// Insertion ..........................................................
 export async function insertUser(username: string, email: string, passwordHash: string, verification_token_hash: string) {
 	const result = await query(
 		`
@@ -36,6 +37,25 @@ export async function insertUser(username: string, email: string, passwordHash: 
 	return result.rows[0];
 }
 
+export async function insertUserPasswordVerification(email: string, password_verification_token_hash: string) {
+	const result = await query(
+		`
+		UPDATE users
+		SET
+			password_verification_token_hash = $2,
+			password_verification_token_hash_expires_at = NOW() + INTERVAL '5 minutes'
+		WHERE email = $1
+		RETURNING email, id
+		`,
+		[
+			email,
+			password_verification_token_hash
+		]
+	);
+	return result.rows[0];
+}
+
+// Search ........................................................................
 export async function findUserByEmail(email: string) {
 	const result = await query(
 		`
@@ -75,6 +95,25 @@ export async function findUserByVerificationToken(verification_token_hash: strin
 	return result.rows[0] || null;
 }
 
+export async function findUserByPasswordResetRequestToken(password_reset_token_hash: string) {
+	const result = await query (
+		`
+		SELECT
+			id,
+			username,
+			email
+		FROM users
+		WHERE password_verification_token_hash = $1
+		AND password_verification_token_hash_expires_at > NOW ();
+		`,
+		[
+			password_reset_token_hash
+		]
+	);
+	return result.rows[0] || null;
+}
+
+// Modification ..................................................................
 export async function changeEmailVerified(userId: number) {
 	const result = await query(
 		`
@@ -131,6 +170,40 @@ export async function disable2FA(email: string) {
 		RETURNING id, enabled_2fa
 		`,
 		[email]
+	);
+	return result.rows[0];
+}
+
+export async function updatePassword(email: string, passwordHash: string) {
+		const result = await query(
+		`
+		UPDATE users
+		SET
+			password_hash = $2
+		WHERE email = $1
+		RETURNING id
+		`,
+		[
+			email,
+			passwordHash
+		]
+	);
+	return result.rows[0];
+}
+
+export async function deletePasswordResetToken(email: string) {
+		const result = await query(
+		`
+		UPDATE users
+		SET
+			password_verification_token_hash = null,
+			password_verification_token_hash_expires_at = null
+		WHERE email = $1
+		RETURNING id
+		`,
+		[
+			email
+		]
 	);
 	return result.rows[0];
 }

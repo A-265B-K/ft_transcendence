@@ -6,6 +6,8 @@ CREATE TABLE IF NOT EXISTS users (
 	verification_token_hash TEXT,
 	verification_expires_at TIMESTAMPTZ,
 	password_hash TEXT NOT NULL,
+	password_verification_token_hash TEXT,
+	password_verification_token_hash_expires_at TIMESTAMPTZ,
 	enabled_2fa BOOLEAN NOT NULL DEFAULT FALSE,
 	totp_secret TEXT,
 	created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
