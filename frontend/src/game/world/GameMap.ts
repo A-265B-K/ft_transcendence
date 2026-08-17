@@ -1,10 +1,3 @@
-/**
- * Game Map System
- *
- * Uses server generated map data.
- * Renders only visible tiles using sprite pooling.
- */
-
 import { Container, Sprite, Texture } from "pixi.js";
 import { isoX, isoY, tileHeight, tileWidth } from "./iso";
 import { TileType } from "./TileType";
@@ -32,7 +25,6 @@ export class GameMap {
 
         this.container = new Container();
         this.container.sortableChildren = true;
-
         this.textures = {
             [TileType.Grass]: grass,
             [TileType.Wood]: wood,
@@ -51,7 +43,6 @@ export class GameMap {
             () => Array(this.width).fill(TileType.Grass)
         );
 
-
         /*
             Add server resources
         */
@@ -69,31 +60,20 @@ export class GameMap {
                 continue;
             }
             if (resource.type === "wood") {
-
                 this.map[y][x] = TileType.Wood;
-
             }
             if (resource.type === "stone") {
-
                 this.map[y][x] = TileType.Iron;
-
             }
         }
 
-
-        /*
-            Sprite pool.
-            Reuse sprites instead of creating thousands.
-        */
         const poolSize = 3500;
-
 
         for (let i = 0; i < poolSize; i++) {
 
             const tile = new Sprite(
                 this.textures[TileType.Grass]
             );
-
 
             tile.width = tileWidth;
             tile.height = tileHeight;
@@ -103,31 +83,24 @@ export class GameMap {
         }
     }
 
-
-
     update(
         screenWidth: number,
         screenHeight: number,
         cameraX: number,
         cameraY: number
     ) {
-
         let index = 0;
-
 
         const left = -cameraX;
         const top = -cameraY;
-
         const right = left + screenWidth;
         const bottom = top + screenHeight;
 
         const corners = [
-
             this.screenToGrid(left, top),
             this.screenToGrid(right, top),
             this.screenToGrid(left, bottom),
             this.screenToGrid(right, bottom),
-
         ];
 
         const minGridX =
@@ -136,14 +109,11 @@ export class GameMap {
             )
             - this.viewPadding;
 
-
         const maxGridX =
             Math.ceil(
                 Math.max(...corners.map(c => c.x))
             )
             + this.viewPadding;
-
-
 
         const minGridY =
             Math.floor(
@@ -151,23 +121,16 @@ export class GameMap {
             )
             - this.viewPadding;
 
-
         const maxGridY =
             Math.ceil(
                 Math.max(...corners.map(c => c.y))
             )
             + this.viewPadding;
 
-        for (
-            let x = minGridX;
-            x <= maxGridX;
-            x++
+        for (let x = minGridX; x <= maxGridX; x++
         ) {
 
-            for (
-                let y = minGridY;
-                y <= maxGridY;
-                y++
+            for ( let y = minGridY; y <= maxGridY; y++
             ) {
                 if (
                     x < 0 ||
@@ -193,16 +156,10 @@ export class GameMap {
                     continue;
                 }
 
-                /*
-                    Ground layer
-                */
                 const grassTile = this.tiles[index++];
-
 
                 if (!grassTile)
                     return;
-
-
 
                 grassTile.visible = true;
                 grassTile.texture = this.textures[TileType.Grass];
@@ -216,12 +173,9 @@ export class GameMap {
                 /*
                     Resource layer
                 */
-                const tileType =
-                    this.map[y]?.[x]
-                    ?? TileType.Grass;
+                const tileType = this.map[y]?.[x] ?? TileType.Grass;
 
                 if (tileType !== TileType.Grass) {
-
 
                     const objectTile =
                         this.tiles[index++];
@@ -230,28 +184,12 @@ export class GameMap {
                         return;
 
                     objectTile.visible = true;
-
-
-                    objectTile.texture =
-                        this.textures[tileType];
-
-                    objectTile.anchor.set(
-                        0.5,
-                        0.6
-                    );
-
-                    objectTile.scale.set(
-                        0.25
-                    );
-
-                    objectTile.x =
-                        tileX + tileWidth / 2;
-
-
-                    objectTile.y =
-                        tileY + tileHeight / 2;
-                    objectTile.zIndex =
-                        x + y + 0.1;
+                    objectTile.texture = this.textures[tileType];
+                    objectTile.anchor.set(0.5, 0.6);
+                    objectTile.scale.set(0.25);
+                    objectTile.x = tileX + tileWidth / 2;
+                    objectTile.y = tileY + tileHeight / 2;
+                    objectTile.zIndex = x + y + 0.1;
                 }
             }
         }
@@ -259,20 +197,13 @@ export class GameMap {
         /*
             Hide unused sprites
         */
-        for (
-            ;
-            index < this.tiles.length;
-            index++
+        for ( ; index < this.tiles.length; index++
         ) {
-
             this.tiles[index].visible = false;
-
         }
     }
 
-    harvestAt(
-        x:number,
-        y:number
+    harvestAt(x:number, y:number
     ): HarvestableTile | null {
 
         if (
@@ -281,46 +212,30 @@ export class GameMap {
             x >= this.width ||
             y >= this.height
         ) {
-
             return null;
-
         }
-
-        const tileType =
-            this.map[y]?.[x]
-            ?? TileType.Grass;
+        const tileType = this.map[y]?.[x] ?? TileType.Grass;
 
         if (!isHarvestableTile(tileType)) {
 
             return null;
 
         }
-
         this.map[y][x] =
             TileType.Grass;
-
         return tileType;
     }
-
-    clearTile(
-        x:number,
-        y:number
-    ) {
-
+    clearTile(x:number, y:number) {
         if (
             x < 0 ||
             y < 0 ||
             x >= this.width ||
             y >= this.height
         ) {
-
             return;
-
         }
-
         this.map[y][x] =
             TileType.Grass;
-
     }
 
     private screenToGrid(
@@ -330,14 +245,9 @@ export class GameMap {
 
         return {
             x:
-                screenY / tileHeight
-                +
-                screenX / tileWidth,
-
+                screenY / tileHeight + screenX / tileWidth,
             y:
-                screenY / tileHeight
-                -
-                screenX / tileWidth,
+                screenY / tileHeight - screenX / tileWidth,
         };
     }
 }

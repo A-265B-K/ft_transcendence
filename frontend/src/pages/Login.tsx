@@ -1,24 +1,26 @@
-import { useState, type CSSProperties, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { connectSocket } from "../socket";
 
 type LoginProps = {
-    onBack: () => void;
-    onLoginSuccess: (user: {
-        id: number;
-        username: string;
-        email: string;
-    }) => void;
+	onBack: () => void;
+	onLoginSuccess: (user: {
+		id: number;
+		username: string;
+		email: string;
+	}) => void;
 };
 
-export default function LogIn({ onBack, onLoginSuccess }: LoginProps) {
-
+export default function LogIn({
+	onBack,
+	onLoginSuccess,
+}: LoginProps) {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [status, setStatus] = useState("");
 
 	async function handleSubmit(e: FormEvent<HTMLFormElement>) {
 		e.preventDefault();
-	
+
 		if (!email.trim() || !password.trim()) {
 			setStatus("Please fill in all fields.");
 			return;
@@ -26,7 +28,6 @@ export default function LogIn({ onBack, onLoginSuccess }: LoginProps) {
 
 		setStatus("Signing in...");
 
-// calling backend SignIn
 		try {
 			const response = await fetch("/api/auth/signin", {
 				method: "POST",
@@ -57,105 +58,66 @@ export default function LogIn({ onBack, onLoginSuccess }: LoginProps) {
 			connectSocket();
 			onLoginSuccess(data.user);
 			setStatus(data.message ?? "Log in successful");
-
 		} catch {
-			setStatus("Could not reach the backend Sign up route.");
+			setStatus(
+				"Could not reach the backend sign in route."
+			);
 		}
 	}
 
 	return (
-		<div
-			style={{
-				minHeight: "100vh",
-				display: "grid",
-				placeItems: "center",
-				padding: "24px",
-				background: "linear-gradient(180deg, #10212a 0%, #081016 100%)",
-				color: "#f4f7fb",
-			}}
-		>
-			<div
-				style={{
-					width: "100%",
-					maxWidth: "460px",
-					padding: "30px",
-					borderRadius: "24px",
-					background: "rgba(8, 16, 22, 0.82)",
-					border: "1px solid rgba(255,255,255,0.12)",
-					boxShadow: "0 20px 60px rgba(0,0,0,0.35)",
-					backdropFilter: "blur(14px)",
-				}}
-			>
-				<h2 style={{ marginTop: 0, marginBottom: "8px" }}>Sign in</h2>
-				<p style={{ marginTop: 0, marginBottom: "20px", color: "rgba(244,247,251,0.7)" }}>
+		<div className="grid min-h-screen place-items-center bg-linear-to-b from-[#10212a] to-[#081016] p-6 text-[#f4f7fb]">
+			<div className="w-full max-w-[460px] rounded-3xl border border-white/10 bg-[#081016]/85 p-[30px] shadow-[0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur-[14px]">
+				<h2 className="mb-2 text-2xl font-bold">
+					Sign in
+				</h2>
+
+				<p className="mb-5 text-white/70">
+					Sign in to continue playing.
 				</p>
 
 				<form
 					onSubmit={handleSubmit}
-					style={{ display: "grid", gap: "12px" }}
+					className="grid gap-3"
 				>
 					<input
 						type="email"
 						placeholder="Email"
 						value={email}
 						onChange={(e) => setEmail(e.target.value)}
-						style={inputStyle}
+						className="rounded-xl border border-white/15 bg-white/[0.06] px-3.5 py-3 text-[#f4f7fb] outline-none placeholder:text-white/40 focus:border-[#ffcf5c]"
 					/>
+
 					<input
 						type="password"
 						placeholder="Password"
 						value={password}
 						onChange={(e) => setPassword(e.target.value)}
-						style={inputStyle}
+						className="rounded-xl border border-white/15 bg-white/[0.06] px-3.5 py-3 text-[#f4f7fb] outline-none placeholder:text-white/40 focus:border-[#ffcf5c]"
 					/>
 
-
-					<button type="submit" style={primaryButtonStyle}>
+					<button
+						type="submit"
+						className="mt-1 rounded-xl bg-linear-to-br from-[#ffcf5c] to-[#ff9f43] px-3.5 py-3 font-bold text-[#10212a] transition hover:brightness-110"
+					>
 						Sign In
 					</button>
 				</form>
 
-				{status ? (
-					<p style={{ marginTop: "14px", marginBottom: 0, color: "#ffcf5c" }}>
+				{status && (
+					<p className="mt-3.5 text-[#ffcf5c]">
 						{status}
 					</p>
-				) : null}
+				)}
 
-				<button type="button" onClick={onBack} style={secondaryButtonStyle}>
+				<button
+					type="button"
+					onClick={onBack}
+					className="mt-3 w-full rounded-xl border border-white/15 bg-transparent px-3.5 py-3 text-[#f4f7fb] transition hover:bg-white/5"
+				>
 					Back to menu
 				</button>
 			</div>
 		</div>
 	);
 }
-
-const inputStyle: CSSProperties = {
-	padding: "12px 14px",
-	borderRadius: "12px",
-	border: "1px solid rgba(255,255,255,0.14)",
-	background: "rgba(255,255,255,0.06)",
-	color: "#f4f7fb",
-	outline: "none",
-};
-
-const primaryButtonStyle: CSSProperties = {
-	padding: "12px 14px",
-	borderRadius: "12px",
-	border: "none",
-	background: "linear-gradient(135deg, #ffcf5c 0%, #ff9f43 100%)",
-	color: "#10212a",
-	fontWeight: 700,
-	cursor: "pointer",
-	marginTop: "4px",
-};
-
-const secondaryButtonStyle: CSSProperties = {
-	marginTop: "12px",
-	width: "100%",
-	padding: "12px 14px",
-	borderRadius: "12px",
-	border: "1px solid rgba(255,255,255,0.14)",
-	background: "transparent",
-	color: "#f4f7fb",
-	cursor: "pointer",
-};

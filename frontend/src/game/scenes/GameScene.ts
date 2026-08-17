@@ -65,8 +65,12 @@ export class GameScene {
         this.world.addChild(this.player.sprite);
 
         for (const player of joinedData.players) {
-            if (player.socketId === joinedData.player.socketId)
+            if (
+                player.socketId ===
+                joinedData.player.socketId
+            ) {
                 continue;
+            }
 
             const remote = new RemotePlayer(
                 {
@@ -124,6 +128,16 @@ export class GameScene {
                 zone.y
             );
 
+            /*
+             * Restore the current castle level.
+             *
+             * This is important when a player joins
+             * after another player has already upgraded.
+             */
+            castle.setLevel(
+                player.inventory.castleLevel
+            );
+
             this.map.clearTile(
                 castle.gridX,
                 castle.gridY
@@ -138,7 +152,10 @@ export class GameScene {
                 castle.container
             );
 
-            if (zone.playerSlot === joinedData.player.slot) {
+            if (
+                zone.playerSlot ===
+                joinedData.player.slot
+            ) {
                 ownCastle = castle;
             }
         }
@@ -156,11 +173,20 @@ export class GameScene {
     addRemotePlayer(
         player: JoinedPayload["players"][number]
     ) {
-        if (player.socketId === this.joinedData.player.socketId)
+        if (
+            player.socketId ===
+            this.joinedData.player.socketId
+        ) {
             return;
+        }
 
-        if (this.remotePlayers.has(player.socketId))
+        if (
+            this.remotePlayers.has(
+                player.socketId
+            )
+        ) {
             return;
+        }
 
         const remote = new RemotePlayer(
             {
@@ -199,12 +225,18 @@ export class GameScene {
     addRemoteCastle(
         player: JoinedPayload["players"][number]
     ) {
-        if (this.castles.has(player.slot))
+        if (
+            this.castles.has(player.slot)
+        ) {
             return;
+        }
 
-        const zone = this.joinedData.map.castleZones.find(
-            zone => zone.playerSlot === player.slot
-        );
+        const zone =
+            this.joinedData.map.castleZones.find(
+                zone =>
+                    zone.playerSlot ===
+                    player.slot
+            );
 
         if (!zone)
             return;
@@ -219,6 +251,13 @@ export class GameScene {
         castle.placeAt(
             zone.x,
             zone.y
+        );
+
+        /*
+         * Use the player's current castle level.
+         */
+        castle.setLevel(
+            player.inventory.castleLevel
         );
 
         this.map.clearTile(
@@ -256,10 +295,13 @@ export class GameScene {
         );
 
         if (movedDistance > 0.05) {
-            this.socket.emit("player_move", {
-                x: this.player.gridX,
-                y: this.player.gridY,
-            });
+            this.socket.emit(
+                "player_move",
+                {
+                    x: this.player.gridX,
+                    y: this.player.gridY,
+                }
+            );
         }
 
         this.clampPlayerToMap();
@@ -295,12 +337,20 @@ export class GameScene {
                     this.map.harvestAt(x, y);
 
                 if (harvestedTile) {
-                    if (harvestedTile === "wood") {
-                        this.player.inventory.add("wood");
+                    if (
+                        harvestedTile === "wood"
+                    ) {
+                        this.player.inventory.add(
+                            "wood"
+                        );
                     }
 
-                    if (harvestedTile === "iron") {
-                        this.player.inventory.add("iron");
+                    if (
+                        harvestedTile === "iron"
+                    ) {
+                        this.player.inventory.add(
+                            "iron"
+                        );
                     }
 
                     harvested = true;
@@ -313,7 +363,7 @@ export class GameScene {
             this.isNearCastle() &&
             this.tryUpgradeCastle()
         ) {
-            // Castle upgrade handled
+            // Castle upgrade handled.
         }
 
         this.camera.update(
@@ -388,7 +438,10 @@ export class GameScene {
             halfHeight -
             Math.abs(dy);
 
-        if (overlapX > 0 && overlapY > 0) {
+        if (
+            overlapX > 0 &&
+            overlapY > 0
+        ) {
             if (overlapX < overlapY) {
                 const pushX =
                     dx > 0
@@ -466,7 +519,10 @@ export class GameScene {
             this.player.gridY
         );
 
-        const rotation = Math.atan2(dy, dx);
+        const rotation = Math.atan2(
+            dy,
+            dx
+        );
 
         const bearingDegrees =
             (rotation * 180) / Math.PI;
@@ -478,7 +534,8 @@ export class GameScene {
             rotation,
             distance,
             visible: distance >= 0.1,
-            bearingDegrees: normalizedBearing,
+            bearingDegrees:
+                normalizedBearing,
             direction:
                 this.getCompassDirection(
                     normalizedBearing
@@ -501,8 +558,9 @@ export class GameScene {
         ];
 
         const index =
-            Math.round(degrees / 45) %
-            directions.length;
+            Math.round(
+                degrees / 45
+            ) % directions.length;
 
         return directions[index];
     }
@@ -535,7 +593,48 @@ export class GameScene {
             return false;
         }
 
-        return this.castle.upgrade();
+        const upgraded =
+            this.castle.upgrade();
+
+        if (!upgraded)
+            return false;
+
+        /*
+         * Tell the server that our castle
+         * was upgraded.
+         */
+        this.socket.emit(
+            "castle_upgrade",
+            {
+                level: this.castle.level,
+            }
+        );
+
+        return true;
+    }
+
+    updateRemoteCastle(
+        socketId: string,
+        level: number
+    ) {
+        const player =
+            this.joinedData.players.find(
+                p =>
+                    p.socketId === socketId
+            );
+
+        if (!player)
+            return;
+
+        const castle =
+            this.castles.get(
+                player.slot
+            );
+
+        if (!castle)
+            return;
+
+        castle.setLevel(level);
     }
 
     updateRemotePlayer(
@@ -544,11 +643,16 @@ export class GameScene {
         y: number
     ) {
         const remote =
-            this.remotePlayers.get(socketId);
+            this.remotePlayers.get(
+                socketId
+            );
 
         if (!remote)
             return;
 
-        remote.updatePosition(x, y);
+        remote.updatePosition(
+            x,
+            y
+        );
     }
 }
