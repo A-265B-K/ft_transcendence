@@ -6,30 +6,30 @@ import type { JoinedPayload } from "../types/game";
 import { connectSocket } from "../socket";
 
 interface GameCanvasProps {
-    joinedData: JoinedPayload;
+	joinedData: JoinedPayload;
 }
 
 export default function GameCanvas({
-    joinedData,
+	joinedData,
 }: GameCanvasProps) {
 	const gameContainer = useRef<HTMLDivElement>(null);
 	const gameRef = useRef<Game | null>(null);
-	const [inventory, setInventory] = useState({ wood: 0, iron: 0 });
-	const [castlePointer, setCastlePointer] = useState<CastlePointer | null>(null);
 
-	// Initialize game on component mount, cleanup on unmount
+	const [inventory, setInventory] = useState({
+		wood: 0,
+		iron: 0,
+	});
+
+	const [castlePointer, setCastlePointer] =
+		useState<CastlePointer | null>(null);
 
 	useEffect(() => {
-		if (!joinedData)
-			return;
-
-		if (!gameContainer.current)
+		if (!joinedData || !gameContainer.current)
 			return;
 
 		console.log("Starting game with:", joinedData);
 
 		const socket = connectSocket();
-
 		const game = new Game();
 
 		gameRef.current = game;
@@ -41,7 +41,7 @@ export default function GameCanvas({
 		);
 
 		function handlePlayerJoined(
-			player: JoinedPayload["players"][number]
+			player: JoinedPayload["players"][number],
 		) {
 			console.log("Player joined:", player);
 
@@ -52,7 +52,7 @@ export default function GameCanvas({
 		function handlePlayerMove({
 			socketId,
 			x,
-			y
+			y,
 		}: {
 			socketId: string;
 			x: number;
@@ -65,18 +65,14 @@ export default function GameCanvas({
 		socket.on("player_move", handlePlayerMove);
 
 		const intervalId = window.setInterval(() => {
-			const snapshot =
-				game.getInventorySnapshot();
-
-			const pointer =
-				game.getCastlePointerSnapshot();
+			const snapshot = game.getInventorySnapshot();
+			const pointer = game.getCastlePointerSnapshot();
 
 			if (snapshot)
 				setInventory(snapshot);
 
 			if (pointer)
 				setCastlePointer(pointer);
-
 		}, 32);
 
 		return () => {
@@ -88,30 +84,45 @@ export default function GameCanvas({
 			gameRef.current = null;
 			game.destroy();
 		};
-
 	}, [joinedData]);
 
 	return (
-		<div className="app-shell">
-			<div ref={gameContainer} className="game-canvas-host" />
+		<div className="relative h-screen w-screen overflow-hidden">
+			<div
+				ref={gameContainer}
+				className="h-full w-full"
+			/>
+
 			{castlePointer && (
-				<div className="castle-pointer-hud" aria-label="Castle direction">
-					<div className="castle-pointer-hud__title">Castle</div>
+				<div
+					className="pointer-events-none absolute right-[18px] top-[18px] grid min-w-[140px] justify-items-center gap-1 rounded-[18px] border border-white/15 bg-[#0a1016]/75 px-4 py-3.5 text-[#f4f7fb] shadow-[0_16px_40px_rgba(0,0,0,0.28)] backdrop-blur-xl"
+					aria-label="Castle direction"
+				>
+					<div className="text-xs font-medium uppercase tracking-[0.16em] text-white/70">
+						Castle
+					</div>
+
 					<div
-						className="castle-pointer-hud__arrow"
-						style={{ transform: `rotate(${castlePointer.rotation}rad)` }}
+						className="origin-center text-[30px] font-black leading-none text-[#ffcf5c] drop-shadow-[0_2px_12px_rgba(255,207,92,0.5)]"
+						style={{
+							transform: `rotate(${castlePointer.rotation}rad)`,
+						}}
 					>
 						➤
 					</div>
-					<div className="castle-pointer-hud__distance">
+
+					<div className="text-[13px] font-semibold text-white/85">
 						{castlePointer.visible
 							? `${castlePointer.direction} · ${castlePointer.bearingDegrees.toFixed(0)}° · ${castlePointer.distance.toFixed(1)} tiles away`
 							: "You are here"}
 					</div>
 				</div>
 			)}
-			<div className="hud-layer">
-				<Inventory counts={inventory} />
+
+			<div className="pointer-events-none absolute inset-0 flex items-end justify-center px-4 pb-6">
+				<div className="pointer-events-auto">
+					<Inventory counts={inventory} />
+				</div>
 			</div>
 		</div>
 	);
