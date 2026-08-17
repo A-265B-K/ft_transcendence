@@ -18,7 +18,7 @@ export class GameScene {
     readonly camera: Camera;
     readonly joinedData: JoinedPayload;
     readonly remotePlayers = new Map<string, RemotePlayer>();
-    readonly playerTexture: GameTextures;
+    readonly textures: GameTextures;
     readonly socket: Socket;
 
     constructor(
@@ -27,16 +27,36 @@ export class GameScene {
         socket: Socket,
     ) {
         this.socket = socket;
+        this.textures = textures;
 
         this.world = new Container();
         this.world.sortableChildren = true;
 
-        this.map = new GameMap(textures.grass, textures.wood, textures.iron, joinedData.map);
+        this.map = new GameMap(
+            textures.grass,
+            textures.wood,
+            textures.iron,
+            joinedData.map
+        );
+
         this.world.addChild(this.map.container);
 
-        this.playerTexture = textures;
-        
-        this.player = new Player(textures.player);
+        this.player = new Player({
+            playerDown1: textures.playerDown1,
+            playerDown2: textures.playerDown2,
+
+            playerUp1: textures.playerUp1,
+            playerUp2: textures.playerUp2,
+
+            playerLeft1: textures.playerLeft1,
+            playerLeft2: textures.playerLeft2,
+
+            playerRight1: textures.playerRight1,
+            playerRight2: textures.playerRight2,
+
+            playerStand: textures.playerStand,
+        });
+
         this.player.placeAt(
             joinedData.player.x,
             joinedData.player.y
@@ -45,28 +65,37 @@ export class GameScene {
         this.world.addChild(this.player.sprite);
 
         for (const player of joinedData.players) {
-
             if (player.socketId === joinedData.player.socketId)
                 continue;
 
-
             const remote = new RemotePlayer(
-                textures.player,
+                {
+                    playerDown1: textures.playerDown1,
+                    playerDown2: textures.playerDown2,
+
+                    playerUp1: textures.playerUp1,
+                    playerUp2: textures.playerUp2,
+
+                    playerLeft1: textures.playerLeft1,
+                    playerLeft2: textures.playerLeft2,
+
+                    playerRight1: textures.playerRight1,
+                    playerRight2: textures.playerRight2,
+
+                    playerStand: textures.playerStand,
+                },
                 player.userId
             );
-
 
             remote.placeAt(
                 player.x,
                 player.y
             );
 
-
             this.remotePlayers.set(
                 player.socketId,
                 remote
             );
-
 
             this.world.addChild(
                 remote.sprite
@@ -83,14 +112,31 @@ export class GameScene {
             if (!player)
                 continue;
 
-            const castle = new Castle(textures.castle);
+            const castle = new Castle({
+                castle1: textures.castle1,
+                castle2: textures.castle2,
+                castle3: textures.castle3,
+                castle4: textures.castle4,
+            });
 
-            castle.placeAt(zone.x, zone.y);
+            castle.placeAt(
+                zone.x,
+                zone.y
+            );
 
-            this.map.clearTile(castle.gridX, castle.gridY);
+            this.map.clearTile(
+                castle.gridX,
+                castle.gridY
+            );
 
-            this.castles.set(zone.playerSlot, castle);
-            this.world.addChild(castle.container);
+            this.castles.set(
+                zone.playerSlot,
+                castle
+            );
+
+            this.world.addChild(
+                castle.container
+            );
 
             if (zone.playerSlot === joinedData.player.slot) {
                 ownCastle = castle;
@@ -107,7 +153,9 @@ export class GameScene {
         this.joinedData = joinedData;
     }
 
-    addRemotePlayer(player: JoinedPayload["players"][number]) {
+    addRemotePlayer(
+        player: JoinedPayload["players"][number]
+    ) {
         if (player.socketId === this.joinedData.player.socketId)
             return;
 
@@ -115,17 +163,42 @@ export class GameScene {
             return;
 
         const remote = new RemotePlayer(
-            this.playerTexture.player,
+            {
+                playerDown1: this.textures.playerDown1,
+                playerDown2: this.textures.playerDown2,
+
+                playerUp1: this.textures.playerUp1,
+                playerUp2: this.textures.playerUp2,
+
+                playerLeft1: this.textures.playerLeft1,
+                playerLeft2: this.textures.playerLeft2,
+
+                playerRight1: this.textures.playerRight1,
+                playerRight2: this.textures.playerRight2,
+
+                playerStand: this.textures.playerStand,
+            },
             player.userId
         );
 
-        remote.placeAt(player.x, player.y);
+        remote.placeAt(
+            player.x,
+            player.y
+        );
 
-        this.remotePlayers.set(player.socketId, remote);
-        this.world.addChild(remote.sprite);
+        this.remotePlayers.set(
+            player.socketId,
+            remote
+        );
+
+        this.world.addChild(
+            remote.sprite
+        );
     }
 
-    addRemoteCastle(player: JoinedPayload["players"][number]) {
+    addRemoteCastle(
+        player: JoinedPayload["players"][number]
+    ) {
         if (this.castles.has(player.slot))
             return;
 
@@ -136,22 +209,46 @@ export class GameScene {
         if (!zone)
             return;
 
-        const castle = new Castle(this.playerTexture.castle);
+        const castle = new Castle({
+            castle1: this.textures.castle1,
+            castle2: this.textures.castle2,
+            castle3: this.textures.castle3,
+            castle4: this.textures.castle4,
+        });
 
-        castle.placeAt(zone.x, zone.y);
+        castle.placeAt(
+            zone.x,
+            zone.y
+        );
 
-        this.map.clearTile(castle.gridX, castle.gridY);
+        this.map.clearTile(
+            castle.gridX,
+            castle.gridY
+        );
 
-        this.castles.set(player.slot, castle);
-        this.world.addChild(castle.container);
+        this.castles.set(
+            player.slot,
+            castle
+        );
+
+        this.world.addChild(
+            castle.container
+        );
     }
 
-    update(inputState: InputState, screenWidth: number, screenHeight: number, deltaSeconds: number) {
-        // Updating player input
+    update(
+        inputState: InputState,
+        screenWidth: number,
+        screenHeight: number,
+        deltaSeconds: number
+    ) {
         const oldX = this.player.gridX;
         const oldY = this.player.gridY;
 
-        this.player.update(inputState, deltaSeconds);
+        this.player.update(
+            inputState,
+            deltaSeconds
+        );
 
         const movedDistance = Math.hypot(
             this.player.gridX - oldX,
@@ -165,139 +262,278 @@ export class GameScene {
             });
         }
 
-        // 1. The collision of the edges of the map
         this.clampPlayerToMap();
 
-        // 2. Smooth Lock Collision
         this.handleCastleCollision();
 
-        
-        const centerX = Math.floor(this.player.gridX);
-        const centerY = Math.floor(this.player.gridY);
-        
-        const range = 1; 
-        
+        const centerX = Math.floor(
+            this.player.gridX
+        );
+
+        const centerY = Math.floor(
+            this.player.gridY
+        );
+
+        const range = 1;
+
         let harvested = false;
 
-       // Bypassing the tile grid inside the box
-        for (let dx = -range; dx <= range && !harvested; dx++) {
-            for (let dy = -range; dy <= range && !harvested; dy++) {
+        for (
+            let dx = -range;
+            dx <= range && !harvested;
+            dx++
+        ) {
+            for (
+                let dy = -range;
+                dy <= range && !harvested;
+                dy++
+            ) {
                 const x = centerX + dx;
                 const y = centerY + dy;
 
-                const harvestedTile = this.map.harvestAt(x, y);
+                const harvestedTile =
+                    this.map.harvestAt(x, y);
 
                 if (harvestedTile) {
-                    if (harvestedTile === "wood") this.player.inventory.add("wood");
-                    if (harvestedTile === "iron") this.player.inventory.add("iron");
-                    
-                    // We interrupt the collection on this frame so as not to vacuum everything around instantly
-                    harvested = true; 
+                    if (harvestedTile === "wood") {
+                        this.player.inventory.add("wood");
+                    }
+
+                    if (harvestedTile === "iron") {
+                        this.player.inventory.add("iron");
+                    }
+
+                    harvested = true;
                 }
             }
         }
 
-        // Upgrade attempt
-        if (inputState.right && this.isNearCastle() && this.tryUpgradeCastle()) {
+        if (
+            inputState.right &&
+            this.isNearCastle() &&
+            this.tryUpgradeCastle()
+        ) {
             // Castle upgrade handled
         }
 
-        // Camera upgrade (smooth follow)
-        this.camera.update(this.player, screenWidth, screenHeight, deltaSeconds);
+        this.camera.update(
+            this.player,
+            screenWidth,
+            screenHeight,
+            deltaSeconds
+        );
 
-        // (Screen-Space Culling)
-        this.map.update(screenWidth, screenHeight, this.camera.x, this.camera.y);
+        this.map.update(
+            screenWidth,
+            screenHeight,
+            this.camera.x,
+            this.camera.y
+        );
     }
 
-    /** Keeping the player inside the map with an indentation */
     private clampPlayerToMap() {
-        const margin = 1.5; 
+        const margin = 1.5;
+
         const minBound = margin;
-        const maxX = this.joinedData.map.width - 1 - margin;
-        const maxY = this.joinedData.map.height - 1 - margin;
+
+        const maxX =
+            this.joinedData.map.width -
+            1 -
+            margin;
+
+        const maxY =
+            this.joinedData.map.height -
+            1 -
+            margin;
 
         const boundedX = Math.max(
             minBound,
-            Math.min(maxX, this.player.gridX)
+            Math.min(
+                maxX,
+                this.player.gridX
+            )
         );
 
         const boundedY = Math.max(
             minBound,
-            Math.min(maxY, this.player.gridY)
+            Math.min(
+                maxY,
+                this.player.gridY
+            )
         );
 
-        this.player.placeAt(boundedX, boundedY);
+        this.player.placeAt(
+            boundedX,
+            boundedY
+        );
     }
 
-    /** Smooth repulsion (rectangular box collision) from the castle */
     private handleCastleCollision() {
-        // Calculate the distance from the center of the castle to the player along the X and Y axes
-        const dx = this.player.gridX - this.castle.gridX;
-        const dy = this.player.gridY - this.castle.gridY;
+        const dx =
+            this.player.gridX -
+            this.castle.gridX;
 
-        const halfWidth = 3;  // Half-width (X axis)
-        const halfHeight = 3; // Half-height (Y axis)
+        const dy =
+            this.player.gridY -
+            this.castle.gridY;
 
-        // Calculate the penetration depth of the player inside the castle rectangle
-        const overlapX = halfWidth - Math.abs(dx);
-        const overlapY = halfHeight - Math.abs(dy);
+        const halfWidth = 3;
+        const halfHeight = 3;
 
-        // If the player crosses the boundaries along both axes, a collision has occurred
+        const overlapX =
+            halfWidth -
+            Math.abs(dx);
+
+        const overlapY =
+            halfHeight -
+            Math.abs(dy);
+
         if (overlapX > 0 && overlapY > 0) {
-            // Push the player out along the axis with the least penetration.
-            // This provides a smooth sliding effect along the walls!
             if (overlapX < overlapY) {
-                // Push along the X axis (left or right)
-                const pushX = dx > 0 ? halfWidth : -halfWidth;
-                this.player.placeAt(this.castle.gridX + pushX, this.player.gridY);
+                const pushX =
+                    dx > 0
+                        ? halfWidth
+                        : -halfWidth;
+
+                this.player.placeAt(
+                    this.castle.gridX + pushX,
+                    this.player.gridY
+                );
             } else {
-                // Push along the Y axis (up or down)
-                const pushY = dy > 0 ? halfHeight : -halfHeight;
-                this.player.placeAt(this.player.gridX, this.castle.gridY + pushY);
+                const pushY =
+                    dy > 0
+                        ? halfHeight
+                        : -halfHeight;
+
+                this.player.placeAt(
+                    this.player.gridX,
+                    this.castle.gridY + pushY
+                );
             }
         }
     }
 
     private isNearCastle() {
-        const distanceX = Math.abs(this.player.gridX - this.castle.gridX);
-        const distanceY = Math.abs(this.player.gridY - this.castle.gridY);
-        return Math.max(distanceX, distanceY) <= 3;
+        const distanceX = Math.abs(
+            this.player.gridX -
+            this.castle.gridX
+        );
+
+        const distanceY = Math.abs(
+            this.player.gridY -
+            this.castle.gridY
+        );
+
+        return Math.max(
+            distanceX,
+            distanceY
+        ) <= 3;
     }
 
     getCastlePointer() {
-        const playerScreenX = isoX(this.player.gridX, this.player.gridY);
-        const playerScreenY = isoY(this.player.gridX, this.player.gridY);
-        const castleScreenX = isoX(this.castle.gridX, this.castle.gridY);
-        const castleScreenY = isoY(this.castle.gridX, this.castle.gridY);
-        const dx = castleScreenX - playerScreenX;
-        const dy = castleScreenY - playerScreenY;
-        const distance = Math.hypot(this.castle.gridX - this.player.gridX, this.castle.gridY - this.player.gridY);
+        const playerScreenX = isoX(
+            this.player.gridX,
+            this.player.gridY
+        );
+
+        const playerScreenY = isoY(
+            this.player.gridX,
+            this.player.gridY
+        );
+
+        const castleScreenX = isoX(
+            this.castle.gridX,
+            this.castle.gridY
+        );
+
+        const castleScreenY = isoY(
+            this.castle.gridX,
+            this.castle.gridY
+        );
+
+        const dx =
+            castleScreenX -
+            playerScreenX;
+
+        const dy =
+            castleScreenY -
+            playerScreenY;
+
+        const distance = Math.hypot(
+            this.castle.gridX -
+            this.player.gridX,
+            this.castle.gridY -
+            this.player.gridY
+        );
+
         const rotation = Math.atan2(dy, dx);
-        const bearingDegrees = (rotation * 180) / Math.PI;
-        const normalizedBearing = (bearingDegrees + 360) % 360;
+
+        const bearingDegrees =
+            (rotation * 180) / Math.PI;
+
+        const normalizedBearing =
+            (bearingDegrees + 360) % 360;
 
         return {
             rotation,
             distance,
             visible: distance >= 0.1,
             bearingDegrees: normalizedBearing,
-            direction: this.getCompassDirection(normalizedBearing),
+            direction:
+                this.getCompassDirection(
+                    normalizedBearing
+                ),
         };
     }
 
-    private getCompassDirection(degrees: number) {
-        const directions = ["E", "NE", "N", "NW", "W", "SW", "S", "SE"];
-        const index = Math.round(degrees / 45) % directions.length;
+    private getCompassDirection(
+        degrees: number
+    ) {
+        const directions = [
+            "E",
+            "NE",
+            "N",
+            "NW",
+            "W",
+            "SW",
+            "S",
+            "SE",
+        ];
+
+        const index =
+            Math.round(degrees / 45) %
+            directions.length;
+
         return directions[index];
     }
 
     private tryUpgradeCastle() {
-        const nextLevel = this.castle.level + 1;
-        const cost = this.castle.getUpgradeCost(nextLevel);
+        const nextLevel =
+            this.castle.level + 1;
 
-        if (!cost) return false;
-        if (!this.player.inventory.canAfford(cost)) return false;
-        if (!this.player.inventory.spend(cost)) return false;
+        const cost =
+            this.castle.getUpgradeCost(
+                nextLevel
+            );
+
+        if (!cost)
+            return false;
+
+        if (
+            !this.player.inventory.canAfford(
+                cost
+            )
+        ) {
+            return false;
+        }
+
+        if (
+            !this.player.inventory.spend(
+                cost
+            )
+        ) {
+            return false;
+        }
 
         return this.castle.upgrade();
     }
@@ -307,12 +543,12 @@ export class GameScene {
         x: number,
         y: number
     ) {
-        const remote = this.remotePlayers.get(socketId);
+        const remote =
+            this.remotePlayers.get(socketId);
 
         if (!remote)
             return;
 
         remote.updatePosition(x, y);
     }
-
 }
