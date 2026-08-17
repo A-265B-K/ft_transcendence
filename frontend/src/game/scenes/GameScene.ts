@@ -134,9 +134,9 @@ export class GameScene {
              * This is important when a player joins
              * after another player has already upgraded.
              */
-            castle.setLevel(
-                player.inventory.castleLevel
-            );
+            // castle.setLevel(
+            //     player.inventory.castleLevel
+            // );
 
             this.map.clearTile(
                 castle.gridX,
@@ -256,9 +256,9 @@ export class GameScene {
         /*
          * Use the player's current castle level.
          */
-        castle.setLevel(
-            player.inventory.castleLevel
-        );
+        // castle.setLevel(
+        //     player.inventory.castleLevel
+        // );
 
         this.map.clearTile(
             castle.gridX,
