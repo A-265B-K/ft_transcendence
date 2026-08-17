@@ -41,7 +41,7 @@ export default function GameCanvas({
 		);
 
 		function handlePlayerJoined(
-			player: JoinedPayload["players"][number]
+			player: JoinedPayload["players"][number],
 		) {
 			console.log("Player joined:", player);
 
@@ -65,11 +65,8 @@ export default function GameCanvas({
 		socket.on("player_move", handlePlayerMove);
 
 		const intervalId = window.setInterval(() => {
-			const snapshot =
-				game.getInventorySnapshot();
-
-			const pointer =
-				game.getCastlePointerSnapshot();
+			const snapshot = game.getInventorySnapshot();
+			const pointer = game.getCastlePointerSnapshot();
 
 			if (snapshot)
 				setInventory(snapshot);
@@ -101,7 +98,7 @@ export default function GameCanvas({
 					className="pointer-events-none absolute right-[18px] top-[18px] grid min-w-[140px] justify-items-center gap-1 rounded-[18px] border border-white/15 bg-[#0a1016]/75 px-4 py-3.5 text-[#f4f7fb] shadow-[0_16px_40px_rgba(0,0,0,0.28)] backdrop-blur-xl"
 					aria-label="Castle direction"
 				>
-					<div className="text-[12px] font-medium uppercase tracking-[0.16em] text-white/70">
+					<div className="text-xs font-medium uppercase tracking-[0.16em] text-white/70">
 						Castle
 					</div>
 
@@ -123,7 +120,7 @@ export default function GameCanvas({
 			)}
 
 			<div className="pointer-events-none absolute inset-0 flex items-end justify-center px-4 pb-6">
-				<div className="pointer-events-auto min-w-[220px] rounded-[18px] border border-white/15 bg-[#0a1016]/75 px-[18px] py-3.5 text-[#f4f7fb] shadow-[0_16px_40px_rgba(0,0,0,0.28)] backdrop-blur-xl">
+				<div className="pointer-events-auto">
 					<Inventory counts={inventory} />
 				</div>
 			</div>
