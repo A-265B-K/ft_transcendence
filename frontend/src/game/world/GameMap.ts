@@ -62,7 +62,7 @@ export class GameMap {
             if (resource.type === "wood") {
                 this.map[y][x] = TileType.Wood;
             }
-            if (resource.type === "stone") {
+            if (resource.type === "iron") {
                 this.map[y][x] = TileType.Iron;
             }
         }
