@@ -5,6 +5,12 @@ services:
         dockerfile: ../docker/frontend/Dockerfile
       volumes:
         - ./frontend:/workspace/app
+      healthcheck:
+        test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:5173/"]
+        interval: 5s
+        timeout: 3s
+        retries: 10
+        start_period: 10s
     backend:
       build:
         context: ./backend
@@ -18,18 +24,22 @@ services:
         POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is not set}
         EMAIL_USER: ${EMAIL_USER:?EMAIL_USER is not set}
         EMAIL_PASSWORD: ${EMAIL_PASSWORD:?EMAIL_PASSWORD is not set}
+      healthcheck:
+        test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3000/api/ping"]
+        interval: 5s
+        timeout: 3s
+        retries: 10
+        start_period: 10s
 
     nginx:
       build: ./docker/nginx
       depends_on:
         frontend:
-          condition: service_started
+          condition: service_healthy
         backend:
-          condition: service_started
-        prometheus:
-          condition: service_started
+          condition: service_healthy
         grafana:
-          condition: service_started
+          condition: service_healthy
       ports:
         - "8443:443"
       volumes:
@@ -50,7 +60,6 @@ services:
         interval: 5s
         timeout: 3s
         retries: 10
-      
 
     postgresexporter:
       build: ./docker/postgresexporter
@@ -91,6 +100,12 @@ services:
         - ./devops/grafana/provisioning:/etc/grafana/provisioning:ro
         - ./devops/grafana/dashboards:/var/lib/grafana/dashboards
         - grafana:/var/lib/grafana
+      healthcheck:
+        test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:3000/api/health"]
+        interval: 5s
+        timeout: 3s
+        retries: 10
+        start_period: 15s
 
     backups:
       build: ./docker/backups
