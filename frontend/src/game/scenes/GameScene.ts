@@ -3,6 +3,7 @@ import { Player, type InputState } from "../entities/Player";
 import { Castle } from "../entities/Castle";
 import { Camera } from "../systems/Camera";
 import { GameMap } from "../world/GameMap";
+import type { HarvestableTile } from "../world/tileResource";
 import type { GameTextures } from "../assets/loadGameTextures";
 import { isoX, isoY } from "../world/iso";
 import type { JoinedPayload } from "../../types/game";
@@ -337,21 +338,24 @@ export class GameScene {
                     this.map.harvestAt(x, y);
 
                 if (harvestedTile) {
-                    if (
-                        harvestedTile === "wood"
-                    ) {
-                        this.player.inventory.add(
-                            "wood"
-                        );
-                    }
+                    // Inventory is no longer credited locally — the server
+                    // is now the source of truth, delivered through the
+                    // "resource_collected" event (see GameScene.syncInventory).
+                    // if (
+                    //     harvestedTile === "wood"
+                    // ) {
+                    //     this.player.inventory.add(
+                    //         "wood"
+                    //     );
+                    // }
 
-                    if (
-                        harvestedTile === "iron"
-                    ) {
-                        this.player.inventory.add(
-                            "iron"
-                        );
-                    }
+                    // if (
+                    //     harvestedTile === "iron"
+                    // ) {
+                    //     this.player.inventory.add(
+                    //         "iron"
+                    //     );
+                    // }
 
                     harvested = true;
                 }
@@ -653,6 +657,30 @@ export class GameScene {
         remote.updatePosition(
             x,
             y
+        );
+    }
+
+    correctLocalPlayer(x: number, y: number) {
+        this.player.placeAt(x, y);
+    }
+
+    removeResourceTile(x: number, y: number) {
+        this.map.clearTile(
+            Math.floor(x),
+            Math.floor(y)
+        );
+    }
+
+    syncInventory(wood: number, iron: number) {
+        this.player.inventory.set("wood", wood);
+        this.player.inventory.set("iron", iron);
+    }
+
+    spawnResourceTile(x: number, y: number, type: HarvestableTile) {
+        this.map.setResourceTile(
+            Math.floor(x),
+            Math.floor(y),
+            type
         );
     }
 }

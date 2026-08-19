@@ -238,6 +238,18 @@ export class GameMap {
             TileType.Grass;
     }
 
+    setResourceTile(x: number, y: number, type: HarvestableTile) {
+        if (
+            x < 0 ||
+            y < 0 ||
+            x >= this.width ||
+            y >= this.height
+        ) {
+            return;
+        }
+        this.map[y][x] = type;
+    }
+
     private screenToGrid(
         screenX:number,
         screenY:number

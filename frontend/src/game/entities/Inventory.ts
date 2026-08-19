@@ -14,6 +14,10 @@ export class Inventory {
         this.resources[resource] += amount;
     }
 
+    set(resource: InventoryResource, amount: number) {
+        this.resources[resource] = amount;
+    }
+
     get(resource: InventoryResource) {
         return this.resources[resource];
     }

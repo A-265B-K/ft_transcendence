@@ -58,11 +58,51 @@ export default function GameCanvas({
 			x: number;
 			y: number;
 		}) {
+			if (socketId === socket.id) {
+				game.correctLocalPlayer(x, y);
+				return;
+			}
+
 			game.updateRemotePlayer(socketId, x, y);
+		}
+
+		function handleResourceCollected({
+			x,
+			y,
+			playerId,
+			inventory,
+		}: {
+			resourceId: string;
+			type: "wood" | "iron";
+			x: number;
+			y: number;
+			playerId: string;
+			inventory: { wood: number; iron: number };
+		}) {
+			game.removeResourceTile(x, y);
+
+			if (playerId === joinedData.player.userId) {
+				game.syncInventory(inventory.wood, inventory.iron);
+			}
+		}
+
+		function handleResourceSpawned({
+			x,
+			y,
+			type,
+		}: {
+			resourceId: string;
+			type: "wood" | "iron";
+			x: number;
+			y: number;
+		}) {
+			game.spawnResourceTile(x, y, type);
 		}
 
 		socket.on("player_joined", handlePlayerJoined);
 		socket.on("player_move", handlePlayerMove);
+		socket.on("resource_collected", handleResourceCollected);
+		socket.on("resource_spawned", handleResourceSpawned);
 
 		const intervalId = window.setInterval(() => {
 			const snapshot = game.getInventorySnapshot();
@@ -78,6 +118,8 @@ export default function GameCanvas({
 		return () => {
 			socket.off("player_joined", handlePlayerJoined);
 			socket.off("player_move", handlePlayerMove);
+			socket.off("resource_collected", handleResourceCollected);
+			socket.off("resource_spawned", handleResourceSpawned);
 
 			window.clearInterval(intervalId);
 
