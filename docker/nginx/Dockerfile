@@ -1,4 +1,4 @@
-FROM alpine/openssl:3.5.7 as certs
+FROM alpine/openssl:3.5.7 AS certs
 
 RUN mkdir -p /etc/nginx/ssl
 RUN openssl req -x509 -nodes -days 365 \

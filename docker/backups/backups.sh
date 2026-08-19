@@ -1,5 +1,12 @@
 #!/bin/sh
 set -e 
+
+shutdown()
+{
+    exit 0 ;
+}
+
+trap shutdown TERM INT
 while true ; do 
     echo "backup in progress"
     archive=$(date "+Backup-%Y-%m-%d-%H-%M").tar.gz
@@ -17,6 +24,8 @@ while true ; do
     cd backups 
     ls | sort | head -n -10 | xargs -r rm 
     cd ../ 
-
-    sleep 300
+    
+    for _ in $(seq 1 100); do
+        sleep 3
+    done
 done
