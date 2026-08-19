@@ -23,7 +23,7 @@ jobs:
       - name: Check all containers are still alive
         run: |
           sleep 60
-          if docker compose ps --all | grep -v 'nginx-certgen' | grep -qi 'exited'; then
+          if docker compose ps --all | grep -qi 'exited'; then
             echo "Some containers exited unexpectedly"
             exit 1
           fi
