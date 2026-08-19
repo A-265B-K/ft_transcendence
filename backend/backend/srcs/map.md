@@ -153,7 +153,7 @@ Terrain elements that block movement (rocks, trees).
 
 ### `resourceSpawns` (array)
 
-Resource collection points (wood, stone).
+Resource collection points (wood, iron).
 
 ```javascript
 {
@@ -169,7 +169,7 @@ Resource collection points (wood, stone).
 | Field | Type | Description |
 |---|---|---|
 | `id` | string | Unique identifier for the resource node — use it when sending a harvest action (`tile:harvest` or similar) |
-| `type` | `"wood"` \| `"stone"` | Resource type |
+| `type` | `"wood"` | Resource type |
 | `x`, `y` | number | Node position |
 | `amount` | number | Amount available to collect |
 | `respawnTime` | number | Seconds until the resource reappears after being depleted |

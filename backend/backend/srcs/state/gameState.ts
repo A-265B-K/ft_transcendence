@@ -19,6 +19,7 @@ export type Player = {
 	x: number;
 	y: number;
 	inventory: Inventory;
+	lastMoveAt: number;
 }
 
 export const rooms: Record<string, Room> = {};

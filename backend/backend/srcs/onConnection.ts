@@ -1,5 +1,6 @@
 import { createRoom } from "./rooms/gameRoom.js"
 import { rooms, players, type Room } from "./state/gameState.js"
+import onMove from "./events/onMove.js"
 import { PLAYER_DEFAULT_HP, ROOM_MAX_SIZE, 
 	PLAYER_DEFAULT_WOOD, PLAYER_DEFAULT_IRON,
 	PLAYER_DEFAULT_CASTLE_LEVEL } from "./constants.js"
@@ -21,10 +22,11 @@ const createPlayer = (socket: Socket, user: SocketUser, slot: number, spawn: Spa
 		hp: PLAYER_DEFAULT_HP,
 		x: spawn.pos.x,
 		y: spawn.pos.y,
-		inventory: { 
-			iron: PLAYER_DEFAULT_IRON, 
-			wood: PLAYER_DEFAULT_WOOD, 
-			castleLevel: PLAYER_DEFAULT_CASTLE_LEVEL }
+		inventory: {
+			iron: PLAYER_DEFAULT_IRON,
+			wood: PLAYER_DEFAULT_WOOD,
+			castleLevel: PLAYER_DEFAULT_CASTLE_LEVEL },
+		lastMoveAt: Date.now()
 	};
 };
 
@@ -135,34 +137,7 @@ const onConnection = async (socket: Socket) => {
 	//handle currentroomId is null
 
 	socket.on("player_move", ({ x, y }: {x: unknown; y: unknown}) => {
-		const player = players[user.id];
-
-		if (!player || !currentroomId)
-			return;
-
-		if (
-			typeof x !== "number" ||
-			typeof y !== "number" ||
-			!Number.isFinite(x) ||
-			!Number.isFinite(y)
-		) {
-			return;
-		}
-
-		const maxX = 100 - 1;
-		const maxY = 100 - 1;
-
-		if (x < 0 || x > maxX || y < 0 || y > maxY)
-			return;
-
-		player.x = x;
-		player.y = y;
-
-		socket.to(currentroomId).emit("player_move", {
-			socketId: socket.id,
-			x: player.x,
-			y: player.y,
-		});
+		onMove(socket, user, currentroomId, { x, y });
 	});
 
 	socket.on('disconnect', () => {
