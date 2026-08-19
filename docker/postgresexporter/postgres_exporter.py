@@ -41,8 +41,8 @@ def getfromdatabase(connection):
 
 
 def main():
-    signal.signal(SIGTERM, shutdown)
-    signal.signal(SIGINT, shutdown)
+    signal.signal(signal.SIGTERM, shutdown)
+    signal.signal(signal.SIGINT, shutdown)
 
     port = 80
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -51,7 +51,7 @@ def main():
     server.listen()
     server.timeout(1)
     print(f"Listening on port {port}")
-    while (true):
+    while (True):
         try:
             connection, address = server.accept()
         except socket.timeout:
