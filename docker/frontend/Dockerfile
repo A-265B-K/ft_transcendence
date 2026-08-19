@@ -1,7 +1,8 @@
 FROM node:26.7.0-alpine
-WORKDIR /app
+WORKDIR /workspace
 COPY package.json package-lock.json ./
 
-RUN npm install
+RUN npm ci
 
-CMD [ "npm", "run", "dev", "--", "--host", "0.0.0.0" ]
+WORKDIR /workspace/app
+CMD [ "../node_modules/.bin/vite", "--host", "0.0.0.0" ]

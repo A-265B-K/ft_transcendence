@@ -1,7 +1,8 @@
 FROM node:26.7.0-alpine
-WORKDIR /app
+WORKDIR /workspace
 COPY package.json package-lock.json ./
 
-RUN npm install
+RUN npm ci
 
-CMD [ "npx", "tsx", "backend/srcs/server.ts" ]
+WORKDIR /workspace/app
+CMD [ "../node_modules/.bin/tsx", "backend/srcs/server.ts" ]

@@ -1,7 +1,10 @@
 import socket
 import psycopg
 import os
+import signal
 
+def shutdown(signum, frame):
+    exit(0)
 
 def connect_database():
     host = "postgres"
@@ -38,17 +41,24 @@ def getfromdatabase(connection):
 
 
 def main():
+    signal.signal(signal.SIGTERM, shutdown)
+    signal.signal(signal.SIGINT, shutdown)
+
     port = 80
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server.bind(("0.0.0.0", port))
     server.listen()
+    server.settimeout(1)
     print(f"Listening on port {port}")
     while (True):
-        connection, address = server.accept()
+        try:
+            connection, address = server.accept()
+        except socket.timeout:
+            continue
         with connection:
+            print("exporting from database")
             getfromdatabase(connection)
-           
 
 if (__name__ == "__main__"):
     main()
