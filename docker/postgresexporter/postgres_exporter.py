@@ -3,7 +3,7 @@ import psycopg
 import os
 import signal
 
-def shutdown():
+def shutdown(signum, frame):
     exit(0)
 
 def connect_database():
@@ -49,7 +49,7 @@ def main():
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server.bind(("0.0.0.0", port))
     server.listen()
-    server.timeout(1)
+    server.settimeout(1)
     print(f"Listening on port {port}")
     while (True):
         try:
