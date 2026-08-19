@@ -1,69 +1,38 @@
 import { type MenuProps } from "./MenuProps";
 
 export default function Menu({
-    onCreateAccount,
-    onLogin,
+	onCreateAccount,
+	onLogin,
 }: MenuProps) {
-    return (
-        <div
-            className="Menu-container"
-            style={{
-                minHeight: "100vh",
-                display: "grid",
-                placeItems: "center",
-                padding: "24px",
-            }}
-        >
-            <div
-                style={{
-                    width: "100%",
-                    maxWidth: "420px",
-                    padding: "28px",
-                    borderRadius: "24px",
-                    background: "rgba(8, 16, 22, 0.78)",
-                    border: "1px solid rgba(255,255,255,0.12)",
-                    boxShadow: "0 20px 60px rgba(0,0,0,0.35)",
-                    color: "#f4f7fb",
-                    backdropFilter: "blur(14px)",
-                    textAlign: "left",
-                }}
-            >
-                <h2 style={{ marginTop: 0, marginBottom: "8px" }}>
-                    Ready to play?
-                </h2>
+	return (
+		<div className="grid min-h-screen place-items-center bg-linear-to-b from-[#10212a] to-[#081016] p-6">
+			<div className="w-full max-w-[420px] rounded-3xl border border-white/10 bg-[#081016]/85 p-7 text-[#f4f7fb] shadow-[0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur-[14px]">
+				<h2 className="mb-2 text-2xl font-bold">
+					Ready to play?
+				</h2>
 
-                <p
-                    style={{
-                        marginTop: 0,
-                        marginBottom: "20px",
-                        color: "rgba(244,247,251,0.7)",
-                    }}
-                >
-                    Create an account or sign in.
-                </p>
+				<p className="mb-5 text-white/70">
+					Create an account or sign in.
+				</p>
 
-                <div
-                    style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "10px",
-                    }}
-                >
-                    <button
-                        type="button"
-                        onClick={onCreateAccount}
-                    >
-                        Create account
-                    </button>
+				<div className="flex flex-col gap-2.5">
+					<button
+						type="button"
+						onClick={onCreateAccount}
+						className="rounded-xl bg-linear-to-br from-[#ffcf5c] to-[#ff9f43] px-3.5 py-3 font-bold text-[#10212a] transition hover:brightness-110"
+					>
+						Create account
+					</button>
 
-                    <button
-                        type="button"
-                        onClick={onLogin}
-                    >
-                        Sign in
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
+					<button
+						type="button"
+						onClick={onLogin}
+						className="rounded-xl border border-white/15 bg-white/[0.04] px-3.5 py-3 font-semibold text-[#f4f7fb] transition hover:bg-white/[0.08]"
+					>
+						Sign in
+					</button>
+				</div>
+			</div>
+		</div>
+	);
 }

@@ -3,7 +3,7 @@ import {
     Sprite,
     Text,
     TextStyle,
-    Texture,
+    Texture
 } from "pixi.js";
 import { MAP_SIZE } from "../config/constants";
 import { isoX, isoY } from "../world/iso";
@@ -35,16 +35,12 @@ export class Castle {
 
     constructor(textures: CastleTextures) {
         this.textures = textures;
-
         this.container = new Container();
-
         this.sprite = new Sprite(
             textures.castle1
         );
-
         this.sprite.anchor.set(0.5, 0.6);
         this.sprite.scale.set(0.84, 0.60);
-
         this.levelLabel = new Text({
             text: "Lv. 1",
             style: new TextStyle({
@@ -54,7 +50,7 @@ export class Castle {
                 fill: "#f4f7fb",
                 stroke: {
                     color: "#081016",
-                    width: 4,
+                    width: 4
                 },
                 align: "center",
             }),
@@ -62,42 +58,23 @@ export class Castle {
 
         this.levelLabel.anchor.set(0.5, 2);
         this.levelLabel.y = -76;
-
         this.container.addChild(this.sprite);
         this.container.addChild(this.levelLabel);
-
         this.refreshLabel();
     }
 
     placeAt(gridX: number, gridY: number) {
         this.gridX = Math.max(
             0,
-            Math.min(
-                MAP_SIZE - 2,
-                gridX
-            )
+            Math.min(MAP_SIZE - 2, gridX)
         );
 
         this.gridY = Math.max(
             0,
-            Math.min(
-                MAP_SIZE - 2,
-                gridY
-            )
+            Math.min(MAP_SIZE - 2, gridY)
         );
 
         this.syncPosition();
-    }
-
-    canUpgrade(targetLevel: number) {
-        const cost =
-            CASTLE_UPGRADE_COSTS[targetLevel];
-
-        if (!cost) {
-            return false;
-        }
-
-        return true;
     }
 
     getUpgradeCost(
@@ -109,20 +86,30 @@ export class Castle {
         );
     }
 
+    canUpgrade(targetLevel: number) {
+        return !!CASTLE_UPGRADE_COSTS[targetLevel];
+    }
+
     upgrade() {
         const nextLevel =
             this.level + 1;
 
-        if (!this.getUpgradeCost(nextLevel)) {
+        if (!this.getUpgradeCost(nextLevel))
             return false;
-        }
 
-        this.level = nextLevel;
+        this.setLevel(nextLevel);
+
+        return true;
+    }
+
+    setLevel(level: number) {
+        if (level < 1 || level > 4)
+            return;
+
+        this.level = level;
 
         this.updateTexture();
         this.refreshLabel();
-
-        return true;
     }
 
     private updateTexture() {
@@ -133,11 +120,8 @@ export class Castle {
             4: this.textures.castle4,
         };
 
-        const texture = textures[this.level];
-
-        if (texture) {
-            this.sprite.texture = texture;
-        }
+        this.sprite.texture =
+            textures[this.level];
     }
 
     private refreshLabel() {
@@ -150,7 +134,6 @@ export class Castle {
         if (!cost) {
             this.levelLabel.text =
                 `Lv. ${this.level}\nMax level`;
-
             return;
         }
 
