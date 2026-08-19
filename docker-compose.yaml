@@ -7,7 +7,7 @@ services:
         - ./frontend:/workspace/app
       healthcheck:
         test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:5173/"]
-        interval: 5s
+        interval: 1s
         timeout: 3s
         retries: 10
         start_period: 10s
@@ -26,7 +26,7 @@ services:
         EMAIL_PASSWORD: ${EMAIL_PASSWORD:?EMAIL_PASSWORD is not set}
       healthcheck:
         test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3000/api/ping"]
-        interval: 5s
+        interval: 1s
         timeout: 3s
         retries: 10
         start_period: 10s
@@ -102,10 +102,10 @@ services:
         - grafana:/var/lib/grafana
       healthcheck:
         test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:3000/api/health"]
-        interval: 5s
+        interval: 1s
         timeout: 3s
         retries: 10
-        start_period: 15s
+        start_period: 10s
 
     backups:
       build: ./docker/backups
