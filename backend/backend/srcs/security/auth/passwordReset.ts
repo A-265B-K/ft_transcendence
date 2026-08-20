@@ -1,7 +1,6 @@
 import { insertUserPasswordVerification } from "../repository/userRepository.js";
 import { randomBytes, createHash } from "node:crypto";
 import nodemailer from "nodemailer";
-import { readFileSync } from 'node:fs';
 
 export const emailTransporter = nodemailer.createTransport({
 	service: "gmail",
@@ -29,7 +28,7 @@ export async function passwordResetRequest(email: string) {
 		password_verification_token_hash
 	);
 
-	const baseUrl = readFileSync('/hostname', 'utf8').trim();
+	const baseUrl = process.env.HOSTNAME;
 	const verificationUrl =
 	`https://${baseUrl}:8443/reset-password?token=${password_verification_token}`;
 
