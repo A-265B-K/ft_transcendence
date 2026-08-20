@@ -1,4 +1,20 @@
 import { Assets, Texture } from "pixi.js";
+import castle1Url from "../../assets/castle1.png";
+import castle2Url from "../../assets/castle2.png";
+import castle3Url from "../../assets/castle3.png";
+import castle4Url from "../../assets/castle4.png";
+import down1Url from "../../assets/down1.png";
+import down2Url from "../../assets/down2.png";
+import grassUrl from "../../assets/grass.png";
+import ironUrl from "../../assets/iron.png";
+import left1Url from "../../assets/left1.png";
+import left2Url from "../../assets/left2.png";
+import right1Url from "../../assets/right1.png";
+import right2Url from "../../assets/right2.png";
+import standUrl from "../../assets/stand.png";
+import up1Url from "../../assets/up1.png";
+import up2Url from "../../assets/up2.png";
+import woodUrl from "../../assets/wood.png";
 
 export type GameTextures = {
     grass: Texture;
@@ -48,28 +64,28 @@ export async function loadGameTextures(): Promise<GameTextures> {
 
         playerStand,
     ] = await Promise.all([
-        Assets.load("/src/assets/grass.png"),
-        Assets.load("/src/assets/wood.png"),
-        Assets.load("/src/assets/iron.png"),
+        Assets.load(grassUrl),
+        Assets.load(woodUrl),
+        Assets.load(ironUrl),
 
-        Assets.load("/src/assets/castle1.png"),
-        Assets.load("/src/assets/castle2.png"),
-        Assets.load("/src/assets/castle3.png"),
-        Assets.load("/src/assets/castle4.png"),
+        Assets.load(castle1Url),
+        Assets.load(castle2Url),
+        Assets.load(castle3Url),
+        Assets.load(castle4Url),
 
-        Assets.load("/src/assets/down1.png"),
-        Assets.load("/src/assets/down2.png"),
+        Assets.load(down1Url),
+        Assets.load(down2Url),
 
-        Assets.load("/src/assets/up1.png"),
-        Assets.load("/src/assets/up2.png"),
+        Assets.load(up1Url),
+        Assets.load(up2Url),
 
-        Assets.load("/src/assets/left1.png"),
-        Assets.load("/src/assets/left2.png"),
+        Assets.load(left1Url),
+        Assets.load(left2Url),
 
-        Assets.load("/src/assets/right1.png"),
-        Assets.load("/src/assets/right2.png"),
+        Assets.load(right1Url),
+        Assets.load(right2Url),
 
-        Assets.load("/src/assets/stand.png")
+        Assets.load(standUrl)
     ]);
 
     return {

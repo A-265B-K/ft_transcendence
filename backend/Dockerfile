@@ -5,4 +5,4 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 WORKDIR /workspace/app
-CMD [ "../node_modules/.bin/tsx", "backend/srcs/server.ts" ]
+CMD [ "../node_modules/.bin/tsx", "srcs/server.ts" ]
