@@ -29,4 +29,4 @@ cleanbackups:
 fclean: cleanbackups
 	@docker compose down --rmi all --volumes
 
-re: fclean up
+re: fclean all
