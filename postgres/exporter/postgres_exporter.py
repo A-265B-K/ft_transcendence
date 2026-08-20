@@ -57,7 +57,6 @@ def main():
         except socket.timeout:
             continue
         with connection:
-            print("exporting from database")
             getfromdatabase(connection)
 
 if (__name__ == "__main__"):

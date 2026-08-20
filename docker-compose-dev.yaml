@@ -70,7 +70,7 @@ services:
 
     nginx_exporter:
       image: nginx/nginx-prometheus-exporter:1.5.1
-      command: ["--nginx.scrape-uri", "http://nginx:3001/stub_status"]
+      command: ["--nginx.scrape-uri", "http://nginx_dev:3001/stub_status"]
  
     prometheus:
       image: prom/prometheus:v3.13.1
