@@ -12,7 +12,7 @@ FROM nginx:1.30.4
 
 COPY --from=certs /etc/nginx/ssl/nginx.key /etc/nginx/ssl/nginx.key
 COPY --from=certs /etc/nginx/ssl/nginx.crt /etc/nginx/ssl/nginx.crt
-COPY nginx/config.conf /etc/nginx/conf.d/default.conf
+COPY nginx/dev.conf /etc/nginx/conf.d/default.conf
 COPY nginx/pages /var/www/
 
 CMD ["nginx", "-g", "daemon off;"]
