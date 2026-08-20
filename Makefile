@@ -1,7 +1,7 @@
 all: up
 
 up:
-	@mkdir -p ./backups
+	@mkdir -p ./backups/backups
 	@docker compose up -d
 	@echo Game reachable at https://localhost:8443/
 
@@ -19,7 +19,7 @@ cleanvolumes:
 	@docker compose down --volumes
 
 cleanbackups:
-	@rm -rf backups
+	@rm -rf backups/backups
 
 fclean: cleanbackups
 	@docker compose down --rmi all --volumes
