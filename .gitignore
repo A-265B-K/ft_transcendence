@@ -79,3 +79,4 @@ AGENTS.md
 
 .DS_Store
 backups/backups
+frontend/dist

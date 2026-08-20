@@ -1,8 +1,13 @@
-all: up
+all: prod
 
-up:
+prod:
 	@mkdir -p ./backups/backups
 	@docker compose up -d
+	@echo Game reachable at https://localhost:8443/
+
+dev:
+	@mkdir -p ./backups/backups
+	@docker compose -f docker-compose-dev.yaml up
 	@echo Game reachable at https://localhost:8443/
 
 down:

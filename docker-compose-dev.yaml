@@ -1,4 +1,16 @@
 services:
+    frontend:
+      build:
+        context: ./frontend
+        dockerfile: ../frontend/Dockerfile
+      volumes:
+        - ./frontend:/workspace/app
+      healthcheck:
+        test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:5173/"]
+        interval: 1s
+        timeout: 3s
+        retries: 10
+        start_period: 10s
     backend:
       build:
         context: ./backend
@@ -19,17 +31,21 @@ services:
         retries: 10
         start_period: 10s
 
-    nginx_prod:
+    nginx_dev:
       build: 
-        dockerfile: ./nginx/prod.Dockerfile
+        dockerfile: ./nginx/dev.Dockerfile
         context: .
       depends_on:
+        frontend:
+          condition: service_healthy
         backend:
           condition: service_healthy
         grafana:
           condition: service_healthy
       ports:
         - "8443:443"
+      volumes:
+        - ./nginx/pages:/var/www/html/
     postgres:
       image: postgres:18.4
       volumes:
