@@ -73,7 +73,7 @@ services:
     prometheus:
       image: prom/prometheus:v3.13.1
       volumes:
-        - ./devops/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+        - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
         - prometheus:/prometheus
       healthcheck:
         test: ["CMD", "wget", "--spider", "-q", "http://localhost:9090/-/ready"]
@@ -95,8 +95,8 @@ services:
         GF_SERVER_SERVE_FROM_SUB_PATH: "true"
         GF_SERVER_ROOT_URL: "https://monitoring.localhost:8443/"
       volumes:
-        - ./devops/grafana/provisioning:/etc/grafana/provisioning:ro
-        - ./devops/grafana/dashboards:/var/lib/grafana/dashboards
+        - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+        - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
         - grafana:/var/lib/grafana
       healthcheck:
         test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:3000/api/health"]
