@@ -119,8 +119,8 @@ function generateResourceSpawns(
 ) {
   const resources = []
   const types = [
-    { type: 'wood', amount: 100, respawnTime: 30 },
-    { type: 'stone', amount: 100, respawnTime: 45 },
+    { type: 'wood', amount: 10, respawnTime: 30 },
+    { type: 'iron', amount: 10, respawnTime: 45 },
   ]
 
   const occupied = [...obstacles]

@@ -62,7 +62,7 @@ export class GameMap {
             if (resource.type === "wood") {
                 this.map[y][x] = TileType.Wood;
             }
-            if (resource.type === "stone") {
+            if (resource.type === "iron") {
                 this.map[y][x] = TileType.Iron;
             }
         }
@@ -236,6 +236,18 @@ export class GameMap {
         }
         this.map[y][x] =
             TileType.Grass;
+    }
+
+    setResourceTile(x: number, y: number, type: HarvestableTile) {
+        if (
+            x < 0 ||
+            y < 0 ||
+            x >= this.width ||
+            y >= this.height
+        ) {
+            return;
+        }
+        this.map[y][x] = type;
     }
 
     private screenToGrid(

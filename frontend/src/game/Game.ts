@@ -4,6 +4,7 @@ import { GameScene } from "./scenes/GameScene";
 import { Input } from "./systems/Input";
 import { type JoinedPayload } from "../types/game";
 import type { Socket } from "socket.io-client";
+import type { HarvestableTile } from "./world/tileResource";
 
 export class Game {
     readonly app: Application;
@@ -47,6 +48,22 @@ export class Game {
         y: number
     ) {
         this.scene?.updateRemotePlayer(socketId, x, y);
+    }
+
+    correctLocalPlayer(x: number, y: number) {
+        this.scene?.correctLocalPlayer(x, y);
+    }
+
+    removeResourceTile(x: number, y: number) {
+        this.scene?.removeResourceTile(x, y);
+    }
+
+    syncInventory(wood: number, iron: number) {
+        this.scene?.syncInventory(wood, iron);
+    }
+
+    spawnResourceTile(x: number, y: number, type: HarvestableTile) {
+        this.scene?.spawnResourceTile(x, y, type);
     }
 
     async start(container: HTMLDivElement, joinedData: JoinedPayload, socket: Socket) {

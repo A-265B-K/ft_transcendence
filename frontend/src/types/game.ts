@@ -30,7 +30,7 @@ export interface Obstacle {
 }
 
 export interface ResourceSpawn {
-    type: "wood" | "stone";
+    type: "wood" | "iron";
     x: number;
     y: number;
 }

@@ -2,7 +2,6 @@ import bcrypt from "bcrypt";
 import { insertUser } from "../repository/userRepository.js";
 import { randomBytes, createHash } from "node:crypto";
 import nodemailer from "nodemailer";
-import { readFileSync } from "node:fs";
 
 export const emailTransporter = nodemailer.createTransport({
 	service: "gmail",
@@ -70,7 +69,7 @@ export async function registerUser(payload: registerPayload) {
 			verification_token_hash
 		);
 
-		const baseUrl = readFileSync('/hostname', 'utf8').trim();
+		const baseUrl = process.env.HOSTNAME;
 		const verificationUrl =
 		`https://${baseUrl}:8443/verify-email?token=${verification_token}`;
 
