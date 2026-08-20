@@ -106,7 +106,7 @@ services:
         start_period: 10s
 
     backups:
-      build: ./backupper
+      build: ./backups
       volumes:
         - prometheus:/app/prometheus
         - grafana:/app/grafana
