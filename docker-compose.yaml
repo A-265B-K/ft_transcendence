@@ -43,9 +43,7 @@ services:
       ports:
         - "8443:443"
       volumes:
-        - ./docker/nginx/config.conf:/etc/nginx/conf.d/default.conf:ro
-        - ./docker/nginx/privacy.html:/var/www/html/privacy.html:ro
-        - ./docker/nginx/terms.html:/var/www/html/terms.html:ro
+        - ./docker/nginx/pages:/var/www/html/
     postgres:
       image: postgres:18.4
       volumes:
