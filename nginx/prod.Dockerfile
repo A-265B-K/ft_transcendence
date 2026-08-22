@@ -22,6 +22,6 @@ COPY --from=certs /etc/nginx/ssl/nginx.key /etc/nginx/ssl/nginx.key
 COPY --from=certs /etc/nginx/ssl/nginx.crt /etc/nginx/ssl/nginx.crt
 COPY --from=frontend /app/dist /var/www/frontend
 COPY nginx/prod.conf /etc/nginx/conf.d/default.conf
-COPY nginx/pages /var/www/
+COPY nginx/pages/* /var/www/pages
 
 CMD ["nginx", "-g", "daemon off;"]
