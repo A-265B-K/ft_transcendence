@@ -1,15 +1,6 @@
-import { useState, type FormEvent } from "react";
+import { useState, type SubmitEvent } from "react";
 import { connectSocket } from "../socket";
-
-type LoginProps = {
-	onBack: () => void;
-	onLoginSuccess: (user: {
-		id: number;
-		username: string;
-		email: string;
-	}) => void;
-	onForgotPassword: () => void;
-};
+import type { LoginProps } from "./loginProps";
 
 export default function LogIn({
 	onBack,
@@ -21,7 +12,7 @@ export default function LogIn({
 	const [status, setStatus] = useState("");
 
 	async function handleSubmit(
-		e: FormEvent<HTMLFormElement>,
+		e: SubmitEvent,
 	) {
 		e.preventDefault();
 

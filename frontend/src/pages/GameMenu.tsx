@@ -1,24 +1,21 @@
 import { connectSocket } from "../socket";
 import { type JoinedPayload } from "../types/game";
-
-type GameMenuProps = {
-	user: {
-		id: number;
-		username: string;
-		email: string;
-	};
-
-	onLogout: () => void;
-	onStartGame: (data: JoinedPayload) => void;
-};
+import { useState } from "react";
+import type { GameMenuProps } from "./gameMenuProps";
 
 export default function GameMenu({
 	user,
 	onStartGame,
 	onLogout,
 }: GameMenuProps) {
+	const [loading, setLoading] = useState(false);
+
 	function startGame() {
 		console.log("Starting game...");
+		if(loading)
+			return;
+
+		setLoading(true);
 
 		const socket = connectSocket();
 

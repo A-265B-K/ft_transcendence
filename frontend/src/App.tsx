@@ -30,6 +30,7 @@ export default function App() {
 			setScreen("resetPassword");
 			return;
 		}
+
 		async function checkSession() {
 			try {
 				const response = await fetch("/api/auth/me", {
@@ -103,12 +104,12 @@ export default function App() {
 				onBack={() => {
 					setScreen("menu");
 				}}
-				onForgotPassword={() => {
-					setScreen("forgotPassword");
-				}}
 				onLoginSuccess={(loggedUser) => {
 					setUser(loggedUser);
 					setScreen("gameMenu");
+				}}
+				onForgotPassword={() => {
+					setScreen("forgotPassword");
 				}}
 			/>
 		);
@@ -124,17 +125,17 @@ export default function App() {
 		);
 	}
 
-		if (screen === "resetPassword") {
-		return (
-			<ResetPassword
-				onBack={() => {
-					setScreen("login");
-				}}
-			/>
+	if (screen === "resetPassword") {
+	return (
+		<ResetPassword
+			onBack={() => {
+				setScreen("login");
+			}}
+		/>
 		);
 	}
-	if(screen === "gameMenu" && user) {
 
+	if(screen === "gameMenu" && user) {
 		return (
 			<GameMenu
 			user={user}
@@ -142,10 +143,9 @@ export default function App() {
 				setJoinedData(data);
 				setScreen("game");
 			}}
-				onLogout={logout}
+			onLogout={logout}
 			/>
 		);
-
 	}
 
 	if(screen === "game" && user && joinedData) {

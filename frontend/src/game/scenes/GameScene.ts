@@ -276,6 +276,53 @@ export class GameScene {
         );
     }
 
+    removeRemoteCastle(
+        player: JoinedPayload["players"][number]
+    ) {
+        const castle =
+        this.castles.get(
+            player.slot
+        );
+
+        if (!castle)
+            return;
+
+        this.world.removeChild(
+            castle.container
+        );
+
+        castle.container.destroy({
+            children: true,
+        });
+
+        this.castles.delete(
+            player.slot
+        );
+    }
+
+    removeRemotePlayer(
+        player: JoinedPayload["players"][number]
+    ) {
+        const remote =
+            this.remotePlayers.get(
+                player.socketId
+            );
+
+        if (!remote)
+            return;
+
+        this.world.removeChild(
+            remote.sprite
+        );
+
+        remote.sprite.destroy();
+
+        this.remotePlayers.delete(
+            player.socketId
+        );   
+    }
+
+
     update(
         inputState: InputState,
         screenWidth: number,

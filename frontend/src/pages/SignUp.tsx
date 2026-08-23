@@ -1,8 +1,5 @@
-import { useState, type FormEvent } from "react";
-
-type SignupProps = {
-	onBack: () => void;
-};
+import { useState, type SubmitEvent } from "react";
+import type { SignupProps } from "./signUpProps";
 
 export default function Signup({ onBack }: SignupProps) {
 	const [username, setUsername] = useState("");
@@ -13,10 +10,10 @@ export default function Signup({ onBack }: SignupProps) {
 	const [acceptedTerms, setAcceptedTerms] = useState(false);
 	const [status, setStatus] = useState("");
 
-	async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+	async function handleSubmit(e: SubmitEvent) {
 		e.preventDefault();
 
-		if (
+		if ( 
 			!username.trim() ||
 			!email.trim() ||
 			!password.trim() ||
