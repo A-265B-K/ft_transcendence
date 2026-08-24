@@ -1,4 +1,4 @@
-import { type MenuProps } from "./MenuProps";
+import { type MenuProps } from "./menuProps";
 
 export default function Menu({
 	onCreateAccount,

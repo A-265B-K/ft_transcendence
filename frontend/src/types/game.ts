@@ -1,3 +1,9 @@
+export interface PlayerInventory {
+    wood: number;
+    iron: number;
+    castleLevel: number;
+}
+
 export interface PlayerData {
     userId: string;
     socketId: string;
@@ -6,6 +12,8 @@ export interface PlayerData {
     hp: number;
     x: number;
     y: number;
+    inventory: PlayerInventory;
+    lastMoveAt: number; 
 }
 
 export interface SpawnPoint {

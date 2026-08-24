@@ -4,10 +4,7 @@ import { Game } from "../game/Game";
 import { type CastlePointer } from "./CastlePointer";
 import type { JoinedPayload } from "../types/game";
 import { connectSocket } from "../socket";
-
-interface GameCanvasProps {
-	joinedData: JoinedPayload;
-}
+import type { GameCanvasProps } from "./gameCanvasProps";
 
 export default function GameCanvas({
 	joinedData,
@@ -16,9 +13,11 @@ export default function GameCanvas({
 	const gameRef = useRef<Game | null>(null);
 
 	const [inventory, setInventory] = useState({
-		wood: 0,
-		iron: 0,
+		wood: joinedData.player.inventory.wood,
+		iron: joinedData.player.inventory.iron,
 	});
+
+	const [hp, setHp] = useState(joinedData.player.hp);
 
 	const [castlePointer, setCastlePointer] =
 		useState<CastlePointer | null>(null);
@@ -49,6 +48,36 @@ export default function GameCanvas({
 			game.addRemoteCastle(player);
 		}
 
+		function handlePlayerLeft(
+			player: JoinedPayload["players"][number],
+		) {
+			console.log("Player left:", player);
+
+			game.removeRemotePlayer(player);
+			game.removeRemoteCastle(player);
+		}
+
+		function handlePlayerHP({
+			socketId,
+			hp
+		}: {
+			socketId: string;
+			hp: number;
+		}) {
+				if (socketId !== joinedData.player.socketId)
+					return;
+
+				setHp(hp);
+		}
+
+		function handleJoinError({
+			message,
+		}: {
+			message: string;
+		}) {
+			console.error("Join failed:", message);
+		}
+
 		function handlePlayerMove({
 			socketId,
 			x,
@@ -72,8 +101,6 @@ export default function GameCanvas({
 			playerId,
 			inventory,
 		}: {
-			resourceId: string;
-			type: "wood" | "iron";
 			x: number;
 			y: number;
 			playerId: string;
@@ -91,18 +118,31 @@ export default function GameCanvas({
 			y,
 			type,
 		}: {
-			resourceId: string;
-			type: "wood" | "iron";
 			x: number;
 			y: number;
+			type: "wood" | "iron";
 		}) {
 			game.spawnResourceTile(x, y, type);
 		}
 
+		function handleCastleUpgrade({
+			socketId,
+			level,
+		}: {
+			socketId: string;
+			level: number;
+		}) {
+			game.updateRemoteCastle(socketId, level);
+		}
+
 		socket.on("player_joined", handlePlayerJoined);
 		socket.on("player_move", handlePlayerMove);
+		socket.on("player_left", handlePlayerLeft);
 		socket.on("resource_collected", handleResourceCollected);
+		socket.on("join_error", handleJoinError);
+		socket.on("player_hp", handlePlayerHP);
 		socket.on("resource_spawned", handleResourceSpawned);
+		socket.on("castle_update", handleCastleUpgrade);
 
 		const intervalId = window.setInterval(() => {
 			const snapshot = game.getInventorySnapshot();
@@ -118,9 +158,12 @@ export default function GameCanvas({
 		return () => {
 			socket.off("player_joined", handlePlayerJoined);
 			socket.off("player_move", handlePlayerMove);
+			socket.off("player_left", handlePlayerLeft);
+			socket.off("player_hp", handlePlayerHP);
 			socket.off("resource_collected", handleResourceCollected);
 			socket.off("resource_spawned", handleResourceSpawned);
-
+			socket.off("join_error", handleJoinError);
+			socket.off("castle_update", handleCastleUpgrade);
 			window.clearInterval(intervalId);
 
 			gameRef.current = null;
@@ -160,6 +203,26 @@ export default function GameCanvas({
 					</div>
 				</div>
 			)}
+
+			<div className="pointer-events-none absolute left-4 top-4 z-50">
+				<div className="w-64">
+					<div className="mb-1 text-sm font-bold text-white">
+						HP {hp} / 100
+					</div>
+
+					<div className="h-4 overflow-hidden rounded-full bg-black/50">
+						<div
+							className="h-full bg-red-500 transition-all"
+							style={{
+								width: `${Math.max(
+									0,
+									Math.min(100, hp),
+								)}%`,
+							}}
+						/>
+					</div>
+				</div>
+			</div>
 
 			<div className="pointer-events-none absolute inset-0 flex items-end justify-center px-4 pb-6">
 				<div className="pointer-events-auto">

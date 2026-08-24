@@ -14,36 +14,28 @@ type User = {
 	email: string;
 };
 
-
 export default function App() {
 
 	const [screen, setScreen] = useState<
 		"loading" | "menu" | "signup" | "login" | "gameMenu" | "game" | "forgotPassword" | "resetPassword"
 	>("loading");
 
-
 	const [user, setUser] = useState<User | null>(null);
 	const [joinedData, setJoinedData] = useState<JoinedPayload | null>(null);
 
-
 	useEffect(() => {
-
-
 		const path = window.location.pathname;
 
 		if (path === "/reset-password") {
 			setScreen("resetPassword");
 			return;
 		}
+
 		async function checkSession() {
-
 			try {
-
 				const response = await fetch("/api/auth/me", {
 					credentials: "include",
 				});
-
-
 				if (response.ok) {
 
 					const data = await response.json();
@@ -52,83 +44,51 @@ export default function App() {
 						"Restored session:",
 						data.user
 					);
-
-
 					setUser(data.user);
 					setScreen("gameMenu");
-
 					return;
 				}
-
-
 			} catch(error) {
-
 				console.log(
 					"Session check failed",
 					error
 				);
-
 			}
-
-
 			setScreen("menu");
-
 		}
-
-
 		checkSession();
-
 	}, []);
-
-
-
 	async function logout() {
-
 		await fetch("/api/auth/logout", {
 			method:"POST",
 			credentials:"include",
 		});
-
-
 		setUser(null);
 		setScreen("menu");
-
 	}
 
-
-
 	if(screen === "loading") {
-
 		return (
 			<div>
 				Checking session...
 			</div>
 		);
-
 	}
 
-
-
 	if(screen === "menu") {
-
 		return (
 			<Menu
 				onCreateAccount={() => {
 					setScreen("signup");
 				}}
-
 				onLogin={() => {
 					setScreen("login");
 				}}
 			/>
 		);
-
 	}
 
-
-
 	if(screen === "signup") {
-
 		return (
 			<Signup
 				onBack={() => {
@@ -136,9 +96,7 @@ export default function App() {
 				}}
 			/>
 		);
-
 	}
-
 
 	if (screen === "login") {
 		return (
@@ -146,14 +104,12 @@ export default function App() {
 				onBack={() => {
 					setScreen("menu");
 				}}
-
-				onForgotPassword={() => {
-					setScreen("forgotPassword");
-				}}
-
 				onLoginSuccess={(loggedUser) => {
 					setUser(loggedUser);
 					setScreen("gameMenu");
+				}}
+				onForgotPassword={() => {
+					setScreen("forgotPassword");
 				}}
 			/>
 		);
@@ -169,45 +125,35 @@ export default function App() {
 		);
 	}
 
-		if (screen === "resetPassword") {
-		return (
-			<ResetPassword
-				onBack={() => {
-					setScreen("login");
-				}}
-			/>
+	if (screen === "resetPassword") {
+	return (
+		<ResetPassword
+			onBack={() => {
+				setScreen("login");
+			}}
+		/>
 		);
 	}
-	if(screen === "gameMenu" && user) {
 
+	if(screen === "gameMenu" && user) {
 		return (
 			<GameMenu
 			user={user}
-
 			onStartGame={(data)=>{
 				setJoinedData(data);
 				setScreen("game");
 			}}
-
-				onLogout={logout}
+			onLogout={logout}
 			/>
 		);
-
 	}
 
-
-
 	if(screen === "game" && user && joinedData) {
-
 		return (
 			<GameCanvas
 				joinedData={joinedData}
 			/>
 		);
-
 	}
-
-
-
 	return null;
 }

@@ -1,12 +1,8 @@
 import {
 	useState,
-	type CSSProperties,
-	type FormEvent,
+	type SubmitEvent,
 } from "react";
-
-type ForgotPasswordProps = {
-	onBack: () => void;
-};
+import type { ForgotPasswordProps } from "./forgotPasswordProps";
 
 export default function ForgotPassword({
 	onBack,
@@ -17,7 +13,7 @@ export default function ForgotPassword({
 	const [loading, setLoading] = useState(false);
 
 	async function handleSubmit(
-		e: FormEvent<HTMLFormElement>
+		e: SubmitEvent
 	) {
 		e.preventDefault();
 
@@ -69,60 +65,21 @@ export default function ForgotPassword({
 	}
 
 	return (
-		<div
-			style={{
-				minHeight: "100vh",
-				display: "grid",
-				placeItems: "center",
-				padding: "24px",
-				background:
-					"linear-gradient(180deg, #10212a 0%, #081016 100%)",
-				color: "#f4f7fb",
-			}}
-		>
-			<div
-				style={{
-					width: "100%",
-					maxWidth: "460px",
-					padding: "30px",
-					borderRadius: "24px",
-					background:
-						"rgba(8, 16, 22, 0.82)",
-					border:
-						"1px solid rgba(255,255,255,0.12)",
-					boxShadow:
-						"0 20px 60px rgba(0,0,0,0.35)",
-					backdropFilter: "blur(14px)",
-				}}
-			>
-				<h2
-					style={{
-						marginTop: 0,
-						marginBottom: "8px",
-					}}
-				>
+		<div className="grid min-h-screen place-items-center bg-linear-to-b from-[#10212a] to-[#081016] p-6 text-[#f4f7fb]">
+			<div className="w-full max-w-[460px] rounded-3xl border border-white/10 bg-[#081016]/85 p-[30px] shadow-[0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur-[14px]">
+				<h2 className="mb-2 text-2xl font-bold">
 					Forgot password
 				</h2>
 
-				<p
-					style={{
-						marginTop: 0,
-						marginBottom: "20px",
-						color:
-							"rgba(244,247,251,0.7)",
-					}}
-				>
+				<p className="mb-5 text-white/70">
 					Enter your email address and we'll
 					send you a password reset link.
 				</p>
 
-				{!success ? (
+				{!success && (
 					<form
 						onSubmit={handleSubmit}
-						style={{
-							display: "grid",
-							gap: "12px",
-						}}
+						className="grid gap-3"
 					>
 						<input
 							type="email"
@@ -131,41 +88,39 @@ export default function ForgotPassword({
 							onChange={(e) =>
 								setEmail(e.target.value)
 							}
-							style={inputStyle}
 							autoComplete="email"
 							disabled={loading}
+							className="rounded-xl border border-white/15 bg-white/[0.06] px-3.5 py-3 text-[#f4f7fb] outline-none placeholder:text-white/40 focus:border-[#ffcf5c] disabled:cursor-not-allowed disabled:opacity-50"
 						/>
 
 						<button
 							type="submit"
-							style={primaryButtonStyle}
 							disabled={loading}
+							className="mt-1 rounded-xl bg-linear-to-br from-[#ffcf5c] to-[#ff9f43] px-3.5 py-3 font-bold text-[#10212a] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
 						>
 							{loading
 								? "Sending..."
 								: "Send reset link"}
 						</button>
 					</form>
-				) : null}
+				)}
 
-				{status ? (
+				{status && (
 					<p
-						style={{
-							marginTop: "14px",
-							marginBottom: 0,
-							color: success
-								? "#8ee6a8"
-								: "#ffcf5c",
-						}}
+						className={`mt-3.5 ${
+							success
+								? "text-[#8ee6a8]"
+								: "text-[#ffcf5c]"
+						}`}
 					>
 						{status}
 					</p>
-				) : null}
+				)}
 
 				<button
 					type="button"
 					onClick={onBack}
-					style={secondaryButtonStyle}
+					className="mt-3 w-full rounded-xl border border-white/15 bg-transparent px-3.5 py-3 text-[#f4f7fb] transition hover:bg-white/5"
 				>
 					Back to login
 				</button>
@@ -173,37 +128,3 @@ export default function ForgotPassword({
 		</div>
 	);
 }
-
-const inputStyle: CSSProperties = {
-	padding: "12px 14px",
-	borderRadius: "12px",
-	border:
-		"1px solid rgba(255,255,255,0.14)",
-	background: "rgba(255,255,255,0.06)",
-	color: "#f4f7fb",
-	outline: "none",
-};
-
-const primaryButtonStyle: CSSProperties = {
-	padding: "12px 14px",
-	borderRadius: "12px",
-	border: "none",
-	background:
-		"linear-gradient(135deg, #ffcf5c 0%, #ff9f43 100%)",
-	color: "#10212a",
-	fontWeight: 700,
-	cursor: "pointer",
-	marginTop: "4px",
-};
-
-const secondaryButtonStyle: CSSProperties = {
-	marginTop: "12px",
-	width: "100%",
-	padding: "12px 14px",
-	borderRadius: "12px",
-	border:
-		"1px solid rgba(255,255,255,0.14)",
-	background: "transparent",
-	color: "#f4f7fb",
-	cursor: "pointer",
-};

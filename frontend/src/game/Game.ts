@@ -13,7 +13,8 @@ export class Game {
     private scene?: GameScene;
 
     private readonly handleTick = (ticker: Ticker) => {
-        if (!this.scene) return;
+        if (!this.scene) 
+            return;
 
         const deltaSeconds = ticker.deltaMS / 1000;
 
@@ -42,6 +43,18 @@ export class Game {
         this.scene?.addRemoteCastle(player);
     }
 
+    removeRemoteCastle(
+        player: JoinedPayload["players"][number]
+    ) {
+        this.scene?.removeRemoteCastle(player);
+    }
+
+    removeRemotePlayer(
+        player: JoinedPayload["players"][number]
+    ) {
+        this.scene?.removeRemotePlayer(player);
+    }
+
     updateRemotePlayer(
         socketId: string,
         x: number,
@@ -64,6 +77,10 @@ export class Game {
 
     spawnResourceTile(x: number, y: number, type: HarvestableTile) {
         this.scene?.spawnResourceTile(x, y, type);
+    }
+
+    updateRemoteCastle(socketId: string, level: number) {
+        this.scene?.updateRemoteCastle(socketId, level);
     }
 
     async start(container: HTMLDivElement, joinedData: JoinedPayload, socket: Socket) {

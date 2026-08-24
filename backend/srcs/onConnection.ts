@@ -111,7 +111,7 @@ const onDisconnection = (socket: Socket, user: SocketUser, roomId: string) => {
 		delete rooms[roomId]
 		console.log('Room deleted:', roomId)
 	} else {
-		socket.to(roomId).emit('player_left', player.username)
+		socket.to(roomId).emit('player_left', player)
 	}
 }
 
