@@ -7,13 +7,6 @@ import {
 } from "pixi.js";
 import { MAP_SIZE } from "../config/constants";
 import { isoX, isoY } from "../world/iso";
-import { type InventoryCost } from "./Inventory";
-
-const CASTLE_UPGRADE_COSTS: Record<number, InventoryCost> = {
-    2: { wood: 1, iron: 5 },
-    3: { wood: 20, iron: 10 },
-    4: { wood: 30, iron: 15 },
-};
 
 export type CastleTextures = {
     castle1: Texture;
@@ -77,31 +70,6 @@ export class Castle {
         this.syncPosition();
     }
 
-    getUpgradeCost(
-        targetLevel = this.level + 1
-    ) {
-        return (
-            CASTLE_UPGRADE_COSTS[targetLevel] ??
-            null
-        );
-    }
-
-    canUpgrade(targetLevel: number) {
-        return !!CASTLE_UPGRADE_COSTS[targetLevel];
-    }
-
-    upgrade() {
-        const nextLevel =
-            this.level + 1;
-
-        if (!this.getUpgradeCost(nextLevel))
-            return false;
-
-        this.setLevel(nextLevel);
-
-        return true;
-    }
-
     setLevel(level: number) {
         if (level < 1 || level > 4)
             return;
@@ -120,33 +88,18 @@ export class Castle {
             4: this.textures.castle4,
         };
 
-        this.sprite.texture =
-            textures[this.level];
+        this.sprite.texture = textures[this.level];
     }
 
     private refreshLabel() {
-        const nextLevel =
-            this.level + 1;
-
-        const cost =
-            this.getUpgradeCost(nextLevel);
-
-        if (!cost) {
+        if (this.level >= 4) {
             this.levelLabel.text =
                 `Lv. ${this.level}\nMax level`;
             return;
         }
 
-        const costText =
-            Object.entries(cost)
-                .map(
-                    ([resource, amount]) =>
-                        `${amount} ${resource}`
-                )
-                .join(" / ");
-
         this.levelLabel.text =
-            `Lv. ${this.level}\nNeed: ${costText}`;
+            `Lv. ${this.level}`;
     }
 
     private syncPosition() {

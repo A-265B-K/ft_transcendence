@@ -29,6 +29,7 @@ export class GameScene {
     ) {
         this.socket = socket;
         this.textures = textures;
+        this.joinedData = joinedData;
 
         this.world = new Container();
         this.world.sortableChildren = true;
@@ -63,81 +64,71 @@ export class GameScene {
             joinedData.player.y
         );
 
-        this.world.addChild(this.player.sprite);
+        this.world.addChild(
+            this.player.sprite,
+        );
 
-        for (const player of joinedData.players) {
+        this.createRemotePlayers();
+
+        this.castle =
+            this.createCastles();
+
+        this.camera =
+            new Camera(this.world);
+    }
+
+    private createRemotePlayers() {
+        for (
+            const player of
+            this.joinedData.players
+        ) {
             if (
                 player.socketId ===
-                joinedData.player.socketId
+                this.joinedData.player.socketId
             ) {
                 continue;
             }
 
-            const remote = new RemotePlayer(
-                {
-                    playerDown1: textures.playerDown1,
-                    playerDown2: textures.playerDown2,
-
-                    playerUp1: textures.playerUp1,
-                    playerUp2: textures.playerUp2,
-
-                    playerLeft1: textures.playerLeft1,
-                    playerLeft2: textures.playerLeft2,
-
-                    playerRight1: textures.playerRight1,
-                    playerRight2: textures.playerRight2,
-
-                    playerStand: textures.playerStand,
-                },
-                player.userId
-            );
-
-            remote.placeAt(
-                player.x,
-                player.y
-            );
-
-            this.remotePlayers.set(
-                player.socketId,
-                remote
-            );
-
-            this.world.addChild(
-                remote.sprite
-            );
+            this.addRemotePlayer(player);
         }
+    }
 
-        let ownCastle: Castle | undefined;
+    private createCastles(): Castle {
+        let ownCastle:
+            Castle | undefined;
 
-        for (const zone of joinedData.map.castleZones) {
-            const player = joinedData.players.find(
-                p => p.slot === zone.playerSlot
-            );
+        for (
+            const zone of
+            this.joinedData.map.castleZones
+        ) {
+            const player =
+                this.joinedData.players.find(
+                    p =>
+                        p.slot ===
+                        zone.playerSlot,
+                );
 
-            if (!player)
+            if (!player) {
                 continue;
+            }
 
-            const castle = new Castle({
-                castle1: textures.castle1,
-                castle2: textures.castle2,
-                castle3: textures.castle3,
-                castle4: textures.castle4,
-            });
+            const castle =
+                this.createCastle();
 
             castle.placeAt(
                 zone.x,
-                zone.y
+                zone.y,
             );
 
             /*
-             * Restore the current castle level.
+             * The backend provides the
+             * authoritative castle level.
              *
-             * This is important when a player joins
-             * after another player has already upgraded.
+             * The frontend only displays it.
              */
-            // castle.setLevel(
-            //     player.inventory.castleLevel
-            // );
+            castle.setLevel(
+                player.inventory.castleLevel,
+            );
 
             this.map.clearTile(
                 castle.gridX,
@@ -155,7 +146,7 @@ export class GameScene {
 
             if (
                 zone.playerSlot ===
-                joinedData.player.slot
+                this.joinedData.player.slot
             ) {
                 ownCastle = castle;
             }
@@ -165,10 +156,20 @@ export class GameScene {
             throw new Error("Own castle was not found");
         }
 
-        this.castle = ownCastle;
+        return ownCastle;
+    }
 
-        this.camera = new Camera(this.world);
-        this.joinedData = joinedData;
+    private createCastle() {
+        return new Castle({
+            castle1:
+                this.textures.castle1,
+            castle2:
+                this.textures.castle2,
+            castle3:
+                this.textures.castle3,
+            castle4:
+                this.textures.castle4,
+        });
     }
 
     addRemotePlayer(
@@ -190,7 +191,7 @@ export class GameScene {
         }
 
         const remote = new RemotePlayer(
-            {
+                {
                 playerDown1: this.textures.playerDown1,
                 playerDown2: this.textures.playerDown2,
 
@@ -204,9 +205,9 @@ export class GameScene {
                 playerRight2: this.textures.playerRight2,
 
                 playerStand: this.textures.playerStand,
-            },
+                },
             player.userId
-        );
+            );
 
         remote.placeAt(
             player.x,
@@ -242,12 +243,8 @@ export class GameScene {
         if (!zone)
             return;
 
-        const castle = new Castle({
-            castle1: this.textures.castle1,
-            castle2: this.textures.castle2,
-            castle3: this.textures.castle3,
-            castle4: this.textures.castle4,
-        });
+        const castle =
+            this.createCastle();
 
         castle.placeAt(
             zone.x,
@@ -255,11 +252,12 @@ export class GameScene {
         );
 
         /*
-         * Use the player's current castle level.
+         * The backend provides the
+         * authoritative castle level.
          */
-        // castle.setLevel(
-        //     player.inventory.castleLevel
-        // );
+        castle.setLevel(
+            player.inventory.castleLevel,
+        );
 
         this.map.clearTile(
             castle.gridX,
@@ -280,9 +278,9 @@ export class GameScene {
         player: JoinedPayload["players"][number]
     ) {
         const castle =
-        this.castles.get(
+            this.castles.get(
             player.slot
-        );
+            );
 
         if (!castle)
             return;
@@ -319,9 +317,8 @@ export class GameScene {
 
         this.remotePlayers.delete(
             player.socketId
-        );   
+        );
     }
-
 
     update(
         inputState: InputState,
@@ -332,6 +329,12 @@ export class GameScene {
         const oldX = this.player.gridX;
         const oldY = this.player.gridY;
 
+        /*
+         * Local movement prediction.
+         *
+         * The backend remains authoritative
+         * and can correct the position.
+         */
         this.player.update(
             inputState,
             deltaSeconds
@@ -340,7 +343,7 @@ export class GameScene {
         const movedDistance = Math.hypot(
             this.player.gridX - oldX,
             this.player.gridY - oldY
-        );
+            );
 
         if (movedDistance > 0.05) {
             this.socket.emit(
@@ -352,71 +355,9 @@ export class GameScene {
             );
         }
 
-        this.clampPlayerToMap();
-
-        this.handleCastleCollision();
-
-        const centerX = Math.floor(
-            this.player.gridX
-        );
-
-        const centerY = Math.floor(
-            this.player.gridY
-        );
-
-        const range = 1;
-
-        let harvested = false;
-
-        for (
-            let dx = -range;
-            dx <= range && !harvested;
-            dx++
-        ) {
-            for (
-                let dy = -range;
-                dy <= range && !harvested;
-                dy++
-            ) {
-                const x = centerX + dx;
-                const y = centerY + dy;
-
-                const harvestedTile =
-                    this.map.harvestAt(x, y);
-
-                if (harvestedTile) {
-                    // Inventory is no longer credited locally — the server
-                    // is now the source of truth, delivered through the
-                    // "resource_collected" event (see GameScene.syncInventory).
-                    // if (
-                    //     harvestedTile === "wood"
-                    // ) {
-                    //     this.player.inventory.add(
-                    //         "wood"
-                    //     );
-                    // }
-
-                    // if (
-                    //     harvestedTile === "iron"
-                    // ) {
-                    //     this.player.inventory.add(
-                    //         "iron"
-                    //     );
-                    // }
-
-                    harvested = true;
-                }
-            }
-        }
-
-        if (
-            inputState.right &&
-            this.isNearCastle() &&
-            this.tryUpgradeCastle()
-        ) {
-            // Castle upgrade handled.
-        }
-
+        /*
+         * Camera is client-side.
+         */
         this.camera.update(
             this.player,
             screenWidth,
@@ -424,136 +365,38 @@ export class GameScene {
             deltaSeconds
         );
 
+        /*
+         * Visible map rendering is
+         * client-side.
+         */
         this.map.update(
             screenWidth,
             screenHeight,
             this.camera.x,
-            this.camera.y
+            this.camera.y,
         );
-    }
-
-    private clampPlayerToMap() {
-        const margin = 1.5;
-
-        const minBound = margin;
-
-        const maxX =
-            this.joinedData.map.width -
-            1 -
-            margin;
-
-        const maxY =
-            this.joinedData.map.height -
-            1 -
-            margin;
-
-        const boundedX = Math.max(
-            minBound,
-            Math.min(
-                maxX,
-                this.player.gridX
-            )
-        );
-
-        const boundedY = Math.max(
-            minBound,
-            Math.min(
-                maxY,
-                this.player.gridY
-            )
-        );
-
-        this.player.placeAt(
-            boundedX,
-            boundedY
-        );
-    }
-
-    private handleCastleCollision() {
-        const dx =
-            this.player.gridX -
-            this.castle.gridX;
-
-        const dy =
-            this.player.gridY -
-            this.castle.gridY;
-
-        const halfWidth = 3;
-        const halfHeight = 3;
-
-        const overlapX =
-            halfWidth -
-            Math.abs(dx);
-
-        const overlapY =
-            halfHeight -
-            Math.abs(dy);
-
-        if (
-            overlapX > 0 &&
-            overlapY > 0
-        ) {
-            if (overlapX < overlapY) {
-                const pushX =
-                    dx > 0
-                        ? halfWidth
-                        : -halfWidth;
-
-                this.player.placeAt(
-                    this.castle.gridX + pushX,
-                    this.player.gridY
-                );
-            } else {
-                const pushY =
-                    dy > 0
-                        ? halfHeight
-                        : -halfHeight;
-
-                this.player.placeAt(
-                    this.player.gridX,
-                    this.castle.gridY + pushY
-                );
-            }
-        }
-    }
-
-    private isNearCastle() {
-        const distanceX = Math.abs(
-            this.player.gridX -
-            this.castle.gridX
-        );
-
-        const distanceY = Math.abs(
-            this.player.gridY -
-            this.castle.gridY
-        );
-
-        return Math.max(
-            distanceX,
-            distanceY
-        ) <= 3;
     }
 
     getCastlePointer() {
         const playerScreenX = isoX(
-            this.player.gridX,
+                this.player.gridX,
             this.player.gridY
-        );
+            );
 
         const playerScreenY = isoY(
-            this.player.gridX,
+                this.player.gridX,
             this.player.gridY
-        );
+            );
 
         const castleScreenX = isoX(
-            this.castle.gridX,
+                this.castle.gridX,
             this.castle.gridY
-        );
+            );
 
         const castleScreenY = isoY(
-            this.castle.gridX,
+                this.castle.gridX,
             this.castle.gridY
-        );
+            );
 
         const dx =
             castleScreenX -
@@ -564,16 +407,16 @@ export class GameScene {
             playerScreenY;
 
         const distance = Math.hypot(
-            this.castle.gridX -
-            this.player.gridX,
-            this.castle.gridY -
-            this.player.gridY
-        );
+                this.castle.gridX -
+                this.player.gridX,
+                this.castle.gridY -
+                this.player.gridY
+            );
 
         const rotation = Math.atan2(
-            dy,
-            dx
-        );
+                dy,
+                dx
+            );
 
         const bearingDegrees =
             (rotation * 180) / Math.PI;
@@ -609,59 +452,9 @@ export class GameScene {
         ];
 
         const index =
-            Math.round(
-                degrees / 45
-            ) % directions.length;
+            Math.round(degrees / 45) % directions.length;
 
         return directions[index];
-    }
-
-    private tryUpgradeCastle() {
-        const nextLevel =
-            this.castle.level + 1;
-
-        const cost =
-            this.castle.getUpgradeCost(
-                nextLevel
-            );
-
-        if (!cost)
-            return false;
-
-        if (
-            !this.player.inventory.canAfford(
-                cost
-            )
-        ) {
-            return false;
-        }
-
-        if (
-            !this.player.inventory.spend(
-                cost
-            )
-        ) {
-            return false;
-        }
-
-        const upgraded =
-            this.castle.upgrade();
-
-        if (!upgraded)
-            return false;
-
-        /*
-         * Tell the server that our castle
-         * was upgraded.
-         */
-        this.socket.emit(
-            "castle_upgrade",
-            {
-                level: this.castle.level,
-            }
-        );
-
-        return true;
     }
 
     updateRemoteCastle(
@@ -685,6 +478,13 @@ export class GameScene {
         if (!castle)
             return;
 
+        /*
+         * The backend tells us the
+         * new authoritative level.
+         *
+         * The frontend only changes
+         * the visual representation.
+         */
         castle.setLevel(level);
     }
 
@@ -701,6 +501,10 @@ export class GameScene {
         if (!remote)
             return;
 
+        /*
+         * The backend provides the
+         * authoritative remote position.
+         */
         remote.updatePosition(
             x,
             y

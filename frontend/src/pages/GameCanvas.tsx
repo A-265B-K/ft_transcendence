@@ -163,7 +163,7 @@ export default function GameCanvas({
 			socket.off("resource_collected", handleResourceCollected);
 			socket.off("resource_spawned", handleResourceSpawned);
 			socket.off("join_error", handleJoinError);
-			socket.off("update_castle", handleCastleUpgrade);
+			socket.off("castle_update", handleCastleUpgrade);
 			window.clearInterval(intervalId);
 
 			gameRef.current = null;
