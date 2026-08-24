@@ -44,8 +44,6 @@ services:
           condition: service_healthy
       ports:
         - "8443:443"
-      volumes:
-        - ./nginx/pages:/var/www/html/
     postgres:
       image: postgres:18.4
       volumes:
