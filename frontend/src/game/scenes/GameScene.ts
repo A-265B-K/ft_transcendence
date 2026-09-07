@@ -60,6 +60,7 @@ export class GameScene {
 
             playerStand: textures.playerStand,
         });
+        this.player.equipWeapon("sword")
 
         this.player.placeAt(
             joinedData.player.x,

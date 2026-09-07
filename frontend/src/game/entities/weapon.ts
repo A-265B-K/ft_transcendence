@@ -21,8 +21,8 @@ export class Weapon
 {
     readonly sprite: Sprite;
     readonly type: string;
-    readonly textures: Texture
-    private static textureCatalogue?: WeaponTextureCatalogue
+    readonly textures: WeaponTextures
+    private static textureCatalogue: WeaponTextureCatalogue
 
     constructor(type: WeaponType)
     {
@@ -31,7 +31,7 @@ export class Weapon
         this.textures = textures;
         this.sprite = new Sprite(this.textures[0]);
         this.sprite.anchor.set(0.5, 0.8);
-        this.sprite.scale.set(0.1);
+        this.sprite.scale.set(0.2);
     }
        
     setPosition(x: number, y: number): void

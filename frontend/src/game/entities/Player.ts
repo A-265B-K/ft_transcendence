@@ -46,6 +46,11 @@ export class Player {
             textures.playerDown2,
         ]);
 
+        this.sprite.onFrameChange = (frame: number) => 
+        {
+            this.updateweaponpos(frame)
+        }
+  
         this.sprite.anchor.set(0.5, 1);
         this.sprite.scale.set(0.5);
 
@@ -146,5 +151,29 @@ export class Player {
             this.weapon.sprite.destroy();
         }
         this.weapon = new Weapon(type)
+        this.weapon.setPosition(-40, -110)
+        this.sprite.addChild(this.weapon.sprite)
+    }
+    updateweaponpos(frame: number)
+    {
+        if (this.weapon)
+        {
+            switch (this.direction)
+            {
+                case "down":
+
+                    break ;
+
+                case "up":
+
+                    break ;
+                case "left":
+
+                    break ;
+                case "right":
+                    
+                    break ;
+            }
+        };
     }
 }
