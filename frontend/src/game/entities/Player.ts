@@ -2,6 +2,7 @@ import { AnimatedSprite, Texture } from "pixi.js";
 import { MAP_SIZE } from "../config/constants";
 import { isoX, isoY } from "../world/iso";
 import { Inventory } from "./Inventory";
+import { Weapon, type WeaponType } from "./weapon";
 
 export type InputState = {
     up: boolean;
@@ -28,7 +29,6 @@ export class Player {
     sprite: AnimatedSprite;
 
     readonly inventory = new Inventory();
-
     gridX = 0;
     gridY = 0;
 
@@ -36,6 +36,7 @@ export class Player {
 
     private direction: Direction = "down";
     private readonly textures: PlayerTextures;
+    weapon?: Weapon;
 
     constructor(textures: PlayerTextures) {
         this.textures = textures;
@@ -136,5 +137,14 @@ export class Player {
         this.sprite.x = isoX(this.gridX, this.gridY);
         this.sprite.y = isoY(this.gridX, this.gridY);
         this.sprite.zIndex = this.gridX + this.gridY + 1;
+    }
+    equipWeapon(type: WeaponType)
+    {
+        if (this.weapon)
+        {
+            this.sprite.removeChild(this.weapon.sprite)
+            this.weapon.sprite.destroy();
+        }
+        this.weapon = new Weapon(type)
     }
 }
