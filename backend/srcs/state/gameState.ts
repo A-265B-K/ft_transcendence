@@ -5,10 +5,13 @@ import type { generateMap } from "../map/mapGenerator.js";
 import type { Inventory } from "../types.js";
 
 export type Room = {
-  roomId: string;
-  playerCount: number;
-  players: Player[];
-  map: ReturnType<typeof generateMap>;
+	roomId: string;
+	name: string;
+	code: string;
+	hostId: string;
+	playerCount: number;
+	players: Player[];
+	map: ReturnType<typeof generateMap>;
 };
 export type Player = {
 	userId: string;
