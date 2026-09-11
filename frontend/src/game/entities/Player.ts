@@ -33,6 +33,8 @@ export class Player {
     gridY = 0;
 
     speed = 10;
+    private attacking = false;
+    private attacktime = 0;
 
     private direction: Direction = "down";
     private readonly textures: PlayerTextures;
@@ -77,13 +79,15 @@ export class Player {
         if (input.right) moveX += 1;
 
         const magnitude = Math.hypot(moveX, moveY);
-
+        if (this.attacking)
+            this.attack()
         if (magnitude > 0) {
             this.updateDirection(moveX, moveY);
 
             if (!this.sprite.playing) {
                 this.sprite.play();
             }
+            this.updateweaponpos(this.sprite.currentFrame);
 
             const step = this.speed * deltaSeconds;
 
@@ -92,6 +96,12 @@ export class Player {
         } else {
             this.sprite.stop();
             this.sprite.texture = this.textures.playerStand;
+            if (this.weapon)
+            {
+                this.weapon?.makevisible();
+                this.weapon.setPosition(-44, -84);
+                this.weapon.setframe(0);
+            }
         }
 
         this.gridX = Math.max(0, Math.min(MAP_SIZE - 1, this.gridX));
@@ -151,29 +161,54 @@ export class Player {
             this.weapon.sprite.destroy();
         }
         this.weapon = new Weapon(type)
-        this.weapon.setPosition(-40, -110)
+        this.weapon.setPosition(-44, -84)
         this.sprite.addChild(this.weapon.sprite)
     }
     updateweaponpos(frame: number)
     {
         if (this.weapon)
         {
+            this.weapon.makevisible();
             switch (this.direction)
             {
                 case "down":
-
+                    this.weapon.setframe(0);
+                    this.weapon.setPosition(frame == 0 ? -46 : -47, frame == 0 ? -97 : -92);
                     break ;
-
                 case "up":
-
+                    this.weapon.setframe(1);
+                    this.weapon.setPosition(40, frame == 0 ? -88 : -82);
                     break ;
                 case "left":
-
+                    this.weapon.setframe(2);
+                    this.weapon.makeinvisible();
                     break ;
                 case "right":
-                    
+                    this.weapon.setframe(3);
+                    this.weapon.setPosition(frame == 0 ? -8 : -18, -72);
                     break ;
             }
         };
+        
+    }
+    attack(): void
+    {
+        switch(this.weapon?.type)
+        {
+            case ("sword"):
+                this.sprite.rotation += 0.15
+                break;
+            case ("axe"):
+                break;
+            case ("bow"):
+                break;
+            case ("dagger"):
+                break ;
+            case ("spear"):
+                break ;
+            case ("staff"):
+                break ;
+        }
+        // ask backend for attack
     }
 }

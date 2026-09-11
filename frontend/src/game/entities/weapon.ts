@@ -38,15 +38,28 @@ export class Weapon
     {
         this.sprite.position.set(x, y);
     }
+    makeinvisible(): void
+    {
+        this.sprite.visible = false;
+    }
+    makevisible(): void
+    {
+        this.sprite.visible = true;
+    }
 
     setTexture(texture: Texture): void
     {
         this.sprite.texture = texture;
+    }
+    setframe(frame : number): void
+    {
+        this.sprite.texture = this.textures[frame]
     }
 
     static configureWeaponTextures(catalogue: WeaponTextureCatalogue): void
     {
         Weapon.textureCatalogue = catalogue;
     }
+
 }
 
