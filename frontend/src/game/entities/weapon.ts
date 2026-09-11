@@ -23,6 +23,9 @@ export class Weapon
     readonly type: string;
     readonly textures: WeaponTextures
     private static textureCatalogue: WeaponTextureCatalogue
+    private attacking = false;
+    private attacktime = 0;
+    private swingdirection = 1;
 
     constructor(type: WeaponType)
     {
@@ -40,11 +43,11 @@ export class Weapon
     }
     makeinvisible(): void
     {
-        this.sprite.visible = false;
+        this.sprite.zIndex = 0;
     }
     makevisible(): void
     {
-        this.sprite.visible = true;
+        this.sprite.zIndex = 1;
     }
 
     setTexture(texture: Texture): void
@@ -60,6 +63,28 @@ export class Weapon
     {
         Weapon.textureCatalogue = catalogue;
     }
+    attack(direction : "up" | "down" | "left" | "right")
+    {
+        this.attacking = true
+        this.attacktime = 0;
+        if (direction == "up" || direction == "right")
+            this.swingdirection = 1;
+        else
+            this.swingdirection = -1;
+    }
 
+    update(deltaSeconds: number): void {
+        if (!this.attacking)
+            return;
+
+        this.attacktime += deltaSeconds;
+        let progress = Math.min(this.attacktime / 0.3, 1);
+        this.sprite.rotation = Math.sin(progress * Math.PI) * 1.5 * this.swingdirection;
+
+        if (progress === 1) {
+            this.sprite.rotation = 0;
+            this.attacking = false;
+        }
+    }
 }
 

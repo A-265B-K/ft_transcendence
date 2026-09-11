@@ -33,9 +33,6 @@ export class Player {
     gridY = 0;
 
     speed = 10;
-    private attacking = false;
-    private attacktime = 0;
-
     private direction: Direction = "down";
     private readonly textures: PlayerTextures;
     weapon?: Weapon;
@@ -193,22 +190,7 @@ export class Player {
     }
     attack(): void
     {
-        switch(this.weapon?.type)
-        {
-            case ("sword"):
-                this.sprite.rotation += 0.15
-                break;
-            case ("axe"):
-                break;
-            case ("bow"):
-                break;
-            case ("dagger"):
-                break ;
-            case ("spear"):
-                break ;
-            case ("staff"):
-                break ;
-        }
+        this.weapon?.attack(this.direction)
         // ask backend for attack
     }
 }
