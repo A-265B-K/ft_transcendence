@@ -17,15 +17,14 @@ export type WeaponTextures = [
 export type WeaponTextureCatalogue =
     Record<WeaponType, WeaponTextures>;
 
-export class Weapon
+export abstract class Weapon
 {
     readonly sprite: Sprite;
     readonly type: string;
     readonly textures: WeaponTextures
     private static textureCatalogue: WeaponTextureCatalogue
-    private attacking = false;
-    private attacktime = 0;
-    private attackangle = 0;
+    protected attacking = false;
+    protected attacktime = 0;
 
     constructor(type: WeaponType)
     {
@@ -43,7 +42,7 @@ export class Weapon
     }
     makeinvisible(): void
     {
-        this.sprite.zIndex = 0;
+        this.sprite.zIndex = -1;
     }
     makevisible(): void
     {
@@ -63,39 +62,15 @@ export class Weapon
     {
         Weapon.textureCatalogue = catalogue;
     }
-    attack(direction : "up" | "down" | "left" | "right")
-    {
-        const directions = {
-        up:    { x:  2, y: -1 },
-        down:  { x: -2, y:  1 },
-        left:  { x: -2, y: -1 },
-        right: { x:  2, y:  1 },
-    };
-        const { x, y } = directions[direction];
 
-        this.attackangle = Math.atan2(x, -y);
+    // these methods will be specific to each weapon type, because the animations will be different.
+    // They are defined in the subclasses
 
-        if (direction === "down" && this.attackangle < 0)
-            this.attackangle += Math.PI * 2;
-        else if (direction === "up" && this.attackangle > 0)
-            this.attackangle = -Math.PI / 3;
-
-        this.attacking = true;
-        this.attacktime = 0;
-    }
-
-    update(deltaSeconds: number): void {
-        if (!this.attacking)
-            return;
-
-        this.attacktime += deltaSeconds;
-        let progress = Math.min(this.attacktime / 0.3, 1);
-        this.sprite.rotation = Math.sin(progress * Math.PI) * this.attackangle;;
-
-        if (progress === 1) {
-            this.sprite.rotation = 0;
-            this.attacking = false;
-        }
-    }
+    abstract update(deltaSeconds: number): void;
+    abstract attack(direction: "up" | "down" | "left" | "right"): void;
+    abstract updateweaponpos(frame: number, direction : "up" | "down" | "left" | "right") : void;
 }
+
+
+
 

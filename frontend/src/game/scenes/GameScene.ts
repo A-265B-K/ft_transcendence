@@ -9,7 +9,8 @@ import { isoX, isoY } from "../world/iso";
 import type { JoinedPayload } from "../../types/game";
 import { RemotePlayer } from "../entities/RemotePlayer";
 import type { Socket } from "socket.io-client";
-import { Weapon } from "../entities/weapon";
+
+import { Weapon } from "../entities/weapons/weapon";
 
 export class GameScene {
     readonly world: Container;
@@ -68,7 +69,7 @@ export class GameScene {
         );
 
         this.world.addChild(
-            this.player.sprite,
+            this.player.container,
         );
 
         this.createRemotePlayers();
