@@ -76,8 +76,6 @@ export class Player {
         if (input.right) moveX += 1;
 
         const magnitude = Math.hypot(moveX, moveY);
-        if (this.attacking)
-            this.attack()
         if (magnitude > 0) {
             this.updateDirection(moveX, moveY);
 

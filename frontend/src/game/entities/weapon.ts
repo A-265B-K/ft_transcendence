@@ -25,7 +25,7 @@ export class Weapon
     private static textureCatalogue: WeaponTextureCatalogue
     private attacking = false;
     private attacktime = 0;
-    private swingdirection = 1;
+    private attackangle = 0;
 
     constructor(type: WeaponType)
     {
@@ -65,12 +65,23 @@ export class Weapon
     }
     attack(direction : "up" | "down" | "left" | "right")
     {
-        this.attacking = true
+        const directions = {
+        up:    { x:  2, y: -1 },
+        down:  { x: -2, y:  1 },
+        left:  { x: -2, y: -1 },
+        right: { x:  2, y:  1 },
+    };
+        const { x, y } = directions[direction];
+
+        this.attackangle = Math.atan2(x, -y);
+
+        if (direction === "down" && this.attackangle < 0)
+            this.attackangle += Math.PI * 2;
+        else if (direction === "up" && this.attackangle > 0)
+            this.attackangle = -Math.PI / 3;
+
+        this.attacking = true;
         this.attacktime = 0;
-        if (direction == "up" || direction == "right")
-            this.swingdirection = 1;
-        else
-            this.swingdirection = -1;
     }
 
     update(deltaSeconds: number): void {
@@ -79,7 +90,7 @@ export class Weapon
 
         this.attacktime += deltaSeconds;
         let progress = Math.min(this.attacktime / 0.3, 1);
-        this.sprite.rotation = Math.sin(progress * Math.PI) * 1.5 * this.swingdirection;
+        this.sprite.rotation = Math.sin(progress * Math.PI) * this.attackangle;;
 
         if (progress === 1) {
             this.sprite.rotation = 0;
