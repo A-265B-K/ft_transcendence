@@ -1,5 +1,4 @@
 import { TileType, type TileType as TileTypeValue } from "../world/TileType";
-
 export type InventoryResource = Exclude<TileTypeValue, typeof TileType.Grass>;
 
 export type InventoryCost = Partial<Record<InventoryResource, number>>;
@@ -9,7 +8,6 @@ export class Inventory {
         [TileType.Wood]: 0,
         [TileType.Iron]: 0,
     };
-
     set(
         resource: InventoryResource,
         amount: number,

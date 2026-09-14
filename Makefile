@@ -8,7 +8,6 @@ prod:
 dev:
 	@mkdir -p ./backups/backups
 	@docker compose -f docker-compose-dev.yaml up
-	@echo Game reachable at https://localhost:8443/
 
 down:
 	@docker compose down

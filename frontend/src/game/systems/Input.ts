@@ -18,6 +18,8 @@ export class Input {
     /**
      * Handle keydown events - mark key as pressed
      */
+    Attack?:() => void;
+
     private readonly handleKeyDown = (e: KeyboardEvent) => {
         const key = e.key.toLowerCase();
         this.keys[key] = true;
@@ -25,6 +27,8 @@ export class Input {
         if (key === "e") {
             this.interactQueued = true;
         }
+        if (key == "f" && !e.repeat)
+            this.Attack?.();
     };
 
     /**

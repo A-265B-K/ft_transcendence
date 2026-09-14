@@ -10,6 +10,8 @@ import type { JoinedPayload } from "../../types/game";
 import { RemotePlayer } from "../entities/RemotePlayer";
 import type { Socket } from "socket.io-client";
 
+import { Weapon } from "../entities/weapons/weapon";
+
 export class GameScene {
     readonly world: Container;
     readonly map: GameMap;
@@ -29,6 +31,7 @@ export class GameScene {
     ) {
         this.socket = socket;
         this.textures = textures;
+        this.configureweapontextures();
         this.joinedData = joinedData;
 
         this.world = new Container();
@@ -58,6 +61,8 @@ export class GameScene {
 
             playerStand: textures.playerStand,
         });
+        //for now we change the weapon here. will add a proper forge menu later
+        this.player.equipWeapon("sword")
 
         this.player.placeAt(
             joinedData.player.x,
@@ -65,7 +70,7 @@ export class GameScene {
         );
 
         this.world.addChild(
-            this.player.sprite,
+            this.player.container,
         );
 
         this.createRemotePlayers();
@@ -533,5 +538,48 @@ export class GameScene {
             Math.floor(y),
             type
         );
+    }
+
+    configureweapontextures(): void
+    {
+        Weapon.configureWeaponTextures({
+            sword: [
+                this.textures.sword1,
+                this.textures.sword2,
+                this.textures.sword3,
+                this.textures.sword4,
+            ],
+            axe: [
+                this.textures.axe1,
+                this.textures.axe2,
+                this.textures.axe3,
+                this.textures.axe4,
+            ],
+            bow: [
+                this.textures.bow1,
+                this.textures.bow2,
+                this.textures.bow3,
+                this.textures.bow4,
+            ],
+            dagger: [
+                this.textures.dagger1,
+                this.textures.dagger2,
+                this.textures.dagger3,
+                this.textures.dagger4,
+            ],
+            spear: [
+                this.textures.spear1,
+                this.textures.spear2,
+                this.textures.spear3,
+                this.textures.spear4,
+            ],
+            staff: [
+                this.textures.staff1,
+                this.textures.staff2,
+                this.textures.staff3,
+                this.textures.staff4,
+            ],
+    });
+
     }
 }
