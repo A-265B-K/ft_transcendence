@@ -58,9 +58,18 @@ export interface MapData {
     movement: MovementData;
 }
 
+export interface LobbyRoom {
+	roomId: string;
+	name: string;
+	code: string;
+	playerCount: number;
+	maxPlayers: number;
+}
+
 export interface JoinedPayload {
     roomId: string;
     player: PlayerData;
-    players: PlayerData[];
     map: MapData;
+    players: PlayerData[];
+    room: LobbyRoom;
 }
