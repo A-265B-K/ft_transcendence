@@ -1,4 +1,4 @@
-import { Weapon } from "./weapon";
+/* import { Weapon } from "./weapon";
 
 export class staff extends Weapon {
     constructor() {
@@ -40,3 +40,4 @@ export class staff extends Weapon {
         };
     }
 }
+ */

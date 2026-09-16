@@ -62,7 +62,7 @@ export class GameScene {
             playerStand: textures.playerStand,
         });
         //for now we change the weapon here. will add a proper forge menu later
-        this.player.equipWeapon("sword")
+        this.player.equipWeapon("dagger")
 
         this.player.placeAt(
             joinedData.player.x,

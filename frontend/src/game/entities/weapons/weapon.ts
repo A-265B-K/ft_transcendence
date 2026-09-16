@@ -26,6 +26,10 @@ export abstract class Weapon
     protected attacking = false;
     protected attacktime = 0;
 
+    get isAttacking(): boolean {
+        return this.attacking;
+    }
+
     constructor(type: WeaponType)
     {
         const textures = Weapon.textureCatalogue?.[type]
@@ -70,7 +74,6 @@ export abstract class Weapon
     abstract attack(direction: "up" | "down" | "left" | "right"): void;
     abstract updateweaponpos(frame: number, direction : "up" | "down" | "left" | "right") : void;
 }
-
 
 
 

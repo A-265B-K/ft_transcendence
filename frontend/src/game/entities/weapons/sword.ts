@@ -44,6 +44,8 @@ export class Sword extends Weapon {
     }
     updateweaponpos(frame: number, direction : "up" | "down" | "left" | "right")
     {
+            if (this.attacking)
+                return;
             if (direction == "up" || direction == "left")
                 this.makeinvisible();
             else

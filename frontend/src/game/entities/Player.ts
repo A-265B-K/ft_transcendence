@@ -4,6 +4,7 @@ import { isoX, isoY } from "../world/iso";
 import { Inventory } from "./Inventory";
 import { Weapon, type WeaponType } from "./weapons/weapon";
 import { Sword } from "./weapons/sword";
+import { dagger } from "./weapons/dagger";
 
 export type InputState = {
     up: boolean;
@@ -96,7 +97,7 @@ export class Player {
         } else {
             this.sprite.stop();
             this.sprite.texture = this.textures.playerStand;
-            if (this.weapon)
+            if (this.weapon && !this.weapon.isAttacking)
             {
                 this.weapon?.makevisible();
                 this.weapon.setPosition(-44, -84);
@@ -167,6 +168,9 @@ export class Player {
                 this.weapon = new Sword();
 
             break ;
+            case "dagger":
+                this.weapon = new dagger();
+                break;
         }
         if (this.weapon)
         {
