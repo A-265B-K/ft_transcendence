@@ -5,6 +5,8 @@ import { Inventory } from "./Inventory";
 import { Weapon, type WeaponType } from "./weapons/weapon";
 import { Sword } from "./weapons/sword";
 import { dagger } from "./weapons/dagger";
+import { axe } from "./weapons/axe";
+import { spear } from "./weapons/spear";
 
 export type InputState = {
     up: boolean;
@@ -163,14 +165,19 @@ export class Player {
             this.weapon.sprite.destroy();
         }
         switch (type)
-        { //gonna add more weapons
+        {
             case ("sword"):
                 this.weapon = new Sword();
-
-            break ;
+                break ;
             case "dagger":
                 this.weapon = new dagger();
                 break;
+            case "axe":
+                this.weapon = new axe();
+                break;
+            case "spear":
+                this.weapon = new spear();
+                break ;
         }
         if (this.weapon)
         {
