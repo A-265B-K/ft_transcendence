@@ -1,7 +1,12 @@
-import { AnimatedSprite, Texture } from "pixi.js";
+import { AnimatedSprite, Texture, Container} from "pixi.js";
 import { MAP_SIZE } from "../config/constants";
 import { isoX, isoY } from "../world/iso";
 import { Inventory } from "./Inventory";
+import { Weapon, type WeaponType } from "./weapons/weapon";
+import { Sword } from "./weapons/sword";
+import { dagger } from "./weapons/dagger";
+import { axe } from "./weapons/axe";
+import { spear } from "./weapons/spear";
 
 export type InputState = {
     up: boolean;
@@ -25,17 +30,17 @@ export type PlayerTextures = {
 type Direction = "up" | "down" | "left" | "right";
 
 export class Player {
+    readonly container = new Container();
     sprite: AnimatedSprite;
 
     readonly inventory = new Inventory();
-
     gridX = 0;
     gridY = 0;
 
     speed = 10;
-
     private direction: Direction = "down";
     private readonly textures: PlayerTextures;
+    weapon?: Weapon;
 
     constructor(textures: PlayerTextures) {
         this.textures = textures;
@@ -45,9 +50,17 @@ export class Player {
             textures.playerDown2,
         ]);
 
+        this.sprite.onFrameChange = (frame: number) => 
+        {
+            this.weapon?.updateweaponpos(frame, this.direction)
+        }
+  
         this.sprite.anchor.set(0.5, 1);
-        this.sprite.scale.set(0.5);
-
+        this.container.scale.set(0.5);
+        this.container.sortableChildren = true;
+        this.sprite.zIndex = 0;
+        this.container.addChild(this.sprite);
+    
         this.sprite.animationSpeed = 0.12;
         this.sprite.loop = true;
         this.sprite.stop();
@@ -71,13 +84,13 @@ export class Player {
         if (input.right) moveX += 1;
 
         const magnitude = Math.hypot(moveX, moveY);
-
         if (magnitude > 0) {
             this.updateDirection(moveX, moveY);
 
             if (!this.sprite.playing) {
                 this.sprite.play();
             }
+            this.weapon?.updateweaponpos(this.sprite.currentFrame, this.direction);
 
             const step = this.speed * deltaSeconds;
 
@@ -86,6 +99,12 @@ export class Player {
         } else {
             this.sprite.stop();
             this.sprite.texture = this.textures.playerStand;
+            if (this.weapon && !this.weapon.isAttacking)
+            {
+                this.weapon?.makevisible();
+                this.weapon.setPosition(-44, -84);
+                this.weapon.setframe(0);
+            }
         }
 
         this.gridX = Math.max(0, Math.min(MAP_SIZE - 1, this.gridX));
@@ -133,8 +152,44 @@ export class Player {
     }
 
     private syncSpritePosition() {
-        this.sprite.x = isoX(this.gridX, this.gridY);
-        this.sprite.y = isoY(this.gridX, this.gridY);
-        this.sprite.zIndex = this.gridX + this.gridY + 1;
+        this.container.x = isoX(this.gridX, this.gridY);
+        this.container.y = isoY(this.gridX, this.gridY);
+        this.container.zIndex = this.gridX + this.gridY + 1;
+
+    }
+    equipWeapon(type: WeaponType)
+    {
+        if (this.weapon)
+        {
+            this.container.removeChild(this.weapon.sprite)
+            this.weapon.sprite.destroy();
+        }
+        switch (type)
+        {
+            case ("sword"):
+                this.weapon = new Sword();
+                break ;
+            case "dagger":
+                this.weapon = new dagger();
+                break;
+            case "axe":
+                this.weapon = new axe();
+                break;
+            case "spear":
+                this.weapon = new spear();
+                break ;
+        }
+        if (this.weapon)
+        {
+            this.weapon.setPosition(-44, -84)
+            this.container.addChild(this.weapon.sprite)
+
+        }
+    }
+
+    attack(): void
+    {
+        this.weapon?.attack(this.direction)
+        // ask backend for attack
     }
 }

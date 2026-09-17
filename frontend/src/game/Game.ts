@@ -17,7 +17,7 @@ export class Game {
             return;
 
         const deltaSeconds = ticker.deltaMS / 1000;
-
+        this.scene.player.weapon?.update(deltaSeconds);
         this.scene.update(
             this.input.state,
             this.app.renderer.width,
@@ -29,6 +29,9 @@ export class Game {
 
     constructor() {
         this.app = new Application();
+        this.input.Attack = () => {
+        this.scene?.player.attack();
+};
     }
 
     addRemotePlayer(
