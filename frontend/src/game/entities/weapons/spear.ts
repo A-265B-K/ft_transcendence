@@ -31,9 +31,10 @@ export class spear extends Weapon {
     {
         if (!this.attacking)
                 return;
+        const stabdistance = 40
         const progress = Math.min(this.attacktime / 0.3, 1);
         this.attacktime += deltaSeconds;
-        const distance = Math.sin(progress * Math.PI) * 40;
+        const distance = Math.sin(progress * Math.PI) * stabdistance;
         this.sprite.x = this.startx + this.stabx * distance;
         this.sprite.y = this.starty + this.staby * distance;
     
