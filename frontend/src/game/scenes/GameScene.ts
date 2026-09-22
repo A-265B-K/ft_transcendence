@@ -11,7 +11,6 @@ import { RemotePlayer } from "../entities/RemotePlayer";
 import type { Socket } from "socket.io-client";
 
 import { Weapon } from "../entities/weapons/weapon";
-import type { WeaponType } from "../entities/weapons/weapon";
 
 export class GameScene {
     readonly world: Container;

@@ -1,5 +1,5 @@
 import { createRoom } from "./rooms/gameRoom.js"
-import { rooms, players, type Room } from "./state/gameState.js"
+import { rooms, players, type Room, type Player } from "./state/gameState.js"
 import onMove from "./events/onMove.js"
 import { PLAYER_DEFAULT_HP, ROOM_MAX_SIZE, 
 	PLAYER_DEFAULT_WOOD, PLAYER_DEFAULT_IRON,
@@ -11,7 +11,7 @@ const createPlayer = (
 	user: SocketUser,
 	slot: number,
 	spawn: Spawn,
-) => {
+): Player => {
 	return {
 		userId: user.id,
 		socketId: socket.id,

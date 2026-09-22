@@ -1,4 +1,4 @@
-import { Weapon, WeaponType } from "../game/entities/weapons/weapon";
+import { type WeaponType } from "../game/entities/weapons/weapon";
 
 export interface PlayerInventory {
     wood: number;
