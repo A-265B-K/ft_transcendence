@@ -83,6 +83,11 @@ export class GameScene {
             new Camera(this.world);
     }
 
+    RemotePlayerattack(socketId: string, direction: "up" | "down" | "left" | "right"): void
+    {
+        const remote = this.remotePlayers.get(socketId)
+        remote?.attackanimation(direction)
+    }
     private createRemotePlayers() {
         for (
             const player of
@@ -224,9 +229,11 @@ export class GameScene {
             player.socketId,
             remote
         );
+        if (player.equippedweapon)
+            remote.equipWeapon(player.equippedweapon)
 
         this.world.addChild(
-            remote.sprite
+            remote.container
         );
     }
 
@@ -316,10 +323,9 @@ export class GameScene {
             return;
 
         this.world.removeChild(
-            remote.sprite
+            remote.container
         );
-
-        remote.sprite.destroy();
+        remote.container.destroy({ children: true });
 
         this.remotePlayers.delete(
             player.socketId

@@ -115,6 +115,10 @@ export default function GameCanvas({
 			}
 		}
 
+		function handlePlayerAttacked({ socketId, direction }: {socketId: string; direction: "up" | "down" | "left" | "right";})
+		{
+			game.RemotePlayerattack(socketId, direction);
+		}
 		function handleResourceSpawned({
 			x,
 			y,
@@ -143,6 +147,7 @@ export default function GameCanvas({
 		socket.on("resource_collected", handleResourceCollected);
 		socket.on("join_error", handleJoinError);
 		socket.on("player_hp", handlePlayerHP);
+		socket.on("player_attacked", handlePlayerAttacked)
 		socket.on("resource_spawned", handleResourceSpawned);
 		socket.on("castle_update", handleCastleUpgrade);
 
@@ -162,6 +167,7 @@ export default function GameCanvas({
 			socket.off("player_move", handlePlayerMove);
 			socket.off("player_left", handlePlayerLeft);
 			socket.off("player_hp", handlePlayerHP);
+			socket.off("player_attacked", handlePlayerAttacked);
 			socket.off("resource_collected", handleResourceCollected);
 			socket.off("resource_spawned", handleResourceSpawned);
 			socket.off("join_error", handleJoinError);

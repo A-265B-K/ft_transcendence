@@ -30,6 +30,11 @@ export function handleattack(
                     const stats = getattackstats(player.equippedweapon);
                     if (stats)
                     {
+                        socket.to(currentRoomId).emit("player_attacked",
+                        {
+                            socketId: player.socketId,
+                            direction: direction,
+                        });
                         for (const target of room.players)
                         {
                             if (target.userId !== player.userId && target.hp > 0)
