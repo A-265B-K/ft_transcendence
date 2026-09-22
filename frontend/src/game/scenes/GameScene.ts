@@ -579,7 +579,15 @@ export class GameScene {
                 this.textures.staff3,
                 this.textures.staff4,
             ],
-    });
-
+        });
+    }
+    requestattack(): void
+    {
+        if (this.player.attackanimation())
+        {
+            this.socket.emit("player_attack", {
+                direction: this.player.direction,
+            });
+        }
     }
 }

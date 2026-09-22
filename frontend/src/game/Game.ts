@@ -30,7 +30,7 @@ export class Game {
     constructor() {
         this.app = new Application();
         this.input.Attack = () => {
-        this.scene?.player.attack();
+        this.scene?.requestattack();
 };
     }
 

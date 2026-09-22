@@ -383,6 +383,28 @@ const onConnection = async (socket: Socket) => {
 		}
 	);
 
+	function isvaliddirection(direction : unknown)
+	{
+		return (direction === "up"	 || direction === "down"
+				 || direction === "left" || direction === "right")
+	}
+
+	socket.on("player_attack", (data: unknown) => {
+		if (data && typeof data === "object"
+			&& "direction" in data)
+		{
+			const player = players[user.id]
+			if (player && player.equippedweapon && player.hp > 0)
+			{
+				const direction = data.direction
+				if (isvaliddirection(direction))
+				{
+	
+				}
+			}
+		}
+	});
+
 	socket.on('disconnect', () => {
 
 		console.log(
