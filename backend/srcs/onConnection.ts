@@ -393,7 +393,7 @@ const onConnection = async (socket: Socket) => {
 		if (data && typeof data === "object"
 			&& "direction" in data)
 		{
-			handleattack(players, user, data, currentRoomId, rooms)
+			handleattack(players, user, data, currentRoomId, rooms, socket)
 		}
 	});
 

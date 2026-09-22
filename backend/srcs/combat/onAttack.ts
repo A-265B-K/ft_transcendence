@@ -1,7 +1,7 @@
 import { getattackstats} from "./Attackstats.js"
 import { istargethit } from "./Detection.js"
 import type { Player, Room } from "../state/gameState.js"
-import type { SocketUser } from "../types.js"
+import type { Socket, SocketUser } from "../types.js"
 
 function isvaliddirection(direction : unknown)
 {
@@ -14,7 +14,8 @@ export function handleattack(
     user: SocketUser,
     data: { direction: unknown },
     currentRoomId: string | null,
-    rooms: Record<string, Room>
+    rooms: Record<string, Room>,
+    socket: Socket
 ): void
 {
     const player = players[user.id]
@@ -35,7 +36,11 @@ export function handleattack(
                             {
                                 if (istargethit(player, target, stats, direction))
                                 {
-                                    target.hp - stats.damage;
+                                    target.hp = Math.max(0, target.hp - stats.damage)
+                                    socket.nsp.to(target.socketId).emit("player_hp", {
+                                        socketId: target.socketId,
+                                        hp: target.hp,
+                                    });
                                     console.log(player.username, "hit", target.username, "for", stats.damage, "damage")
                                 }
                             }
