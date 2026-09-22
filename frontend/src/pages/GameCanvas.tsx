@@ -87,7 +87,7 @@ export default function GameCanvas({
 			socketId: string;
 			x: number;
 			y: number;
-			moving: number;
+			moving: boolean
 		}) {
 			if (socketId === socket.id) {
 				game.correctLocalPlayer(x, y);
