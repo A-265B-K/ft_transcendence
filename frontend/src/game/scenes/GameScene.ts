@@ -23,6 +23,7 @@ export class GameScene {
     readonly remotePlayers = new Map<string, RemotePlayer>();
     readonly textures: GameTextures;
     readonly socket: Socket;
+    private  wasmoving = false;
 
     constructor(
         textures: GameTextures,
@@ -350,14 +351,27 @@ export class GameScene {
             this.player.gridY - oldY
             );
 
-        if (movedDistance > 0.05) {
+        if (movedDistance > 0.05)
+        {
             this.socket.emit(
                 "player_move",
                 {
                     x: this.player.gridX,
                     y: this.player.gridY,
+                    moving: true
                 }
             );
+            this.wasmoving = true;
+        }
+        else if (this.wasmoving == true)
+        {
+            this.socket.emit("player_move",
+            {
+                x: this.player.gridX,
+                y: this.player.gridY,
+                moving: false
+            });
+            this.wasmoving = false;
         }
 
         /*
@@ -496,7 +510,8 @@ export class GameScene {
     updateRemotePlayer(
         socketId: string,
         x: number,
-        y: number
+        y: number,
+        moving: boolean,
     ) {
         const remote =
             this.remotePlayers.get(
@@ -512,7 +527,8 @@ export class GameScene {
          */
         remote.updatePosition(
             x,
-            y
+            y,
+            moving
         );
     }
 

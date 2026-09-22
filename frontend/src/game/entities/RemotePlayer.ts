@@ -60,22 +60,21 @@ export class RemotePlayer {
         this.sprite.zIndex = x + y + 1;
     }
 
-    updatePosition(x: number, y: number) {
+    updatePosition(x: number, y: number, moving: boolean) {
         const deltaX = x - this.gridX;
         const deltaY = y - this.gridY;
 
-        const moved = Math.hypot(deltaX, deltaY) > 0.001;
-
-        if (!moved) {
+        if (!moving)
+        {
             this.stopWalking();
             this.placeAt(x, y);
-            return;
         }
-
-        this.updateDirection(deltaX, deltaY);
-        this.startWalking();
-
-        this.placeAt(x, y);
+        else
+        {
+            this.updateDirection(deltaX, deltaY);
+            this.startWalking();
+            this.placeAt(x, y);
+        }
     }
 
     private updateDirection(

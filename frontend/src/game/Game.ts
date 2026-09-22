@@ -61,9 +61,10 @@ export class Game {
     updateRemotePlayer(
         socketId: string,
         x: number,
-        y: number
+        y: number,
+        moving: boolean,
     ) {
-        this.scene?.updateRemotePlayer(socketId, x, y);
+        this.scene?.updateRemotePlayer(socketId, x, y, moving);
     }
 
     correctLocalPlayer(x: number, y: number) {

@@ -5,6 +5,7 @@ import { PLAYER_DEFAULT_HP, ROOM_MAX_SIZE,
 	PLAYER_DEFAULT_WOOD, PLAYER_DEFAULT_IRON,
 	PLAYER_DEFAULT_CASTLE_LEVEL } from "./constants.js"
 import type { Spawn, Socket, SocketUser } from "./types.js"
+import { handleattack } from "./combat/onAttack.js"
 
 const createPlayer = (
 	socket: Socket,
@@ -26,7 +27,8 @@ const createPlayer = (
 			castleLevel: PLAYER_DEFAULT_CASTLE_LEVEL,
 		},
 		lastMoveAt: Date.now(),
-		equippedweapon: "sword"
+		equippedweapon: "sword",
+		nextattack: 0,
 	};
 };
 
@@ -370,38 +372,28 @@ const onConnection = async (socket: Socket) => {
 		({
 			x,
 			y,
+			moving,
 		}: {
 			x: unknown;
 			y: unknown;
+			moving: boolean;
 		}) => {
 			onMove(
 				socket,
 				user,
 				currentRoomId,
-				{ x, y }
+				{ x, y }, moving
 			);
 		}
 	);
 
-	function isvaliddirection(direction : unknown)
-	{
-		return (direction === "up"	 || direction === "down"
-				 || direction === "left" || direction === "right")
-	}
+
 
 	socket.on("player_attack", (data: unknown) => {
 		if (data && typeof data === "object"
 			&& "direction" in data)
 		{
-			const player = players[user.id]
-			if (player && player.equippedweapon && player.hp > 0)
-			{
-				const direction = data.direction
-				if (isvaliddirection(direction))
-				{
-	
-				}
-			}
+			handleattack(players, user, data, currentRoomId, rooms)
 		}
 	});
 

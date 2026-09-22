@@ -82,17 +82,19 @@ export default function GameCanvas({
 			socketId,
 			x,
 			y,
+			moving,
 		}: {
 			socketId: string;
 			x: number;
 			y: number;
+			moving: number;
 		}) {
 			if (socketId === socket.id) {
 				game.correctLocalPlayer(x, y);
 				return;
 			}
 
-			game.updateRemotePlayer(socketId, x, y);
+			game.updateRemotePlayer(socketId, x, y, moving);
 		}
 
 		function handleResourceCollected({

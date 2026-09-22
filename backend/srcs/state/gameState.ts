@@ -33,6 +33,7 @@ export type Player = {
 	inventory: Inventory;
 	lastMoveAt: number;
 	equippedweapon?: WeaponType
+	nextattack: number;
 }
 
 export const rooms: Record<string, Room> = {};

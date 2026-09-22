@@ -1,3 +1,5 @@
+import type { WeaponType } from "../state/gameState.js"
+
 export type WeaponAttackStats =
 {
     damage : number,
@@ -36,4 +38,22 @@ export const SPEAR_ATTACK : WeaponAttackStats =
     reach: 4.5,
     width: 1,
     cooldown: 1.5
+}
+
+
+export function getattackstats(weapon : WeaponType)
+{
+    switch (weapon)
+    {
+        case "sword":
+            return SWORD_ATTACK;
+        case "axe":
+            return AXE_ATTACK;
+        case "dagger":
+            return DAGGER_ATTACK;
+        case "spear":
+            return SPEAR_ATTACK;
+        default:
+            return undefined;
+    }
 }
