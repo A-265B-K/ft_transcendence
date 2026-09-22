@@ -11,6 +11,7 @@ import { RemotePlayer } from "../entities/RemotePlayer";
 import type { Socket } from "socket.io-client";
 
 import { Weapon } from "../entities/weapons/weapon";
+import type { WeaponType } from "../entities/weapons/weapon";
 
 export class GameScene {
     readonly world: Container;
@@ -66,7 +67,9 @@ export class GameScene {
             joinedData.player.x,
             joinedData.player.y
         );
-
+        const serverweapon = joinedData.player.equippedweapon;
+        if (serverweapon)
+            this.player.equipWeapon(serverweapon)
         this.world.addChild(
             this.player.container,
         );

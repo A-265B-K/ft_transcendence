@@ -10,7 +10,7 @@ const createPlayer = (
 	socket: Socket,
 	user: SocketUser,
 	slot: number,
-	spawn: Spawn
+	spawn: Spawn,
 ) => {
 	return {
 		userId: user.id,
@@ -26,6 +26,7 @@ const createPlayer = (
 			castleLevel: PLAYER_DEFAULT_CASTLE_LEVEL,
 		},
 		lastMoveAt: Date.now(),
+		equippedweapon: "sword"
 	};
 };
 
