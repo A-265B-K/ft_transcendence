@@ -18,6 +18,8 @@ export class Game {
 
         const deltaSeconds = ticker.deltaMS / 1000;
         this.scene.player.weapon?.update(deltaSeconds);
+        for ( const enemy of this.scene.remotePlayers.values())
+            enemy.weapon?.update(deltaSeconds);
         this.scene.update(
             this.input.state,
             this.app.renderer.width,
@@ -30,7 +32,7 @@ export class Game {
     constructor() {
         this.app = new Application();
         this.input.Attack = () => {
-        this.scene?.player.attack();
+        this.scene?.requestattack();
 };
     }
 
@@ -61,9 +63,15 @@ export class Game {
     updateRemotePlayer(
         socketId: string,
         x: number,
-        y: number
+        y: number,
+        moving: boolean,
     ) {
-        this.scene?.updateRemotePlayer(socketId, x, y);
+        this.scene?.updateRemotePlayer(socketId, x, y, moving);
+    }
+
+    RemotePlayerattack(socketId: string, direction: "up" | "down" | "left" | "right"): void
+    {
+        this.scene?.RemotePlayerattack(socketId, direction);
     }
 
     correctLocalPlayer(x: number, y: number) {

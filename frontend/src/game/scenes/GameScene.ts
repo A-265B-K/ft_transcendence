@@ -23,6 +23,7 @@ export class GameScene {
     readonly remotePlayers = new Map<string, RemotePlayer>();
     readonly textures: GameTextures;
     readonly socket: Socket;
+    private  wasmoving = false;
 
     constructor(
         textures: GameTextures,
@@ -66,7 +67,9 @@ export class GameScene {
             joinedData.player.x,
             joinedData.player.y
         );
-
+        const serverweapon = joinedData.player.equippedweapon;
+        if (serverweapon)
+            this.player.equipWeapon(serverweapon)
         this.world.addChild(
             this.player.container,
         );
@@ -80,6 +83,11 @@ export class GameScene {
             new Camera(this.world);
     }
 
+    RemotePlayerattack(socketId: string, direction: "up" | "down" | "left" | "right"): void
+    {
+        const remote = this.remotePlayers.get(socketId)
+        remote?.attackanimation(direction)
+    }
     private createRemotePlayers() {
         for (
             const player of
@@ -221,9 +229,11 @@ export class GameScene {
             player.socketId,
             remote
         );
+        if (player.equippedweapon)
+            remote.equipWeapon(player.equippedweapon)
 
         this.world.addChild(
-            remote.sprite
+            remote.container
         );
     }
 
@@ -313,10 +323,9 @@ export class GameScene {
             return;
 
         this.world.removeChild(
-            remote.sprite
+            remote.container
         );
-
-        remote.sprite.destroy();
+        remote.container.destroy({ children: true });
 
         this.remotePlayers.delete(
             player.socketId
@@ -348,14 +357,27 @@ export class GameScene {
             this.player.gridY - oldY
             );
 
-        if (movedDistance > 0.05) {
+        if (movedDistance > 0.05)
+        {
             this.socket.emit(
                 "player_move",
                 {
                     x: this.player.gridX,
                     y: this.player.gridY,
+                    moving: true
                 }
             );
+            this.wasmoving = true;
+        }
+        else if (this.wasmoving == true)
+        {
+            this.socket.emit("player_move",
+            {
+                x: this.player.gridX,
+                y: this.player.gridY,
+                moving: false
+            });
+            this.wasmoving = false;
         }
 
         /*
@@ -494,7 +516,8 @@ export class GameScene {
     updateRemotePlayer(
         socketId: string,
         x: number,
-        y: number
+        y: number,
+        moving: boolean,
     ) {
         const remote =
             this.remotePlayers.get(
@@ -510,7 +533,8 @@ export class GameScene {
          */
         remote.updatePosition(
             x,
-            y
+            y,
+            moving
         );
     }
 
@@ -577,7 +601,15 @@ export class GameScene {
                 this.textures.staff3,
                 this.textures.staff4,
             ],
-    });
-
+        });
+    }
+    requestattack(): void
+    {
+        if (this.player.attackanimation())
+        {
+            this.socket.emit("player_attack", {
+                direction: this.player.direction,
+            });
+        }
     }
 }

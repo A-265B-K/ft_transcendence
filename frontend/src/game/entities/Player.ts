@@ -38,7 +38,7 @@ export class Player {
     gridY = 0;
 
     speed = 10;
-    private direction: Direction = "down";
+    direction: Direction = "down";
     private readonly textures: PlayerTextures;
     weapon?: Weapon;
 
@@ -105,6 +105,7 @@ export class Player {
                 this.weapon.setPosition(-44, -84);
                 this.weapon.setframe(0);
             }
+            this.direction = "down";
         }
 
         this.gridX = Math.max(0, Math.min(MAP_SIZE - 1, this.gridX));
@@ -187,9 +188,11 @@ export class Player {
         }
     }
 
-    attack(): void
+    attackanimation(): boolean
     {
+        if (!this.weapon)
+            return false;
         this.weapon?.attack(this.direction)
-        // ask backend for attack
+        return true;
     }
 }

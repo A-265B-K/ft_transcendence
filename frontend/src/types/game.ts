@@ -1,3 +1,5 @@
+import { type WeaponType } from "../game/entities/weapons/weapon";
+
 export interface PlayerInventory {
     wood: number;
     iron: number;
@@ -14,6 +16,7 @@ export interface PlayerData {
     y: number;
     inventory: PlayerInventory;
     lastMoveAt: number; 
+    equippedweapon?: WeaponType
 }
 
 export interface SpawnPoint {

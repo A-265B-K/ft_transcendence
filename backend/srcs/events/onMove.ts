@@ -97,15 +97,16 @@ function scheduleResourceRespawn(socket: Socket, roomId: string, resource: Resou
 	}, resource.respawnTime * 1000);
 }
 
-const onMove = (socket: Socket, user: SocketUser, roomId: string | null, { x, y }: { x: unknown; y: unknown }) => {
+const onMove = (socket: Socket, user: SocketUser, roomId: string | null, { x, y }: { x: unknown; y: unknown }, moving : unknown) => {
 	const player = players[user.id];
 
 	if (!player || !roomId)
 		return;
 
 	if (
-		typeof x !== "number" ||
-		typeof y !== "number" ||
+		typeof x 	  !== "number" ||
+		typeof y 	  !== "number" ||
+		typeof moving !== "boolean" ||
 		!Number.isFinite(x) ||
 		!Number.isFinite(y)
 	) {
@@ -136,6 +137,7 @@ const onMove = (socket: Socket, user: SocketUser, roomId: string | null, { x, y 
 			socketId: socket.id,
 			x: player.x,
 			y: player.y,
+			moving: moving,
 		});
 
 		const collectedResource = tryCollectResource(room, player, nextPos);

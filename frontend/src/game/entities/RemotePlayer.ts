@@ -1,5 +1,10 @@
-import { AnimatedSprite, Texture } from "pixi.js";
+import { AnimatedSprite, Texture, Container } from "pixi.js";
 import { isoX, isoY } from "../world/iso";
+import { Weapon, type WeaponType } from "./weapons/weapon";
+import { Sword } from "./weapons/sword";
+import { dagger } from "./weapons/dagger";
+import { axe } from "./weapons/axe";
+import { spear } from "./weapons/spear";
 
 type Direction = "up" | "down" | "left" | "right";
 
@@ -28,6 +33,8 @@ export class RemotePlayer {
 
     private direction: Direction = "down";
     private readonly textures: RemotePlayerTextures;
+    readonly container = new Container();
+    weapon?: Weapon;
 
     constructor(
         textures: RemotePlayerTextures,
@@ -40,9 +47,15 @@ export class RemotePlayer {
             textures.playerDown1,
             textures.playerDown2,
         ]);
+        this.sprite.onFrameChange = (frame: number) => 
+        {
+            this.weapon?.updateweaponpos(frame, this.direction)
+        }
 
         this.sprite.anchor.set(0.5, 1);
-        this.sprite.scale.set(0.5);
+        this.container.scale.set(0.5);
+        this.container.sortableChildren = true;
+        this.container.addChild(this.sprite);
 
         this.sprite.animationSpeed = 0.12;
         this.sprite.loop = true;
@@ -55,27 +68,26 @@ export class RemotePlayer {
         this.gridX = x;
         this.gridY = y;
 
-        this.sprite.x = isoX(x, y);
-        this.sprite.y = isoY(x, y);
-        this.sprite.zIndex = x + y + 1;
+        this.container.x = isoX(x, y);
+        this.container.y = isoY(x, y);
+        this.container.zIndex = x + y + 1;
     }
 
-    updatePosition(x: number, y: number) {
+    updatePosition(x: number, y: number, moving: boolean) {
         const deltaX = x - this.gridX;
         const deltaY = y - this.gridY;
 
-        const moved = Math.hypot(deltaX, deltaY) > 0.001;
-
-        if (!moved) {
+        if (!moving)
+        {
             this.stopWalking();
             this.placeAt(x, y);
-            return;
         }
-
-        this.updateDirection(deltaX, deltaY);
-        this.startWalking();
-
-        this.placeAt(x, y);
+        else
+        {
+            this.updateDirection(deltaX, deltaY);
+            this.startWalking();
+            this.placeAt(x, y);
+        }
     }
 
     private updateDirection(
@@ -141,7 +153,50 @@ export class RemotePlayer {
 
     private stopWalking() {
         this.sprite.stop();
-        this.sprite.texture =
-            this.textures.playerStand;
+        this.sprite.texture = this.textures.playerStand;
+
+        if (this.weapon && !this.weapon.isAttacking)
+        {
+            this.weapon.makevisible();
+            this.weapon.setPosition(-44, -84);
+            this.weapon.setframe(0);
+        }
     }
+        equipWeapon(type: WeaponType)
+        {
+            if (this.weapon)
+            {
+                this.container.removeChild(this.weapon.sprite)
+                this.weapon.sprite.destroy();
+            }
+            switch (type)
+            {
+                case ("sword"):
+                    this.weapon = new Sword();
+                    break ;
+                case "dagger":
+                    this.weapon = new dagger();
+                    break;
+                case "axe":
+                    this.weapon = new axe();
+                    break;
+                case "spear":
+                    this.weapon = new spear();
+                    break ;
+            }
+            if (this.weapon)
+            {
+                this.weapon.setPosition(-44, -84)
+                this.container.addChild(this.weapon.sprite)
+    
+            }
+        }
+    
+        attackanimation(direction: Direction): boolean
+        {
+            if (!this.weapon)
+                return false;
+            this.weapon?.attack(direction)
+            return true;
+        }
 }
