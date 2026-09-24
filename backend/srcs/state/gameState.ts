@@ -4,6 +4,15 @@
 import type { generateMap } from "../map/mapGenerator.js";
 import type { Inventory } from "../types.js";
 
+
+export type WeaponType =
+    | "sword"
+    | "axe"
+    | "bow"
+    | "dagger"
+    | "spear"
+    | "staff";
+
 export type Room = {
 	roomId: string;
 	name: string;
@@ -23,6 +32,8 @@ export type Player = {
 	y: number;
 	inventory: Inventory;
 	lastMoveAt: number;
+	equippedweapon?: WeaponType
+	nextattack: number;
 }
 
 export const rooms: Record<string, Room> = {};

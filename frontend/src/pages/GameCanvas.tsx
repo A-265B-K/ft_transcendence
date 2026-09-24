@@ -101,21 +101,19 @@ export default function GameCanvas({
 			socketId,
 			x,
 			y,
+			moving,
 		}: {
 			socketId: string;
 			x: number;
 			y: number;
+			moving: boolean
 		}) {
 			if (socketId === socket.id) {
 				game.correctLocalPlayer(x, y);
 				return;
 			}
 
-			game.updateRemotePlayer(
-				socketId,
-				x,
-				y,
-			);
+			game.updateRemotePlayer(socketId, x, y, moving);
 		}
 
 		function handleResourceCollected({
@@ -145,6 +143,10 @@ export default function GameCanvas({
 			}
 		}
 
+		function handlePlayerAttacked({ socketId, direction }: {socketId: string; direction: "up" | "down" | "left" | "right";})
+		{
+			game.RemotePlayerattack(socketId, direction);
+		}
 		function handleResourceSpawned({
 			x,
 			y,
@@ -174,38 +176,15 @@ export default function GameCanvas({
 			);
 		}
 
-		socket.on(
-			"player_joined",
-			handlePlayerJoined,
-		);
-		socket.on(
-			"player_move",
-			handlePlayerMove,
-		);
-		socket.on(
-			"player_left",
-			handlePlayerLeft,
-		);
-		socket.on(
-			"resource_collected",
-			handleResourceCollected,
-		);
-		socket.on(
-			"join_error",
-			handleJoinError,
-		);
-		socket.on(
-			"player_hp",
-			handlePlayerHP,
-		);
-		socket.on(
-			"resource_spawned",
-			handleResourceSpawned,
-		);
-		socket.on(
-			"castle_update",
-			handleCastleUpgrade,
-		);
+		socket.on("player_joined", handlePlayerJoined);
+		socket.on("player_move", handlePlayerMove);
+		socket.on("player_left", handlePlayerLeft);
+		socket.on("resource_collected", handleResourceCollected);
+		socket.on("join_error", handleJoinError);
+		socket.on("player_hp", handlePlayerHP);
+		socket.on("player_attacked", handlePlayerAttacked)
+		socket.on("resource_spawned", handleResourceSpawned);
+		socket.on("castle_update", handleCastleUpgrade);
 
 		const intervalId = window.setInterval(() => {
 			const snapshot =
@@ -222,39 +201,15 @@ export default function GameCanvas({
 		}, 32);
 
 		return () => {
-			socket.off(
-				"player_joined",
-				handlePlayerJoined,
-			);
-			socket.off(
-				"player_move",
-				handlePlayerMove,
-			);
-			socket.off(
-				"player_left",
-				handlePlayerLeft,
-			);
-			socket.off(
-				"player_hp",
-				handlePlayerHP,
-			);
-			socket.off(
-				"resource_collected",
-				handleResourceCollected,
-			);
-			socket.off(
-				"resource_spawned",
-				handleResourceSpawned,
-			);
-			socket.off(
-				"join_error",
-				handleJoinError,
-			);
-			socket.off(
-				"castle_update",
-				handleCastleUpgrade,
-			);
-
+			socket.off("player_joined", handlePlayerJoined);
+			socket.off("player_move", handlePlayerMove);
+			socket.off("player_left", handlePlayerLeft);
+			socket.off("player_hp", handlePlayerHP);
+			socket.off("player_attacked", handlePlayerAttacked);
+			socket.off("resource_collected", handleResourceCollected);
+			socket.off("resource_spawned", handleResourceSpawned);
+			socket.off("join_error", handleJoinError);
+			socket.off("castle_update", handleCastleUpgrade);
 			window.clearInterval(intervalId);
 
 			gameRef.current = null;

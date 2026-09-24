@@ -10,6 +10,8 @@ import type { JoinedPayload } from "../../types/game";
 import { RemotePlayer } from "../entities/RemotePlayer";
 import type { Socket } from "socket.io-client";
 
+import { Weapon } from "../entities/weapons/weapon";
+
 export class GameScene {
     readonly world: Container;
     readonly map: GameMap;
@@ -21,6 +23,7 @@ export class GameScene {
     readonly remotePlayers = new Map<string, RemotePlayer>();
     readonly textures: GameTextures;
     readonly socket: Socket;
+    private  wasmoving = false;
 
     constructor(
         textures: GameTextures,
@@ -29,6 +32,7 @@ export class GameScene {
     ) {
         this.socket = socket;
         this.textures = textures;
+        this.configureweapontextures();
         this.joinedData = joinedData;
 
         this.world = new Container();
@@ -63,9 +67,11 @@ export class GameScene {
             joinedData.player.x,
             joinedData.player.y
         );
-
+        const serverweapon = joinedData.player.equippedweapon;
+        if (serverweapon)
+            this.player.equipWeapon(serverweapon)
         this.world.addChild(
-            this.player.sprite,
+            this.player.container,
         );
 
         this.createRemotePlayers();
@@ -77,6 +83,11 @@ export class GameScene {
             new Camera(this.world);
     }
 
+    RemotePlayerattack(socketId: string, direction: "up" | "down" | "left" | "right"): void
+    {
+        const remote = this.remotePlayers.get(socketId)
+        remote?.attackanimation(direction)
+    }
     private createRemotePlayers() {
         for (
             const player of
@@ -218,9 +229,11 @@ export class GameScene {
             player.socketId,
             remote
         );
+        if (player.equippedweapon)
+            remote.equipWeapon(player.equippedweapon)
 
         this.world.addChild(
-            remote.sprite
+            remote.container
         );
     }
 
@@ -310,10 +323,9 @@ export class GameScene {
             return;
 
         this.world.removeChild(
-            remote.sprite
+            remote.container
         );
-
-        remote.sprite.destroy();
+        remote.container.destroy({ children: true });
 
         this.remotePlayers.delete(
             player.socketId
@@ -345,14 +357,27 @@ export class GameScene {
             this.player.gridY - oldY
             );
 
-        if (movedDistance > 0.05) {
+        if (movedDistance > 0.05)
+        {
             this.socket.emit(
                 "player_move",
                 {
                     x: this.player.gridX,
                     y: this.player.gridY,
+                    moving: true
                 }
             );
+            this.wasmoving = true;
+        }
+        else if (this.wasmoving == true)
+        {
+            this.socket.emit("player_move",
+            {
+                x: this.player.gridX,
+                y: this.player.gridY,
+                moving: false
+            });
+            this.wasmoving = false;
         }
 
         /*
@@ -491,7 +516,8 @@ export class GameScene {
     updateRemotePlayer(
         socketId: string,
         x: number,
-        y: number
+        y: number,
+        moving: boolean,
     ) {
         const remote =
             this.remotePlayers.get(
@@ -507,7 +533,8 @@ export class GameScene {
          */
         remote.updatePosition(
             x,
-            y
+            y,
+            moving
         );
     }
 
@@ -533,5 +560,56 @@ export class GameScene {
             Math.floor(y),
             type
         );
+    }
+
+    configureweapontextures(): void
+    {
+        Weapon.configureWeaponTextures({
+            sword: [
+                this.textures.sword1,
+                this.textures.sword2,
+                this.textures.sword3,
+                this.textures.sword4,
+            ],
+            axe: [
+                this.textures.axe1,
+                this.textures.axe2,
+                this.textures.axe3,
+                this.textures.axe4,
+            ],
+            bow: [
+                this.textures.bow1,
+                this.textures.bow2,
+                this.textures.bow3,
+                this.textures.bow4,
+            ],
+            dagger: [
+                this.textures.dagger1,
+                this.textures.dagger2,
+                this.textures.dagger3,
+                this.textures.dagger4,
+            ],
+            spear: [
+                this.textures.spear1,
+                this.textures.spear2,
+                this.textures.spear3,
+                this.textures.spear4,
+            ],
+            staff: [
+                this.textures.staff1,
+                this.textures.staff2,
+                this.textures.staff3,
+                this.textures.staff4,
+            ],
+        });
+    }
+    requestattack(): void
+    {
+        if (this.player.attackanimation())
+        {
+            this.socket.emit("player_attack", {
+                direction: this.player.direction,
+            });
+        }
     }
 }

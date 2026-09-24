@@ -1,17 +1,18 @@
 import { createRoom } from "./rooms/gameRoom.js"
-import { rooms, players, type Room } from "./state/gameState.js"
+import { rooms, players, type Room, type Player } from "./state/gameState.js"
 import onMove from "./events/onMove.js"
 import { PLAYER_DEFAULT_HP, ROOM_MAX_SIZE, 
 	PLAYER_DEFAULT_WOOD, PLAYER_DEFAULT_IRON,
 	PLAYER_DEFAULT_CASTLE_LEVEL } from "./constants.js"
 import type { Spawn, Socket, SocketUser } from "./types.js"
+import { handleattack } from "./combat/onAttack.js"
 
 const createPlayer = (
 	socket: Socket,
 	user: SocketUser,
 	slot: number,
-	spawn: Spawn
-) => {
+	spawn: Spawn,
+): Player => {
 	return {
 		userId: user.id,
 		socketId: socket.id,
@@ -26,6 +27,8 @@ const createPlayer = (
 			castleLevel: PLAYER_DEFAULT_CASTLE_LEVEL,
 		},
 		lastMoveAt: Date.now(),
+		equippedweapon: "sword",
+		nextattack: 0,
 	};
 };
 
@@ -369,18 +372,30 @@ const onConnection = async (socket: Socket) => {
 		({
 			x,
 			y,
+			moving,
 		}: {
 			x: unknown;
 			y: unknown;
+			moving: boolean;
 		}) => {
 			onMove(
 				socket,
 				user,
 				currentRoomId,
-				{ x, y }
+				{ x, y }, moving
 			);
 		}
 	);
+
+
+
+	socket.on("player_attack", (data: unknown) => {
+		if (data && typeof data === "object"
+			&& "direction" in data)
+		{
+			handleattack(players, user, data, currentRoomId, rooms, socket)
+		}
+	});
 
 	socket.on('disconnect', () => {
 

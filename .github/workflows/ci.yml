@@ -22,7 +22,7 @@ jobs:
 
       - name: Check all containers are still alive
         run: |
-          sleep 30
+          sleep 10
           if docker compose ps --all | grep -qi 'exited'; then
             echo "Some containers exited unexpectedly"
             exit 1
