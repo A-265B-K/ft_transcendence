@@ -2,6 +2,7 @@ import socket
 import psycopg
 import os
 import signal
+import requests
 
 def shutdown(signum, frame):
     exit(0)
@@ -20,15 +21,19 @@ def connect_database():
         password=password,
     )
 
-def getfromdatabase(connection):
+def fromDatabase(connection):
     with connect_database() as database:
         with database.cursor() as cursor:
             cursor.execute("SELECT COUNT(*) FROM users")
             playercount = cursor.fetchone()[0]
-    body = (
-        f"registered_players {playercount}\n"
-    )
+            return playercount
 
+
+def toPrometheus(connection, playercount, roomcount):
+    body = (
+        f"registered_players {playercount}\n\
+            activerooms {roomcount}"
+    )
     response = (
         "HTTP/1.1 200 OK\r\n"
         "Content-Type: text/plain; version=0.0.4; charset=utf-8\r\n"
@@ -39,6 +44,10 @@ def getfromdatabase(connection):
     )
     connection.sendall(response.encode("utf-8"))
 
+
+def fromBackend():
+    response = request.get("backend:3000/stats")
+    return response.json();
 
 def main():
     signal.signal(signal.SIGTERM, shutdown)
@@ -57,7 +66,9 @@ def main():
         except socket.timeout:
             continue
         with connection:
-            getfromdatabase(connection)
+            databasedata = fromDatabase(connection)
+        backendata = fromBackend();
+        toPrometheus(databasedata, backendata)
 
 if (__name__ == "__main__"):
     main()

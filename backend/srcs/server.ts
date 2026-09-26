@@ -14,6 +14,7 @@ import { findUserByVerificationToken, changeEmailVerified, findUserByPasswordRes
 import { enableUser2FA, disableUser2FA, confirm2FASetup, verify2FALogin } from "./security/2FA/twoFA.js";
 import { passwordResetRequest } from "./security/auth/passwordReset.js";
 import bcrypt from "bcrypt";
+import { rooms } from "./state/gameState.js";
 
 const fastify = Fastify();
 
@@ -44,6 +45,11 @@ fastify.post<{ Body: RegisterBody }>("/api/auth/register", async (request, reply
 		});
 	}
 );
+
+fastify.get("/stats", () => 
+	{
+		return {activerooms: Object.keys(rooms).length}
+	});
 
 type SignInBody = {
 	email: string;
