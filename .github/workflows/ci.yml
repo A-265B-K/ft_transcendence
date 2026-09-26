@@ -35,7 +35,7 @@ jobs:
         run: curl --fail --insecure https://localhost:8443/api/ping
 
       - name: Check database exporter
-        run: docker compose exec -T prometheus wget -qO- http://postgresexporter:80
+        run: docker compose exec -T prometheus wget -qO- http://monitoringexporter:80
 
       - name: Show logs on failure
         if: failure()
