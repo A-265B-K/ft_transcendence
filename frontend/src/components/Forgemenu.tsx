@@ -2,10 +2,10 @@ import {useState} from "react";
 import type { WeaponType } from "../game/entities/weapons/weapon";
 
 const weaponrecipes = {
-	sword: {wood: 30, iron :20},
-    axe: {wood: 20, iron : 30},
-    spear: {wood: 30, iron : 20},
     dagger: {wood: 15, iron : 15},
+	sword: {wood: 30, iron :20},
+    spear: {wood: 30, iron : 20},
+    axe: {wood: 20, iron : 30},
 };
 
 function craftweapon(weapon : WeaponType)
@@ -40,6 +40,7 @@ export function Forgemenu() {
                 <button
                     key={weapon}
                     type="button"
+                    onClick={() => craftweapon(weapon)}
                     className="rounded-lg bg-slate-700 px-3 py-2 text-left hover:bg-slate-600"
                 >
                     <span className="font-bold capitalize">{weapon}</span>
@@ -47,7 +48,7 @@ export function Forgemenu() {
                     <span className="block text-sm text-slate-300">
                         {recipe.wood} wood · {recipe.iron} iron
                     </span>
-                </button>
+                </button> 
             ))}
         </div>
                 </section>
