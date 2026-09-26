@@ -19,8 +19,8 @@ const createPlayer = (
 		username: user.username,
 		slot,
 		hp: PLAYER_DEFAULT_HP,
-		x: spawn.pos.x,
-		y: spawn.pos.y,
+		x: spawn.pos.x + 0,
+		y: spawn.pos.y + 4,
 		inventory: {
 			iron: PLAYER_DEFAULT_IRON,
 			wood: PLAYER_DEFAULT_WOOD,

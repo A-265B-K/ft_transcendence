@@ -40,10 +40,8 @@ function isCollidingWithOtherPlayer(room: Room, selfUserId: string, pos: Pos): b
 	return false;
 }
 
-function isCollidingWithOccupiedCastle(room: Room, selfSlot: number, pos: Pos): boolean {
+function isCollidingWithCastle(room: Room, selfSlot: number, pos: Pos): boolean {
 	for (const castle of room.map.castleZones) {
-		if (castle.playerSlot === selfSlot) continue;
-
 		const isOccupied = room.players.some(p => p.slot === castle.playerSlot);
 		if (!isOccupied) continue;
 
@@ -127,7 +125,7 @@ const onMove = (socket: Socket, user: SocketUser, roomId: string | null, { x, y 
 	const blocked =
 		isMovingTooFast(player, nextPos) ||
 		isCollidingWithOtherPlayer(room, user.id, nextPos) ||
-		isCollidingWithOccupiedCastle(room, player.slot, nextPos);
+		isCollidingWithCastle(room, player.slot, nextPos);
 
 	if (!blocked) {
 		player.x = x;
