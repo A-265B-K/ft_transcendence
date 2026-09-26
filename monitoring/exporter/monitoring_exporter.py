@@ -29,10 +29,12 @@ def fromDatabase(connection):
             return playercount
 
 
-def toPrometheus(connection, playercount, roomcount):
+def toPrometheus(connection, playercount, backenddata):
+    activerooms = int(backenddata["activerooms"])
+
     body = (
-        f"registered_players {playercount}\n\
-            activerooms {roomcount}"
+        f"registered_players {playercount}\n"
+        f"activerooms {activerooms}\n"
     )
     response = (
         "HTTP/1.1 200 OK\r\n"
@@ -46,8 +48,9 @@ def toPrometheus(connection, playercount, roomcount):
 
 
 def fromBackend():
-    response = request.get("backend:3000/stats")
-    return response.json();
+    response = requests.get("http://backend:3000/stats", timeout=10)
+    response.raise_for_status()
+    return response.json()
 
 def main():
     signal.signal(signal.SIGTERM, shutdown)
@@ -67,8 +70,8 @@ def main():
             continue
         with connection:
             databasedata = fromDatabase(connection)
-        backendata = fromBackend();
-        toPrometheus(databasedata, backendata)
+            backenddata = fromBackend()
+            toPrometheus(connection, databasedata, backenddata)
 
 if (__name__ == "__main__"):
     main()
