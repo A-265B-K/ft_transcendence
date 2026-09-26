@@ -1,15 +1,18 @@
 # shell for prostgres :
+
 docker compose exec postgres sh
 then --> psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"
-	then --> \dt
-		then --> SELECT * FROM users;
+then --> \dt
+then --> SELECT * FROM users;
 
 # google account credentials
+
 EMAIL_USER=survivalgamecodam42@gmail.com
 EMAIL_APP_PASSWORD=rgyg pwpe nxcw oyvv
 EMAIL_PASSWORD=#764bcksu97#!@
 
 # registration flow
+
 Signup.tsx sends POST /register
 server.js receives it
 registration.js validates it
@@ -18,6 +21,7 @@ userRepository.js sends SQL to Postgres
 Postgres stores the row
 
 # sign in flow
+
 Login.tsx sends Post /signin
 server.js receives it and send calls signin.js
 signin.js sends it to userRepository.js
@@ -31,6 +35,7 @@ server.js send cookie creation requestion to browers with sessionId
 Longin.tsx connects user to socket
 
 # log out flow
+
 server.js send POST /logout
 server.js retrieve cookie from browser
 server.js calls deleteSessionById from sessionRepository.js
@@ -40,6 +45,7 @@ server.js send delete requests to browser
 browser removes cookie
 
 # refresh flow
+
 on refresh server.js send POST /me
 server.js receives it and calls getCurrentUser
 getCurrentUser sends SQL to Postgres

@@ -1,16 +1,16 @@
 import { Pool } from "pg";
 
 const db = new Pool({
-	user: process.env.POSTGRES_USER,
-	password: process.env.POSTGRES_PASSWORD,
-	host: process.env.POSTGRES_HOST ?? 'postgres',
-	port: Number(process.env.POSTGRES_PORT ?? 5432),
-	database: process.env.POSTGRES_DB,
-})
+  user: process.env.POSTGRES_USER,
+  password: process.env.POSTGRES_PASSWORD,
+  host: process.env.POSTGRES_HOST ?? "postgres",
+  port: Number(process.env.POSTGRES_PORT ?? 5432),
+  database: process.env.POSTGRES_DB,
+});
 
-export default db
+export default db;
 
 export async function query(text: string, params: unknown[] = []) {
-	const result = await db.query(text, params)
-	return result
+  const result = await db.query(text, params);
+  return result;
 }

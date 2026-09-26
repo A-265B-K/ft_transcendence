@@ -1,3 +1,3 @@
 export type SignupProps = {
-	onBack: () => void;
+  onBack: () => void;
 };

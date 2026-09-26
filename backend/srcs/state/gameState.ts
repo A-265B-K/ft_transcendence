@@ -4,37 +4,30 @@
 import type { generateMap } from "../map/mapGenerator.js";
 import type { Inventory } from "../types.js";
 
-
-export type WeaponType =
-    | "sword"
-    | "axe"
-    | "bow"
-    | "dagger"
-    | "spear"
-    | "staff";
+export type WeaponType = "sword" | "axe" | "bow" | "dagger" | "spear" | "staff";
 
 export type Room = {
-	roomId: string;
-	name: string;
-	code: string;
-	hostId: string;
-	playerCount: number;
-	players: Player[];
-	map: ReturnType<typeof generateMap>;
+  roomId: string;
+  name: string;
+  code: string;
+  hostId: string;
+  playerCount: number;
+  players: Player[];
+  map: ReturnType<typeof generateMap>;
 };
 export type Player = {
-	userId: string;
-	socketId: string;
-	username: string;
-	hp: number;
-	slot: any;
-	x: number;
-	y: number;
-	inventory: Inventory;
-	lastMoveAt: number;
-	equippedweapon?: WeaponType
-	nextattack: number;
-}
+  userId: string;
+  socketId: string;
+  username: string;
+  hp: number;
+  slot: number;
+  x: number;
+  y: number;
+  inventory: Inventory;
+  lastMoveAt: number;
+  equippedweapon?: WeaponType;
+  nextattack: number;
+};
 
 export const rooms: Record<string, Room> = {};
-export const players: Record<string, Player> = {}
+export const players: Record<string, Player> = {};

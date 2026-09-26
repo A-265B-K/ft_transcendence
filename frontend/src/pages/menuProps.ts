@@ -1,4 +1,4 @@
 export type MenuProps = {
-    onCreateAccount: () => void;
-	onLogin: () => void;
+  onCreateAccount: () => void;
+  onLogin: () => void;
 };

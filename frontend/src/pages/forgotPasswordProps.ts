@@ -1,3 +1,3 @@
 export type ForgotPasswordProps = {
-	onBack: () => void;
-}
+  onBack: () => void;
+};

@@ -1,3 +1,3 @@
 export type ResetPasswordProps = {
-	onBack: () => void;
+  onBack: () => void;
 };

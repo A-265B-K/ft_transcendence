@@ -46,217 +46,216 @@ import staff3Url from "../../assets/weapons/staff/staff3.png";
 import staff4Url from "../../assets/weapons/staff/staff4.png";
 
 export type GameTextures = {
-    grass: Texture;
-    wood: Texture;
-    iron: Texture;
-    castle1: Texture;
-    castle2: Texture;
-    castle3: Texture;
-    castle4: Texture;
+  grass: Texture;
+  wood: Texture;
+  iron: Texture;
+  castle1: Texture;
+  castle2: Texture;
+  castle3: Texture;
+  castle4: Texture;
 
-    playerDown1: Texture;
-    playerDown2: Texture;
+  playerDown1: Texture;
+  playerDown2: Texture;
 
-    playerUp1: Texture;
-    playerUp2: Texture;
+  playerUp1: Texture;
+  playerUp2: Texture;
 
-    playerLeft1: Texture;
-    playerLeft2: Texture;
+  playerLeft1: Texture;
+  playerLeft2: Texture;
 
-    playerRight1: Texture;
-    playerRight2: Texture;
+  playerRight1: Texture;
+  playerRight2: Texture;
 
-    playerStand: Texture;
+  playerStand: Texture;
 
-    sword1: Texture;
-    sword2: Texture;
-    sword3: Texture;
-    sword4: Texture;
+  sword1: Texture;
+  sword2: Texture;
+  sword3: Texture;
+  sword4: Texture;
 
-    axe1: Texture;
-    axe2: Texture;
-    axe3: Texture;
-    axe4: Texture;
+  axe1: Texture;
+  axe2: Texture;
+  axe3: Texture;
+  axe4: Texture;
 
-    bow1: Texture;
-    bow2: Texture;
-    bow3: Texture;
-    bow4: Texture;
+  bow1: Texture;
+  bow2: Texture;
+  bow3: Texture;
+  bow4: Texture;
 
-    dagger1: Texture;
-    dagger2: Texture;
-    dagger3: Texture;
-    dagger4: Texture;
+  dagger1: Texture;
+  dagger2: Texture;
+  dagger3: Texture;
+  dagger4: Texture;
 
-    spear1: Texture;
-    spear2: Texture;
-    spear3: Texture;
-    spear4: Texture;
+  spear1: Texture;
+  spear2: Texture;
+  spear3: Texture;
+  spear4: Texture;
 
-    staff1: Texture;
-    staff2: Texture;
-    staff3: Texture;
-    staff4: Texture;
-
+  staff1: Texture;
+  staff2: Texture;
+  staff3: Texture;
+  staff4: Texture;
 };
 
 export async function loadGameTextures(): Promise<GameTextures> {
-    const [
-        grass,
-        wood,
-        iron,
-        castle1,
-        castle2,
-        castle3,
-        castle4,
+  const [
+    grass,
+    wood,
+    iron,
+    castle1,
+    castle2,
+    castle3,
+    castle4,
 
-        playerDown1,
-        playerDown2,
+    playerDown1,
+    playerDown2,
 
-        playerUp1,
-        playerUp2,
+    playerUp1,
+    playerUp2,
 
-        playerLeft1,
-        playerLeft2,
+    playerLeft1,
+    playerLeft2,
 
-        playerRight1,
-        playerRight2,
+    playerRight1,
+    playerRight2,
 
-        playerStand,
-        sword1,
-        sword2,
-        sword3,
-        sword4,
+    playerStand,
+    sword1,
+    sword2,
+    sword3,
+    sword4,
 
-        axe1,
-        axe2,
-        axe3,
-        axe4,
+    axe1,
+    axe2,
+    axe3,
+    axe4,
 
-        bow1,
-        bow2,
-        bow3,
-        bow4,
+    bow1,
+    bow2,
+    bow3,
+    bow4,
 
-        dagger1,
-        dagger2,
-        dagger3,
-        dagger4,
+    dagger1,
+    dagger2,
+    dagger3,
+    dagger4,
 
-        spear1,
-        spear2,
-        spear3,
-        spear4,
+    spear1,
+    spear2,
+    spear3,
+    spear4,
 
-        staff1,
-        staff2,
-        staff3,
-        staff4,
-    ] = await Promise.all([
-        Assets.load(grassUrl),
-        Assets.load(woodUrl),
-        Assets.load(ironUrl),
+    staff1,
+    staff2,
+    staff3,
+    staff4,
+  ] = await Promise.all([
+    Assets.load(grassUrl),
+    Assets.load(woodUrl),
+    Assets.load(ironUrl),
 
-        Assets.load(castle1Url),
-        Assets.load(castle2Url),
-        Assets.load(castle3Url),
-        Assets.load(castle4Url),
+    Assets.load(castle1Url),
+    Assets.load(castle2Url),
+    Assets.load(castle3Url),
+    Assets.load(castle4Url),
 
-        Assets.load(down1Url),
-        Assets.load(down2Url),
+    Assets.load(down1Url),
+    Assets.load(down2Url),
 
-        Assets.load(up1Url),
-        Assets.load(up2Url),
+    Assets.load(up1Url),
+    Assets.load(up2Url),
 
-        Assets.load(left1Url),
-        Assets.load(left2Url),
+    Assets.load(left1Url),
+    Assets.load(left2Url),
 
-        Assets.load(right1Url),
-        Assets.load(right2Url),
+    Assets.load(right1Url),
+    Assets.load(right2Url),
 
-        Assets.load(standUrl),
+    Assets.load(standUrl),
 
-        Assets.load<Texture>(sword1Url),
-        Assets.load<Texture>(sword2Url),
-        Assets.load<Texture>(sword3Url),
-        Assets.load<Texture>(sword4Url),
+    Assets.load<Texture>(sword1Url),
+    Assets.load<Texture>(sword2Url),
+    Assets.load<Texture>(sword3Url),
+    Assets.load<Texture>(sword4Url),
 
-        Assets.load<Texture>(axe1Url),
-        Assets.load<Texture>(axe2Url),
-        Assets.load<Texture>(axe3Url),
-        Assets.load<Texture>(axe4Url),
+    Assets.load<Texture>(axe1Url),
+    Assets.load<Texture>(axe2Url),
+    Assets.load<Texture>(axe3Url),
+    Assets.load<Texture>(axe4Url),
 
-        Assets.load<Texture>(bow1Url),
-        Assets.load<Texture>(bow2Url),
-        Assets.load<Texture>(bow3Url),
-        Assets.load<Texture>(bow4Url),
+    Assets.load<Texture>(bow1Url),
+    Assets.load<Texture>(bow2Url),
+    Assets.load<Texture>(bow3Url),
+    Assets.load<Texture>(bow4Url),
 
-        Assets.load<Texture>(dagger1Url),
-        Assets.load<Texture>(dagger2Url),
-        Assets.load<Texture>(dagger3Url),
-        Assets.load<Texture>(dagger4Url),
+    Assets.load<Texture>(dagger1Url),
+    Assets.load<Texture>(dagger2Url),
+    Assets.load<Texture>(dagger3Url),
+    Assets.load<Texture>(dagger4Url),
 
-        Assets.load<Texture>(spear1Url),
-        Assets.load<Texture>(spear2Url),
-        Assets.load<Texture>(spear3Url),
-        Assets.load<Texture>(spear4Url),
+    Assets.load<Texture>(spear1Url),
+    Assets.load<Texture>(spear2Url),
+    Assets.load<Texture>(spear3Url),
+    Assets.load<Texture>(spear4Url),
 
-        Assets.load<Texture>(staff1Url),
-        Assets.load<Texture>(staff2Url),
-        Assets.load<Texture>(staff3Url),
-        Assets.load<Texture>(staff4Url),
-    ]);
+    Assets.load<Texture>(staff1Url),
+    Assets.load<Texture>(staff2Url),
+    Assets.load<Texture>(staff3Url),
+    Assets.load<Texture>(staff4Url),
+  ]);
 
-    return {
-        grass,
-        wood,
-        iron,
-        castle1,
-        castle2,
-        castle3,
-        castle4,
+  return {
+    grass,
+    wood,
+    iron,
+    castle1,
+    castle2,
+    castle3,
+    castle4,
 
-        playerDown1,
-        playerDown2,   
+    playerDown1,
+    playerDown2,
 
-        playerUp1,
-        playerUp2,
+    playerUp1,
+    playerUp2,
 
-        playerLeft1,
-        playerLeft2,
+    playerLeft1,
+    playerLeft2,
 
-        playerRight1,
-        playerRight2,
+    playerRight1,
+    playerRight2,
 
-        playerStand,
-        sword1,
-        sword2,
-        sword3,
-        sword4,
+    playerStand,
+    sword1,
+    sword2,
+    sword3,
+    sword4,
 
-        axe1,
-        axe2,
-        axe3,
-        axe4,
+    axe1,
+    axe2,
+    axe3,
+    axe4,
 
-        bow1,
-        bow2,
-        bow3,
-        bow4,
+    bow1,
+    bow2,
+    bow3,
+    bow4,
 
-        dagger1,
-        dagger2,
-        dagger3,
-        dagger4,
+    dagger1,
+    dagger2,
+    dagger3,
+    dagger4,
 
-        spear1,
-        spear2,
-        spear3,
-        spear4,
+    spear1,
+    spear2,
+    spear3,
+    spear4,
 
-        staff1,
-        staff2,
-        staff3,
-        staff4,
-    };
+    staff1,
+    staff2,
+    staff3,
+    staff4,
+  };
 }

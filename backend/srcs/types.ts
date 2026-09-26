@@ -1,31 +1,31 @@
-import type { Socket } from "socket.io"
+import type { Socket } from "socket.io";
 
 export type Vec2 = {
-	x: number;
-	y: number;
-}
+  x: number;
+  y: number;
+};
 
 export type Spawn = {
-	pos: Vec2;
-	playerSlot: number;
-}
+  pos: Vec2;
+  playerSlot: number;
+};
 
 export type Inventory = {
-	iron: number;
-	wood: number;
-	castleLevel: number;
-}
+  iron: number;
+  wood: number;
+  castleLevel: number;
+};
 
 declare module "socket.io" {
-	interface Socket {
-		user?: {
-			id: string;
-			username: string;
-			email: string;
-		};
-	}
+  interface Socket {
+    user?: {
+      id: string;
+      username: string;
+      email: string;
+    };
+  }
 }
 
 export type SocketUser = NonNullable<Socket["user"]>;
 
-export type {Socket};
+export type { Socket };
