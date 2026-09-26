@@ -115,8 +115,6 @@ const onMove = (socket: Socket, user: SocketUser, roomId: string | null, { x, y 
 	const room = rooms[roomId];
 	if (!room) return;
 
-	console.log(x, y);
-
 	const nextPos = { x, y };
 
 	const blocked =
