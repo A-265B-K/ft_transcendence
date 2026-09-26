@@ -216,6 +216,11 @@ const onConnection = async (socket: Socket) => {
 			getRooms()
 		);
 	});
+	socket.on("craftweapon", () => {
+
+		inventor
+
+	})
 
 	socket.on(
 		"get_room_by_code",

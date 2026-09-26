@@ -5,6 +5,7 @@ import { type CastlePointer } from "./CastlePointer";
 import type { JoinedPayload } from "../types/game";
 import { connectSocket } from "../socket";
 import type { GameCanvasProps } from "./gameCanvasProps";
+import { Forgemenu } from "../components/Forgemenu";
 
 export default function GameCanvas({
 	joinedData,
@@ -21,7 +22,7 @@ export default function GameCanvas({
 
 	const [castlePointer, setCastlePointer] =
 		useState<CastlePointer | null>(null);
-
+	const [nearCastle, setNearCastle] = useState(false);
 	useEffect(() => {
 		if (!joinedData || !gameContainer.current)
 			return;
@@ -160,6 +161,7 @@ export default function GameCanvas({
 
 			if (pointer)
 				setCastlePointer(pointer);
+			setNearCastle(game.isPlayerNearCastle());
 		}, 32);
 
 		return () => {
@@ -237,6 +239,7 @@ export default function GameCanvas({
 					<Inventory counts={inventory} />
 				</div>
 			</div>
+			{nearCastle && <Forgemenu/>}
 		</div>
 	);
 }

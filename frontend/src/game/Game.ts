@@ -129,5 +129,9 @@ export class Game {
     getCastlePointerSnapshot() {
         return this.scene?.getCastlePointer() ?? null;
     }
+    
+    isPlayerNearCastle(): boolean {
+    return this.scene?.isPlayerNearCastle() ?? false;
+}
 
 }

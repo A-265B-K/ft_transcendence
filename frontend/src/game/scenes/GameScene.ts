@@ -561,6 +561,14 @@ export class GameScene {
             type
         );
     }
+    isPlayerNearCastle(): boolean
+    {
+        const range = 3;
+        const dx = this.player.gridX - this.castle.gridX;
+        const dy = this.player.gridY - this.castle.gridY;
+
+        return Math.hypot(dx, dy) <= range;
+    }
 
     configureweapontextures(): void
     {
