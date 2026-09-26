@@ -1,5 +1,5 @@
 import { players, rooms, type Room, type Player } from "../state/gameState.js"
-import { PLAYER_RADIUS, PLAYER_MAX_SPEED, MOVE_TOLERANCE_SECONDS, MOVE_MAX_ELAPSED_SECONDS } from "../constants.js"
+import { PLAYER_RADIUS, PLAYER_MAX_SPEED, MOVE_TOLERANCE_SECONDS, MOVE_MAX_ELAPSED_SECONDS, MAP_WIDTH, MAP_HEIGHT } from "../constants.js"
 import type { Socket, SocketUser } from "../types.js"
 
 type Pos = { x: number; y: number };
@@ -37,6 +37,15 @@ function isCollidingWithOtherPlayer(room: Room, selfUserId: string, pos: Pos): b
 			return true;
 	}
 
+	return false;
+}
+
+function isOutOfBounds(pos: Pos): boolean {
+
+	if (pos.x < 0 || pos.x > MAP_WIDTH ||
+		pos.y < 0 || pos.y > MAP_HEIGHT) {
+			return true;
+	}
 	return false;
 }
 
@@ -97,34 +106,21 @@ function scheduleResourceRespawn(socket: Socket, roomId: string, resource: Resou
 	}, resource.respawnTime * 1000);
 }
 
-const onMove = (socket: Socket, user: SocketUser, roomId: string | null, { x, y }: { x: unknown; y: unknown }, moving : unknown) => {
+const onMove = (socket: Socket, user: SocketUser, roomId: string | null, { x, y }: { x: number; y: number }, moving : boolean) => {
+
 	const player = players[user.id];
-
 	if (!player || !roomId)
-		return;
-
-	if (
-		typeof x 	  !== "number" ||
-		typeof y 	  !== "number" ||
-		typeof moving !== "boolean" ||
-		!Number.isFinite(x) ||
-		!Number.isFinite(y)
-	) {
-		return;
-	}
-
-	const maxX = 100 - 1;
-	const maxY = 100 - 1;
-
-	if (x < 0 || x > maxX || y < 0 || y > maxY)
 		return;
 
 	const room = rooms[roomId];
 	if (!room) return;
 
+	console.log(x, y);
+
 	const nextPos = { x, y };
 
 	const blocked =
+		isOutOfBounds(nextPos) ||
 		isMovingTooFast(player, nextPos) ||
 		isCollidingWithOtherPlayer(room, user.id, nextPos) ||
 		isCollidingWithOccupiedCastle(room, player.slot, nextPos);
