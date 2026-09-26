@@ -14,8 +14,12 @@ import { findUserByVerificationToken, changeEmailVerified, findUserByPasswordRes
 import { enableUser2FA, disableUser2FA, confirm2FASetup, verify2FALogin } from "./security/2FA/twoFA.js";
 import { passwordResetRequest } from "./security/auth/passwordReset.js";
 import bcrypt from "bcrypt";
+import { chatRoutes } from "./chat.js";
 
-const fastify = Fastify();
+
+const fastify = Fastify({
+    logger: true,
+});
 
 await fastify.register(cookie);
 
@@ -391,6 +395,9 @@ fastify.get("/verify-2fa", async (request, reply) => {
 		return reply.sendFile("verify-2fa.html");
 	}
 );
+
+// Chat  ...............................................................................
+await fastify.register(chatRoutes);
 
 // Socket ..............................................................................
 io.use(async (socket, next) => {

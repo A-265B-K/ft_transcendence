@@ -1,4 +1,5 @@
 import { Inventory } from "../components/Inventory";
+import { Chat } from "../components/Chat";
 import { useEffect, useRef, useState } from "react";
 import { Game } from "../game/Game";
 import { type CastlePointer } from "./CastlePointer";
@@ -232,10 +233,17 @@ export default function GameCanvas({
 				</div>
 			</div>
 
-			<div className="pointer-events-none absolute inset-0 flex items-end justify-center px-4 pb-6">
-				<div className="pointer-events-auto">
-					<Inventory counts={inventory} />
-				</div>
+
+			<div className="pointer-events-none absolute inset-0 flex items-end justify-start px-4 pb-6">
+    			<div className="pointer-events-auto">
+    			    <Inventory counts={inventory} />
+   				</div>
+			</div>
+
+			<div className="pointer-events-none absolute inset-0 flex items-end justify-end px-4 pb-6">
+			    <div className="pointer-events-auto">
+			        <Chat />
+			    </div>
 			</div>
 		</div>
 	);
