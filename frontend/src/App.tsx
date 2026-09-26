@@ -3,10 +3,12 @@ import Menu from "./pages/Menu";
 import Signup from "./pages/SignUp";
 import LogIn from "./pages/Login";
 import GameMenu from "./pages/GameMenu";
+import Disconnected from "./pages/Disconnected";
 import { useState, useEffect } from "react";
 import { type JoinedPayload } from "./types/game";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import { disconnectSocket } from "./socket";
 
 type User = {
 	id: number;
@@ -17,7 +19,15 @@ type User = {
 export default function App() {
 
 	const [screen, setScreen] = useState<
-		"loading" | "menu" | "signup" | "login" | "gameMenu" | "game" | "forgotPassword" | "resetPassword"
+			| "loading" 
+			| "menu" 
+			| "signup" 
+			| "login" 
+			| "gameMenu" 
+			| "game" 
+			| "forgotPassword" 
+			| "resetPassword" 
+			| "disconnected"
 	>("loading");
 
 	const [user, setUser] = useState<User | null>(null);
@@ -58,6 +68,67 @@ export default function App() {
 		}
 		checkSession();
 	}, []);
+
+	useEffect(() => {
+		if (!user) {
+			return;
+		}
+
+		let stopped = false;
+		let failedChecks = 0;
+
+		async function checkServer() {
+			const controller = new AbortController();
+
+			// Allow requests up to 2 seconds
+			const timeout = window.setTimeout(() => {
+				controller.abort();
+			}, 2000);
+
+			try {
+				const response = await fetch("/api/ping", {
+					method: "GET",
+					cache: "no-store",
+					signal: controller.signal,
+				});
+
+				if (!response.ok) {
+					throw new Error(`Health check failed: ${response.status}`);
+				}
+
+				failedChecks = 0;
+			} catch (error) {
+				failedChecks += 1;
+
+				console.error(
+					`Health check failed ${failedChecks} time(s):`,
+					error
+				);
+
+				// Three failures × two seconds between checks
+				if (failedChecks >= 3 && !stopped) {
+					setUser(null);
+					setJoinedData(null);
+					setScreen("disconnected");
+					disconnectSocket();
+				}
+			} finally {
+				window.clearTimeout(timeout);
+			}
+		}
+
+		checkServer();
+
+		const interval = window.setInterval(checkServer, 2000);
+
+		return () => {
+			stopped = true;
+			window.clearInterval(interval);
+		};
+	}, [user]);
+
+
+
 	async function logout() {
 		await fetch("/api/auth/logout", {
 			method:"POST",
@@ -65,6 +136,12 @@ export default function App() {
 		});
 		setUser(null);
 		setScreen("menu");
+	}
+
+	if (screen === "disconnected") {
+		return (
+			<Disconnected/>
+		);	
 	}
 
 	if(screen === "loading") {
@@ -155,5 +232,6 @@ export default function App() {
 			/>
 		);
 	}
+
 	return null;
 }
