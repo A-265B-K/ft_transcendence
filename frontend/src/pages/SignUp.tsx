@@ -1,7 +1,10 @@
 import { useState, type SubmitEvent } from "react";
+import { useTranslation } from "react-i18next";
 import type { SignupProps } from "./signUpProps";
 
 export default function Signup({ onBack }: SignupProps) {
+	const { t } = useTranslation();
+
 	const [username, setUsername] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
@@ -13,32 +16,32 @@ export default function Signup({ onBack }: SignupProps) {
 	async function handleSubmit(e: SubmitEvent) {
 		e.preventDefault();
 
-		if ( 
+		if (
 			!username.trim() ||
 			!email.trim() ||
 			!password.trim() ||
 			!confirmPassword.trim()
 		) {
-			setStatus("Please fill in all fields.");
+			setStatus(t("fillAllFields"));
 			return;
 		}
 
 		if (password !== confirmPassword) {
-			setStatus("Passwords do not match.");
+			setStatus(t("passwordsDoNotMatch"));
 			return;
 		}
 
 		if (!acceptedPrivacy) {
-			setStatus("You must accept the Privacy Policy.");
+			setStatus(t("acceptPrivacyPolicy"));
 			return;
 		}
 
 		if (!acceptedTerms) {
-			setStatus("You must accept the Terms of Service.");
+			setStatus(t("acceptTerms"));
 			return;
 		}
 
-		setStatus("Creating account...");
+		setStatus(t("creatingAccount"));
 
 		try {
 			const response = await fetch("/api/auth/register", {
@@ -58,14 +61,18 @@ export default function Signup({ onBack }: SignupProps) {
 			const data = await response.json();
 
 			if (!response.ok) {
-				setStatus(data.message ?? "Signup failed");
+				setStatus(
+					data.message ?? t("signupFailed")
+				);
 				return;
 			}
 
-			setStatus(data.message ?? "Account created");
+			setStatus(
+				data.message ?? t("accountCreated")
+			);
 		} catch {
 			setStatus(
-				"Could not reach the backend register route."
+				t("backendRegisterError")
 			);
 		}
 	}
@@ -74,11 +81,11 @@ export default function Signup({ onBack }: SignupProps) {
 		<div className="grid min-h-screen place-items-center bg-linear-to-b from-[#10212a] to-[#081016] p-6 text-[#f4f7fb]">
 			<div className="w-full max-w-[460px] rounded-3xl border border-white/10 bg-[#081016]/85 p-[30px] shadow-[0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur-[14px]">
 				<h2 className="mb-2 text-2xl font-bold">
-					Create account
+					{t("createAccount")}
 				</h2>
 
 				<p className="mb-5 text-white/70">
-					Create your account to start playing.
+					{t("createAccountToPlay")}
 				</p>
 
 				<form
@@ -87,7 +94,7 @@ export default function Signup({ onBack }: SignupProps) {
 				>
 					<input
 						type="text"
-						placeholder="Username"
+						placeholder={t("username")}
 						value={username}
 						onChange={(e) =>
 							setUsername(e.target.value)
@@ -97,7 +104,7 @@ export default function Signup({ onBack }: SignupProps) {
 
 					<input
 						type="email"
-						placeholder="Email"
+						placeholder={t("email")}
 						value={email}
 						onChange={(e) =>
 							setEmail(e.target.value)
@@ -107,7 +114,7 @@ export default function Signup({ onBack }: SignupProps) {
 
 					<input
 						type="password"
-						placeholder="Password"
+						placeholder={t("password")}
 						value={password}
 						onChange={(e) =>
 							setPassword(e.target.value)
@@ -117,10 +124,12 @@ export default function Signup({ onBack }: SignupProps) {
 
 					<input
 						type="password"
-						placeholder="Confirm password"
+						placeholder={t("confirmPassword")}
 						value={confirmPassword}
 						onChange={(e) =>
-							setConfirmPassword(e.target.value)
+							setConfirmPassword(
+								e.target.value
+							)
 						}
 						className="rounded-xl border border-white/15 bg-white/[0.06] px-3.5 py-3 text-[#f4f7fb] outline-none placeholder:text-white/40 focus:border-[#ffcf5c]"
 					/>
@@ -138,14 +147,14 @@ export default function Signup({ onBack }: SignupProps) {
 						/>
 
 						<span>
-							I agree to the{" "}
+							{t("iAgreeTo")}{" "}
 							<a
 								href="/privacy"
 								target="_blank"
 								rel="noopener noreferrer"
 								className="text-[#ffcf5c] underline hover:text-[#ff9f43]"
 							>
-								Privacy Policy
+								{t("privacyPolicy")}
 							</a>
 						</span>
 					</label>
@@ -163,14 +172,14 @@ export default function Signup({ onBack }: SignupProps) {
 						/>
 
 						<span>
-							I agree to the{" "}
+							{t("iAgreeTo")}{" "}
 							<a
 								href="/terms"
 								target="_blank"
 								rel="noopener noreferrer"
 								className="text-[#ffcf5c] underline hover:text-[#ff9f43]"
 							>
-								Terms of Service
+								{t("termsOfService")}
 							</a>
 						</span>
 					</label>
@@ -183,7 +192,7 @@ export default function Signup({ onBack }: SignupProps) {
 						}
 						className="mt-1 rounded-xl bg-linear-to-br from-[#ffcf5c] to-[#ff9f43] px-3.5 py-3 font-bold text-[#10212a] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
 					>
-						Create account
+						{t("createAccount")}
 					</button>
 				</form>
 
@@ -198,7 +207,7 @@ export default function Signup({ onBack }: SignupProps) {
 					onClick={onBack}
 					className="mt-3 w-full rounded-xl border border-white/15 bg-transparent px-3.5 py-3 text-[#f4f7fb] transition hover:bg-white/5"
 				>
-					Back to menu
+					{t("backToMenu")}
 				</button>
 			</div>
 		</div>

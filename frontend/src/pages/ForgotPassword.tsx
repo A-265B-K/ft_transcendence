@@ -3,6 +3,7 @@ import {
 	type SubmitEvent,
 } from "react";
 import type { ForgotPasswordProps } from "./forgotPasswordProps";
+import { t } from "i18next";
 
 export default function ForgotPassword({
 	onBack,
@@ -68,12 +69,11 @@ export default function ForgotPassword({
 		<div className="grid min-h-screen place-items-center bg-linear-to-b from-[#10212a] to-[#081016] p-6 text-[#f4f7fb]">
 			<div className="w-full max-w-[460px] rounded-3xl border border-white/10 bg-[#081016]/85 p-[30px] shadow-[0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur-[14px]">
 				<h2 className="mb-2 text-2xl font-bold">
-					Forgot password
+					{t("forgotPassword")}
 				</h2>
 
 				<p className="mb-5 text-white/70">
-					Enter your email address and we'll
-					send you a password reset link.
+					{t("sendPasswordLink")}
 				</p>
 
 				{!success && (
@@ -122,7 +122,7 @@ export default function ForgotPassword({
 					onClick={onBack}
 					className="mt-3 w-full rounded-xl border border-white/15 bg-transparent px-3.5 py-3 text-[#f4f7fb] transition hover:bg-white/5"
 				>
-					Back to login
+					{t("backToLogin")}
 				</button>
 			</div>
 		</div>
