@@ -15,18 +15,25 @@ function generateSpawnAndCastleData(maxPlayers: number) {
     attempts++
     const pos = randomPos()
 
-    const tooClose = castleZones.some(
+    let tooClose = castleZones.some(
       (c) => distance(pos, c) < minDistBetweenCastles
     )
 
-    if (tooClose) continue
+	if (pos.x - CASTLE_RADIUS / 2 < 0 ||
+		pos.x + CASTLE_RADIUS / 2 > MAP_WIDTH || 
+		pos.y - CASTLE_RADIUS / 2 < 0 || 
+		pos.y + CASTLE_RADIUS / 2 > MAP_HEIGHT) {
+		tooClose = true;
+	}
 
-    castleZones.push({
-      playerSlot: castleZones.length + 1,
-      x: pos.x,
-      y: pos.y,
-      radius: CASTLE_RADIUS,
-    })
+    if (!tooClose) {
+    	castleZones.push({
+      		playerSlot: castleZones.length + 1,
+      		x: pos.x,
+      		y: pos.y,
+      		radius: CASTLE_RADIUS,
+    	})
+	}
   }
 
   if (castleZones.length < maxPlayers) {
