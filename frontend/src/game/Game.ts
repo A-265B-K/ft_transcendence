@@ -130,4 +130,11 @@ export class Game {
         return this.scene?.getCastlePointer() ?? null;
     }
 
+    pause() {
+	this.app.ticker.stop();
+    }
+
+    resume() {
+        this.app.ticker.start();
+    }
 }
