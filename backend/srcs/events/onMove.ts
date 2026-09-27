@@ -31,7 +31,8 @@ function isMovingTooFast(player: Player, pos: Pos): boolean {
 
 function isCollidingWithOtherPlayer(room: Room, selfUserId: string, pos: Pos): boolean {
 	for (const otherPlayer of room.players) {
-		if (otherPlayer.userId === selfUserId) continue;
+		if (otherPlayer.userId === selfUserId ||
+    		otherPlayer.isDead) continue;
 
 		if (getDistance(pos, otherPlayer) < PLAYER_RADIUS * 2)
 			return true;
@@ -44,7 +45,7 @@ function isCollidingWithOccupiedCastle(room: Room, selfSlot: number, pos: Pos): 
 	for (const castle of room.map.castleZones) {
 		if (castle.playerSlot === selfSlot) continue;
 
-		const isOccupied = room.players.some(p => p.slot === castle.playerSlot);
+		const isOccupied = room.players.some(p => p.slot === castle.playerSlot && !p.isDead);
 		if (!isOccupied) continue;
 
 		const blockRadius = castle.radius / 2 + PLAYER_RADIUS;
