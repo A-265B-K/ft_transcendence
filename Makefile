@@ -1,3 +1,5 @@
+.PHONY: all prod backend
+
 all: prod
 
 prod:
@@ -11,7 +13,7 @@ dev:
 
 backend:
 	@mkdir -p ./backups/backups
-	@docker compose build backend
+	@docker compose build --no-cache backend
 	@docker compose up -d
 	@echo Game reachable at https://localhost:8443/
 
