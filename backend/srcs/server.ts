@@ -15,12 +15,11 @@ import { enableUser2FA, disableUser2FA, confirm2FASetup, verify2FALogin } from "
 import { passwordResetRequest } from "./security/auth/passwordReset.js";
 import bcrypt from "bcrypt";
 import { rooms } from "./state/gameState.js";
-
 const fastify = Fastify();
 
 await fastify.register(cookie);
 
-const io = new Server(fastify.server);
+export const io = new Server(fastify.server);
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -397,6 +396,41 @@ fastify.get("/verify-2fa", async (request, reply) => {
 		return reply.sendFile("verify-2fa.html");
 	}
 );
+
+// Game logic
+const interval = setInterval(() => {
+  console.log('Checking whether a game has started or ended...');
+
+  for (const [roomID, room] of Object.entries(rooms)) {
+    if (!room.gameStarted && room.playerCount >= 2) {
+      room.gameStarted = true;
+      console.log(`Game started in room ${roomID}`);
+    }
+
+    if (
+      room.gameStarted &&
+      !room.gameEnded &&
+      room.playerCount < 2
+    ) {
+      room.gameEnded = true;
+
+      const winner = room.players[0];
+
+      if (winner) {
+        console.log(`${winner.username} won`);
+      } else {
+        console.log('The game ended with no remaining players');
+      }
+
+      // Close or remove the room here
+      // rooms.splice(rooms.indexOf(room), 1);
+    }
+  }
+}, 250);
+
+fastify.addHook('onClose',  async() => {
+	clearInterval(interval);
+});
 
 // Socket ..............................................................................
 io.use(async (socket, next) => {

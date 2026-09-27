@@ -49,6 +49,8 @@ const createRoom = (
 		hostId,
 		playerCount: 0,
 		players: [],
+		gameStarted: false,
+		gameEnded: false,
 		map: generateMap(ROOM_MAX_SIZE),
 	};
 

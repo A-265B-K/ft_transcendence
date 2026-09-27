@@ -18,8 +18,10 @@ export type Room = {
 	name: string;
 	code: string;
 	hostId: string;
-	playerCount: number;
+	playerCount: number; // Can this not be removed and accessed using .len()?
 	players: Player[];
+	gameStarted: boolean;
+	gameEnded: boolean;
 	map: ReturnType<typeof generateMap>;
 };
 export type Player = {
