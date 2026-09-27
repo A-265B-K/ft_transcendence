@@ -56,6 +56,8 @@ function isCollidingWithOccupiedCastle(room: Room, selfSlot: number, pos: Pos): 
 }
 
 function tryCollectResource(room: Room, player: Player, pos: Pos) {
+	if (player.isDead)
+		return;
 	for (const resource of room.map.resourceSpawns) {
 		if (getDistance(pos, resource) >= resource.radius + PLAYER_RADIUS)
 			continue;
@@ -125,9 +127,9 @@ const onMove = (socket: Socket, user: SocketUser, roomId: string | null, { x, y 
 	const nextPos = { x, y };
 
 	const blocked =
-		isMovingTooFast(player, nextPos) ||
+		isMovingTooFast(player, nextPos) || (!player.isDead && (
 		isCollidingWithOtherPlayer(room, user.id, nextPos) ||
-		isCollidingWithOccupiedCastle(room, player.slot, nextPos);
+		isCollidingWithOccupiedCastle(room, player.slot, nextPos)));
 
 	if (!blocked) {
 		player.x = x;

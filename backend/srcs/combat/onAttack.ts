@@ -19,7 +19,7 @@ export function handleattack(
 ): void
 {
     const player = players[user.id]
-        if (player && player.equippedweapon && player.hp > 0)
+        if (player && player.equippedweapon && player.hp > 0 && !player.isDead)
         {
             const direction = data.direction
             if (isvaliddirection(direction) && currentRoomId)
@@ -37,7 +37,7 @@ export function handleattack(
                         });
                         for (const target of room.players)
                         {
-                            if (target.userId !== player.userId && target.hp > 0)
+                            if (target.userId !== player.userId && target.hp > 0 && !target.isDead)
                             {
                                 if (istargethit(player, target, stats, direction))
                                 {
@@ -46,6 +46,13 @@ export function handleattack(
                                         socketId: target.socketId,
                                         hp: target.hp,
                                     });
+                                    if (target.hp === 0) {
+                                        target.isDead = true;
+                                        socket.nsp.to(target.socketId).emit("player_died");
+                                        socket.nsp.to(currentRoomId).emit("player_died", {
+                                                player: target,
+                                        });
+                                    }
                                     console.log(player.username, "hit", target.username, "for", stats.damage, "damage")
                                 }
                             }
