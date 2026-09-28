@@ -19,6 +19,7 @@ const createPlayer = (
 		username: user.username,
 		slot,
 		hp: PLAYER_DEFAULT_HP,
+		isDead: false,
 		x: spawn.pos.x,
 		y: spawn.pos.y,
 		inventory: {
