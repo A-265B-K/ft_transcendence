@@ -5,12 +5,12 @@ export const en = {
 		spectating: "You are now spectating.",
 		leaveGame: "Leave Game",
 		youWon: "You Won!",
-
+		//castle component
 		castle: "Castle",
 		tilesAway: "tiles away",
 		youAreHere: "You are here",
 		castleDirection: "Castle direction",
-
+		//inventory component
 		inventory: "Inventory",
 		wood: "Wood",
 		iron: "Iron",
@@ -19,11 +19,17 @@ export const en = {
 		connectionLost: "Connection lost",
 		disconnectedSeverDown:
 			"You were disconnected because the server may have gone down or your connection latency became too high.",
-
+		//forgot password
 		forgotPassword: "Forgot password",
 		sendPasswordLink:
 			"Enter your email address and we'll send you a password reset link.",
 		backToLogin: "Back to login",
+		forgotPasswordEmailRequired: "Please enter your email.",
+		passwordResetRequestFailed: "Could not request password reset.",
+		passwordResetEmailSent:
+			"If an account exists for this email, a reset link has been sent.",
+		sending: "Sending...",
+		sendResetLink: "Send reset link",
 
 		// Game menu
 		roomCreated: "Room Created",
@@ -57,13 +63,13 @@ export const en = {
 		enterRoomName: "Enter a room name.",
 		enterRoomCode: "Enter a room code.",
 		copyError: "Could not copy the room code.",
-
+		//menu button 
         gameMenu: "Game Menu",
         gamePaused: "Your game is paused",
         invitationCode: "Invitation code",
         resumeGame: "Resume Game",
         pressEscToResume: "Press ESC to resume",
-
+		//create a profile
         signIn: "Sign in",
         signInContinue: "Sign in to continue playing.",
         email: "Email",
@@ -76,11 +82,11 @@ export const en = {
         loginFailed: "Login failed",
         loginSuccessful: "Log in successful",
         backendSignInError: "Could not reach the backend sign in route.",
-	
+		//lobby
         readyToPlay: "Ready to play?", 
         createOrSignIn: "Create an account or sign in.",
         createAccount: "Create account",
-    
+		//reset password
         resetPassword: "Reset password",
         enterNewPassword: "Enter your new password below.",
         newPassword: "New password",
@@ -92,7 +98,7 @@ export const en = {
         passwordResetSuccessful: "Password reset successfully.",
         backendError: "Could not reach the backend.",
         backToMainMenu: "Back to main menu",
-
+		
         acceptPrivacyPolicy: "You must accept the Privacy Policy.",
         acceptTerms: "You must accept the Terms of Service.",
         creatingAccount: "Creating account...",

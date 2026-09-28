@@ -6,11 +6,13 @@ export const nl = {
 		leaveGame: "Spel verlaten",
 		youWon: "Je hebt gewonnen!",
 
+		// castle component
 		castle: "Kasteel",
 		tilesAway: "tegels verwijderd",
 		youAreHere: "Je bent hier",
 		castleDirection: "Richting van het kasteel",
 
+		// inventory component
 		inventory: "Inventaris",
 		wood: "Hout",
 		iron: "IJzer",
@@ -20,11 +22,21 @@ export const nl = {
 		disconnectedSeverDown:
 			"Je bent verbroken omdat de server mogelijk offline is gegaan of je verbinding een te hoge latentie heeft.",
 
+		// forgot password
 		forgotPassword: "Wachtwoord vergeten",
 		sendPasswordLink:
 			"Voer je e-mailadres in en we sturen je een link om je wachtwoord opnieuw in te stellen.",
 		backToLogin: "Terug naar inloggen",
+		forgotPasswordEmailRequired:
+			"Voer je e-mailadres in.",
+		passwordResetRequestFailed:
+			"Kan geen wachtwoordreset aanvragen.",
+		passwordResetEmailSent:
+			"Als er een account voor dit e-mailadres bestaat, is er een link voor het opnieuw instellen van je wachtwoord verzonden.",
+		sending: "Verzenden...",
+		sendResetLink: "Resetlink verzenden",
 
+		// Game menu
 		roomCreated: "Kamer aangemaakt",
 		shareCode: "Deel de code met je vrienden",
 		roomName: "Naam van de kamer",
@@ -57,12 +69,14 @@ export const nl = {
 		enterRoomCode: "Voer een kamercode in.",
 		copyError: "Kan de kamercode niet kopiëren.",
 
+		// menu button
 		gameMenu: "Spelmenu",
 		gamePaused: "Je spel is gepauzeerd",
 		invitationCode: "Uitnodigingscode",
 		resumeGame: "Spel hervatten",
 		pressEscToResume: "Druk op ESC om door te gaan",
 
+		// create a profile
 		signIn: "Inloggen",
 		signInContinue: "Log in om verder te spelen.",
 		email: "E-mail",
@@ -77,24 +91,30 @@ export const nl = {
 		backendSignInError:
 			"Kan de backend-aanmeldingsroute niet bereiken.",
 
+		// lobby
 		readyToPlay: "Klaar om te spelen?",
-		createOrSignIn: "Maak een account aan of log in.",
+		createOrSignIn:
+			"Maak een account aan of log in.",
 		createAccount: "Account aanmaken",
 
+		// reset password
 		resetPassword: "Wachtwoord opnieuw instellen",
 		enterNewPassword:
 			"Voer hieronder je nieuwe wachtwoord in.",
 		newPassword: "Nieuw wachtwoord",
-		confirmNewPassword: "Nieuw wachtwoord bevestigen",
+		confirmNewPassword:
+			"Nieuw wachtwoord bevestigen",
 		resetting: "Resetten...",
-		passwordsDoNotMatch: "Wachtwoorden komen niet overeen.",
+		passwordsDoNotMatch:
+			"Wachtwoorden komen niet overeen.",
 		invalidResetToken:
 			"Ongeldige of ontbrekende token voor het opnieuw instellen van je wachtwoord.",
 		passwordResetFailed:
 			"Het opnieuw instellen van het wachtwoord is mislukt.",
 		passwordResetSuccessful:
 			"Wachtwoord succesvol opnieuw ingesteld.",
-		backendError: "Kan de backend niet bereiken.",
+		backendError:
+			"Kan de backend niet bereiken.",
 		backToMainMenu: "Terug naar hoofdmenu",
 
 		acceptPrivacyPolicy:

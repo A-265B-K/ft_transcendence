@@ -6,11 +6,13 @@ export const ru = {
 		leaveGame: "Выйти из игры",
 		youWon: "Вы победили!",
 
+		// castle component
 		castle: "Замок",
 		tilesAway: "клеток",
 		youAreHere: "Вы здесь",
 		castleDirection: "Направление к замку",
 
+		// inventory component
 		inventory: "Инвентарь",
 		wood: "Дерево",
 		iron: "Железо",
@@ -20,11 +22,21 @@ export const ru = {
 		disconnectedSeverDown:
 			"Вы были отключены, поскольку сервер мог перестать работать или задержка вашего соединения стала слишком высокой.",
 
+		// forgot password
 		forgotPassword: "Забыли пароль",
 		sendPasswordLink:
 			"Введите свой адрес электронной почты, и мы отправим вам ссылку для сброса пароля.",
 		backToLogin: "Назад ко входу",
+		forgotPasswordEmailRequired:
+			"Введите свой адрес электронной почты.",
+		passwordResetRequestFailed:
+			"Не удалось запросить сброс пароля.",
+		passwordResetEmailSent:
+			"Если для этого адреса электронной почты существует аккаунт, ссылка для сброса пароля была отправлена.",
+		sending: "Отправка...",
+		sendResetLink: "Отправить ссылку для сброса",
 
+		// Game menu
 		roomCreated: "Комната создана",
 		shareCode: "Поделитесь кодом с друзьями",
 		roomName: "Название комнаты",
@@ -55,16 +67,21 @@ export const ru = {
 
 		enterRoomName: "Введите название комнаты.",
 		enterRoomCode: "Введите код комнаты.",
-		copyError: "Не удалось скопировать код комнаты.",
+		copyError:
+			"Не удалось скопировать код комнаты.",
 
+		// menu button
 		gameMenu: "Игровое меню",
 		gamePaused: "Игра приостановлена",
 		invitationCode: "Код приглашения",
 		resumeGame: "Продолжить игру",
-		pressEscToResume: "Нажмите ESC, чтобы продолжить",
+		pressEscToResume:
+			"Нажмите ESC, чтобы продолжить",
 
+		// create a profile
 		signIn: "Войти",
-		signInContinue: "Войдите, чтобы продолжить игру.",
+		signInContinue:
+			"Войдите, чтобы продолжить игру.",
 		email: "Электронная почта",
 		password: "Пароль",
 		forgotYourPassword: "Забыли пароль?",
@@ -77,24 +94,30 @@ export const ru = {
 		backendSignInError:
 			"Не удалось подключиться к маршруту входа на сервере.",
 
+		// lobby
 		readyToPlay: "Готовы играть?",
-		createOrSignIn: "Создайте аккаунт или войдите.",
+		createOrSignIn:
+			"Создайте аккаунт или войдите.",
 		createAccount: "Создать аккаунт",
 
+		// reset password
 		resetPassword: "Сбросить пароль",
 		enterNewPassword:
 			"Введите новый пароль ниже.",
 		newPassword: "Новый пароль",
-		confirmNewPassword: "Подтвердите новый пароль",
+		confirmNewPassword:
+			"Подтвердите новый пароль",
 		resetting: "Сброс...",
-		passwordsDoNotMatch: "Пароли не совпадают.",
+		passwordsDoNotMatch:
+			"Пароли не совпадают.",
 		invalidResetToken:
 			"Недействительный или отсутствующий токен сброса пароля.",
 		passwordResetFailed:
 			"Не удалось сбросить пароль.",
 		passwordResetSuccessful:
 			"Пароль успешно сброшен.",
-		backendError: "Не удалось подключиться к серверу.",
+		backendError:
+			"Не удалось подключиться к серверу.",
 		backToMainMenu: "Назад в главное меню",
 
 		acceptPrivacyPolicy:
@@ -111,7 +134,8 @@ export const ru = {
 		username: "Имя пользователя",
 		confirmPassword: "Подтвердите пароль",
 		iAgreeTo: "Я принимаю",
-		privacyPolicy: "Политику конфиденциальности",
+		privacyPolicy:
+			"Политику конфиденциальности",
 		termsOfService: "Условия использования",
 	},
 };

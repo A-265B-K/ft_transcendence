@@ -4,9 +4,12 @@ export default function LanguageSwitcher() {
 	return (
 		<select
 			value={i18n.language}
-			onChange={(event) =>
-				i18n.changeLanguage(event.target.value)
-			}
+			onChange={(event) => {
+				const language = event.target.value;
+
+				i18n.changeLanguage(language);
+				localStorage.setItem("language", language);
+			}}
 			className="rounded-xl border border-white/15 bg-[#0a1016]/75 px-3 py-2 text-sm font-bold text-white"
 		>
 			<option value="en">🇬🇧 English</option>

@@ -2,12 +2,14 @@ import {
 	useState,
 	type SubmitEvent,
 } from "react";
+import { useTranslation } from "react-i18next";
 import type { ForgotPasswordProps } from "./forgotPasswordProps";
-import { t } from "i18next";
 
 export default function ForgotPassword({
 	onBack,
 }: ForgotPasswordProps) {
+	const { t } = useTranslation();
+
 	const [email, setEmail] = useState("");
 	const [status, setStatus] = useState("");
 	const [success, setSuccess] = useState(false);
@@ -19,7 +21,9 @@ export default function ForgotPassword({
 		e.preventDefault();
 
 		if (!email.trim()) {
-			setStatus("Please enter your email.");
+			setStatus(
+				t("forgotPasswordEmailRequired")
+			);
 			return;
 		}
 
@@ -45,7 +49,7 @@ export default function ForgotPassword({
 			if (!response.ok) {
 				setStatus(
 					data.message ??
-						"Could not request password reset."
+						t("passwordResetRequestFailed")
 				);
 				return;
 			}
@@ -54,12 +58,10 @@ export default function ForgotPassword({
 
 			setStatus(
 				data.message ??
-					"If an account exists for this email, a reset link has been sent."
+					t("passwordResetEmailSent")
 			);
 		} catch {
-			setStatus(
-				"Could not reach the backend."
-			);
+			setStatus(t("backendError"));
 		} finally {
 			setLoading(false);
 		}
@@ -83,7 +85,7 @@ export default function ForgotPassword({
 					>
 						<input
 							type="email"
-							placeholder="Email"
+							placeholder={t("email")}
 							value={email}
 							onChange={(e) =>
 								setEmail(e.target.value)
@@ -99,8 +101,8 @@ export default function ForgotPassword({
 							className="mt-1 rounded-xl bg-linear-to-br from-[#ffcf5c] to-[#ff9f43] px-3.5 py-3 font-bold text-[#10212a] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
 						>
 							{loading
-								? "Sending..."
-								: "Send reset link"}
+								? t("sending")
+								: t("sendResetLink")}
 						</button>
 					</form>
 				)}
