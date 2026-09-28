@@ -28,7 +28,6 @@ const createPlayer = (
 			castleLevel: PLAYER_DEFAULT_CASTLE_LEVEL,
 		},
 		lastMoveAt: Date.now(),
-		equippedweapon: "sword",
 		nextattack: 0,
 	};
 };
@@ -219,7 +218,7 @@ const onConnection = async (socket: Socket) => {
 	});
 	socket.on("craftweapon", () => {
 
-		inventor
+		
 
 	})
 

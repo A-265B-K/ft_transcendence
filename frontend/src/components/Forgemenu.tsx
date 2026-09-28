@@ -8,7 +8,7 @@ const weaponrecipes = {
     axe: {wood: 20, iron : 30},
 };
 
-function craftweapon(weapon : WeaponType)
+function craftweapon(_weapon : WeaponType)
 {
    
 }
@@ -40,7 +40,7 @@ export function Forgemenu() {
                 <button
                     key={weapon}
                     type="button"
-                    onClick={() => craftweapon(weapon)}
+                    onClick={() => craftweapon(weapon as keyof typeof weaponrecipes)}
                     className="rounded-lg bg-slate-700 px-3 py-2 text-left hover:bg-slate-600"
                 >
                     <span className="font-bold capitalize">{weapon}</span>
