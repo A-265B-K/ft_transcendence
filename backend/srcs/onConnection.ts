@@ -19,8 +19,9 @@ const createPlayer = (
 		username: user.username,
 		slot,
 		hp: PLAYER_DEFAULT_HP,
-		x: spawn.pos.x + 0,
-		y: spawn.pos.y + 4,
+		isDead: false,
+		x: spawn.pos.x,
+		y: spawn.pos.y,
 		inventory: {
 			iron: PLAYER_DEFAULT_IRON,
 			wood: PLAYER_DEFAULT_WOOD,
@@ -374,8 +375,8 @@ const onConnection = async (socket: Socket) => {
 			y,
 			moving,
 		}: {
-			x: unknown;
-			y: unknown;
+			x: number;
+			y: number;
 			moving: boolean;
 		}) => {
 			onMove(

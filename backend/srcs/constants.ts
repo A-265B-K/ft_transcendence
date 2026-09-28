@@ -12,9 +12,10 @@ export const PLAYER_DEFAULT_IRON = 0
 export const PLAYER_DEFAULT_WOOD = 0
 export const PLAYER_DEFAULT_CASTLE_LEVEL = 1
 
-export const MAP_WIDTH = 100
-export const MAP_HEIGHT = 100
-export const CASTLE_RADIUS = 5
+export const MAP_SIZE = 100
+export const MAP_WIDTH = MAP_SIZE
+export const MAP_HEIGHT = MAP_SIZE
+export const CASTLE_RADIUS = 8
 export const PLAYER_RADIUS = 1
 
 export const MIN_DIST_CASTLE = 50
