@@ -108,21 +108,18 @@ function scheduleResourceRespawn(socket: Socket, roomId: string, resource: Resou
 }
 
 function positionIsAllowed(player: Player, user: SocketUser, room: Room, pos: Vec2): boolean {
-	return isOutOfBounds(pos)
-		|| (!player.isDead
+	return !(isOutOfBounds(pos) || (!player.isDead
 			&& (isCollidingWithOtherPlayer(room, user.id, pos)
 				|| isCollidingWithCastle(room, player.slot, pos)
-			));
+		)));
 }
 
 function getClosestValidPosition(player: Player, user: SocketUser, room: Room, startPos: Vec2): Vec2 {
 	for (let distance = 0; distance < 100; distance++) {
 		for (let x = startPos.x - distance; x <= startPos.x + distance; x++) {
 			for (let y = startPos.y - distance; y <= startPos.y + distance; y++) {
-				if (Math.abs(x - startPos.x) + Math.abs(y - startPos.y) === distance) {
-					if (positionIsAllowed(player, user, room, { x, y })) {
-						return { x, y };
-					}
+				if (positionIsAllowed(player, user, room, { x, y })) {
+					return { x, y };
 				}
 			}
 		}
@@ -143,7 +140,12 @@ const onMove = (socket: Socket, user: SocketUser, roomId: string | null, { x, y 
 
 	const nextPos = { x, y };
 
-	if (!positionIsAllowed(player, user, room, { x: player.x, y: player.x })) {
+	const isAllowed = positionIsAllowed(player, user, room, { x: player.x, y: player.y });
+
+	const closest = getClosestValidPosition(player, user, room, { x: player.x, y: player.x });
+	console.log(`${player.x}, ${player.y} ${isAllowed} => ${closest.x} ${closest.y}`);
+
+	if (!positionIsAllowed(player, user, room, { x: player.x, y: player.y })) {
 		const closestValidPos = getClosestValidPosition(player, user, room, { x: player.x, y: player.x });
 		player.x = closestValidPos.x;
 		player.y = closestValidPos.y;
