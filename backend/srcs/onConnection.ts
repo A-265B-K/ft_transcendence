@@ -19,6 +19,7 @@ const createPlayer = (
 		username: user.username,
 		slot,
 		hp: PLAYER_DEFAULT_HP,
+		isDead: false,
 		x: spawn.pos.x,
 		y: spawn.pos.y,
 		inventory: {
@@ -374,8 +375,8 @@ const onConnection = async (socket: Socket) => {
 			y,
 			moving,
 		}: {
-			x: unknown;
-			y: unknown;
+			x: number;
+			y: number;
 			moving: boolean;
 		}) => {
 			onMove(
