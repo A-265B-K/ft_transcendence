@@ -348,7 +348,7 @@ export default function GameCanvas({
 					<Inventory counts={inventory} />
 				</div>
 			</div>
-			{nearCastle && <Forgemenu/>}
+			{nearCastle && <Forgemenu onEquip={(weapon) => gameRef.current?.equipWeapon(weapon)}/>}
 
 			{!spectating && paused && (
 				<GamePauseMenu

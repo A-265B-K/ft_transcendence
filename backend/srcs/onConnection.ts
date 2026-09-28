@@ -1,9 +1,11 @@
 import { createRoom } from "./rooms/gameRoom.js"
 import { rooms, players, type Room, type Player } from "./state/gameState.js"
 import onMove from "./events/onMove.js"
-import { PLAYER_DEFAULT_HP, ROOM_MAX_SIZE, 
+import {
+	PLAYER_DEFAULT_HP, ROOM_MAX_SIZE,
 	PLAYER_DEFAULT_WOOD, PLAYER_DEFAULT_IRON,
-	PLAYER_DEFAULT_CASTLE_LEVEL } from "./constants.js"
+	PLAYER_DEFAULT_CASTLE_LEVEL
+} from "./constants.js"
 import type { Spawn, Socket, SocketUser } from "./types.js"
 import { handleattack } from "./combat/onAttack.js"
 
@@ -74,8 +76,8 @@ const joinRoom = (socket: Socket, user: SocketUser, room: Room): string | null =
 	const spawn = room.map.spawnPoints.find(sp => sp.playerSlot === slot)
 
 	if (!spawn) {
-  		console.error(`No spawn point found for slot ${slot}`);
-  		socket.emit('join_error', { message: 'No spawn point available' });
+		console.error(`No spawn point found for slot ${slot}`);
+		socket.emit('join_error', { message: 'No spawn point available' });
 		return null;
 	}
 
@@ -216,10 +218,35 @@ const onConnection = async (socket: Socket) => {
 			getRooms()
 		);
 	});
-	socket.on("craftweapon", () => {
-
-		
-
+	socket.on("craftweapon", (
+		data: unknown,
+		reply: (result:
+			| { success: true; weapon: string }
+			| { success: false }
+		) => void,
+	) => {
+		if (typeof data !== "object" || data === null || !("weapon" in data)
+			|| (data.weapon !== "dagger" && data.weapon !== "sword" && data.weapon !== "spear" && data.weapon !== "axe")) {
+			reply({success: false})
+			return;
+		}
+		const weaponRecipes = {
+			dagger: { wood: 15, iron: 15 },
+			sword: { wood: 30, iron: 20 },
+			spear: { wood: 30, iron: 20 },
+			axe: { wood: 20, iron: 30 },
+		};
+		const weapon = data.weapon;
+		const cost = weaponRecipes[weapon]
+		const player = players[user.id];
+		if (!player || player.inventory.wood < cost.wood || player?.inventory.iron < cost.iron) {
+			reply({success: false})
+			return;
+		}
+		player.inventory.wood -= cost.wood;
+		player.inventory.iron -= cost.iron;
+		player.equippedweapon = weapon;
+		reply({success: true, weapon: weapon})
 	})
 
 	socket.on(
@@ -396,8 +423,7 @@ const onConnection = async (socket: Socket) => {
 
 	socket.on("player_attack", (data: unknown) => {
 		if (data && typeof data === "object"
-			&& "direction" in data)
-		{
+			&& "direction" in data) {
 			handleattack(players, user, data, currentRoomId, rooms, socket)
 		}
 	});

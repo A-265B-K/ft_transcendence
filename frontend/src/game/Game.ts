@@ -5,6 +5,7 @@ import { Input } from "./systems/Input";
 import { type JoinedPayload } from "../types/game";
 import type { Socket } from "socket.io-client";
 import type { HarvestableTile } from "./world/tileResource";
+import type { WeaponType } from "./entities/weapons/weapon";
 
 export class Game {
     readonly app: Application;
@@ -36,6 +37,9 @@ export class Game {
 };
     }
 
+    equipWeapon(weapon: WeaponType){
+        this.scene?.player.equipWeapon(weapon);
+    }
     addRemotePlayer(
         player: JoinedPayload["players"][number]
     ) {

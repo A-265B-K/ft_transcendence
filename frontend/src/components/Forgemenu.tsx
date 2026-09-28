@@ -1,5 +1,6 @@
 import {useState} from "react";
 import type { WeaponType } from "../game/entities/weapons/weapon";
+import { getSocket } from "../socket";
 
 const weaponrecipes = {
     dagger: {wood: 15, iron : 15},
@@ -8,14 +9,26 @@ const weaponrecipes = {
     axe: {wood: 20, iron : 30},
 };
 
-function craftweapon(_weapon : WeaponType)
-{
-   
-}
 
-export function Forgemenu() {
+export function Forgemenu({onEquip}: {onEquip: (weapon:WeaponType) => void} ) {
     const [open, setOpen] = useState(false);
     
+    function craftweapon(weapon : WeaponType)
+    {
+        type craftresult = | {success: true; weapon: WeaponType} | {success : false}
+        const socket = getSocket();
+        if (!socket?.connected)
+            return ;
+        socket.emit("craftweapon", { weapon }, (result: craftresult) => {
+    
+            if (result.success){
+                onEquip(result.weapon)
+            }
+            else{
+                console.log("crafting error");
+            }
+        });       
+    }
 	return (
         <div>
         <div className="absolute bottom-24 right-4 z-50 text-white">
