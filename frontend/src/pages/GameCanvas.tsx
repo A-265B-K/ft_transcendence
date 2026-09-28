@@ -19,7 +19,7 @@ export default function GameCanvas({
 	});
 
 	const [hp, setHp] = useState(joinedData.player.hp);
-
+	const [spectating, setSpectating] = useState(false);
 	const [castlePointer, setCastlePointer] =
 		useState<CastlePointer | null>(null);
 
@@ -29,6 +29,7 @@ export default function GameCanvas({
 		setPaused(false);
 		gameRef.current?.resume();
 	}, []);
+
 
 	function pauseGame() {
 		setPaused(true);
@@ -116,6 +117,20 @@ export default function GameCanvas({
 			game.updateRemotePlayer(socketId, x, y, moving);
 		}
 
+		function handlePlayerDied(data: {
+			player: JoinedPayload["players"][number];
+		}) {
+			if (data.player.userId === joinedData.player.userId) {
+				game.setPlayerDead();
+				setSpectating(true);
+				setHp(0);
+				return;
+			}
+
+			game.removeRemotePlayer(data.player);
+			game.removeRemoteCastle(data.player);
+		}
+		
 		function handleResourceCollected({
 			x,
 			y,
@@ -185,6 +200,7 @@ export default function GameCanvas({
 		socket.on("player_attacked", handlePlayerAttacked)
 		socket.on("resource_spawned", handleResourceSpawned);
 		socket.on("castle_update", handleCastleUpgrade);
+		socket.on("player_died", handlePlayerDied);
 
 		const intervalId = window.setInterval(() => {
 			const snapshot =
@@ -206,6 +222,7 @@ export default function GameCanvas({
 			socket.off("player_left", handlePlayerLeft);
 			socket.off("player_hp", handlePlayerHP);
 			socket.off("player_attacked", handlePlayerAttacked);
+			socket.off("player_died", handlePlayerDied);
 			socket.off("resource_collected", handleResourceCollected);
 			socket.off("resource_spawned", handleResourceSpawned);
 			socket.off("join_error", handleJoinError);
@@ -310,16 +327,18 @@ export default function GameCanvas({
 				</div>
 			</div>
 
-			<div className="absolute right-4 top-4 z-50">
-				<button
-					type="button"
-					onClick={pauseGame}
-					className="rounded-xl border border-white/15 bg-[#0a1016]/75 px-4 py-2 text-sm font-bold text-white shadow-lg backdrop-blur-xl transition hover:bg-white/10"
-					aria-label="Open game menu"
-				>
-					☰ Menu
-				</button>
-			</div>
+			{!spectating && (
+				<div className="absolute right-4 top-4 z-50">
+					<button
+						type="button"
+						onClick={pauseGame}
+						className="rounded-xl border border-white/15 bg-[#0a1016]/75 px-4 py-2 text-sm font-bold text-white shadow-lg backdrop-blur-xl transition hover:bg-white/10"
+						aria-label="Open game menu"
+					>
+						☰ Menu
+					</button>
+				</div>
+			)}
 
 			<div className="pointer-events-none absolute inset-0 flex items-end justify-center px-4 pb-6">
 				<div className="pointer-events-auto">
@@ -327,12 +346,37 @@ export default function GameCanvas({
 				</div>
 			</div>
 
-			{paused && (
+			{!spectating && paused && (
 				<GamePauseMenu
 					roomCode={joinedData.room.code}
 					onResume={resumeGame}
 					onLeave={handleLeave}
 				/>
+			)}
+			{spectating && (
+				<div className="absolute left-1/2 top-3 z-[100] -translate-x-1/2">
+						<div className="w-80 rounded-2xl border border-white/10 bg-[#081016]/90 p-5 text-center text-white shadow-2xl backdrop-blur-xl">
+							<div className="mb-2 text-3xl">
+								💀
+							</div>
+
+							<h2 className="mb-1 text-2xl font-bold">
+								You Died
+							</h2>
+
+							<p className="mb-4 text-sm text-white/50">
+								You are now spectating.
+							</p>
+
+							<button
+								type="button"
+								onClick={handleLeave}
+								className="w-full rounded-xl bg-red-500 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-red-600"
+							>
+								Leave Game
+							</button>
+						</div>
+					</div>
 			)}
 		</div>
 	);

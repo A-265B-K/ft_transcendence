@@ -131,10 +131,14 @@ export class Game {
     }
 
     pause() {
-	this.app.ticker.stop();
+	    this.app.ticker.stop();
     }
 
     resume() {
         this.app.ticker.start();
+    }
+
+    setPlayerDead(): void {
+	    this.scene?.setPlayerDead();
     }
 }
