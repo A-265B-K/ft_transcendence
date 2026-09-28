@@ -24,6 +24,7 @@ export class GameScene {
     readonly textures: GameTextures;
     readonly socket: Socket;
     private  wasmoving = false;
+    // private isSpectating = false;
 
     constructor(
         textures: GameTextures,
@@ -618,6 +619,14 @@ export class GameScene {
             this.socket.emit("player_attack", {
                 direction: this.player.direction,
             });
+        }
+    }
+    setPlayerDead(): void 
+    {
+	    // this.isSpectating = true;
+        this.player.container.visible = false;
+        if (this.castle) {
+            this.castle.container.visible = false;
         }
     }
 }

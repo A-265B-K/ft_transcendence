@@ -26,6 +26,7 @@ export type Player = {
 	userId: string;
 	socketId: string;
 	username: string;
+	isDead: boolean;
 	hp: number;
 	slot: any;
 	x: number;
