@@ -140,11 +140,6 @@ const onMove = (socket: Socket, user: SocketUser, roomId: string | null, { x, y 
 
 	const nextPos = { x, y };
 
-	const isAllowed = positionIsAllowed(player, user, room, { x: player.x, y: player.y });
-
-	const closest = getClosestValidPosition(player, user, room, { x: player.x, y: player.x });
-	console.log(`${player.x}, ${player.y} ${isAllowed} => ${closest.x} ${closest.y}`);
-
 	if (!positionIsAllowed(player, user, room, { x: player.x, y: player.y })) {
 		const closestValidPos = getClosestValidPosition(player, user, room, { x: player.x, y: player.x });
 		player.x = closestValidPos.x;
