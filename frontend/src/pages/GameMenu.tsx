@@ -2,6 +2,8 @@ import { connectSocket } from "../socket";
 import { useEffect, useState } from "react";
 import type { GameMenuProps } from "./gameMenuProps";
 import type { JoinedPayload } from "../types/game";
+import { useTranslation } from "react-i18next";
+import LanguageSwitcher from "../components/LanguageSwitcher";
 
 type LobbyRoom = {
 	roomId: string;
@@ -16,6 +18,8 @@ export default function GameMenu({
 	onStartGame,
 	onLogout,
 }: GameMenuProps) {
+	const { t } = useTranslation();
+
 	const [loading, setLoading] = useState(false);
 	const [roomCode, setRoomCode] = useState("");
 	const [error, setError] = useState("");
@@ -72,7 +76,7 @@ export default function GameMenu({
 		const name = roomName.trim();
 
 		if (!name) {
-			setError("Enter a room name.");
+			setError(t("enterRoomName"));
 			return;
 		}
 
@@ -169,7 +173,7 @@ export default function GameMenu({
 		const code = roomCode.trim().toUpperCase();
 
 		if (!code) {
-			setError("Enter a room code.");
+			setError(t("enterRoomCode"));
 			return;
 		}
 
@@ -219,9 +223,7 @@ export default function GameMenu({
 				setCopied(false);
 			}, 2000);
 		} catch {
-			setError(
-				"Could not copy the room code."
-			);
+			setError(t("copyError"));
 		}
 	}
 
@@ -248,16 +250,16 @@ export default function GameMenu({
 			<div className="grid min-h-screen place-items-center bg-linear-to-b from-[#10212a] to-[#081016] text-[#f4f7fb]">
 				<div className="w-full max-w-md rounded-3xl border border-white/10 bg-[#081016]/80 p-8 text-center shadow-2xl backdrop-blur-md">
 					<h2 className="mb-2 text-2xl font-bold">
-						Room Created
+						{t("roomCreated")}
 					</h2>
 
 					<p className="mb-6 text-white/50">
-						Share the code with your friends
+						{t("shareCode")}
 					</p>
 
 					<div className="rounded-2xl border border-[#ffcf5c]/30 bg-[#ffcf5c]/10 p-5">
 						<p className="text-sm text-white/50">
-							Room name
+							{t("roomName")}
 						</p>
 
 						<p className="mb-5 text-xl font-bold">
@@ -265,7 +267,7 @@ export default function GameMenu({
 						</p>
 
 						<p className="text-sm text-white/50">
-							Room code
+							{t("roomCode")}
 						</p>
 
 						<p className="my-2 text-4xl font-bold tracking-[0.25em] text-[#ffcf5c]">
@@ -278,8 +280,8 @@ export default function GameMenu({
 							className="mt-2 rounded-lg border border-white/15 px-4 py-2 text-sm transition hover:bg-white/10"
 						>
 							{copied
-								? "Copied!"
-								: "Copy Code"}
+								? t("copied")
+								: t("copyCode")}
 						</button>
 
 						<div className="mt-5 border-t border-white/10 pt-4">
@@ -289,13 +291,13 @@ export default function GameMenu({
 							</p>
 
 							<p className="text-sm text-white/50">
-								players
+								{t("players")}
 							</p>
 						</div>
 					</div>
 
 					<p className="mt-4 text-sm text-white/40">
-						Waiting for your friends to join...
+						{t("waitingForFriends")}
 					</p>
 
 					<div className="mt-5 grid gap-3">
@@ -305,7 +307,7 @@ export default function GameMenu({
 							disabled={!joinedData}
 							className="rounded-xl bg-linear-to-r from-[#ffcf5c] to-[#ff9f43] px-4 py-3 font-bold text-[#10212a] transition hover:brightness-110 disabled:opacity-50"
 						>
-							Start Game
+							{t("startGame")}
 						</button>
 
 						<button
@@ -313,7 +315,7 @@ export default function GameMenu({
 							onClick={leaveCreatedRoom}
 							className="rounded-xl border border-white/15 px-4 py-3 transition hover:bg-white/10"
 						>
-							Back to Lobby
+							{t("backToLobby")}
 						</button>
 					</div>
 				</div>
@@ -323,13 +325,18 @@ export default function GameMenu({
 
 	return (
 		<div className="grid min-h-screen place-items-center bg-linear-to-b from-[#10212a] to-[#081016] text-[#f4f7fb]">
+			<div className="absolute right-6 top-6">
+				<LanguageSwitcher />
+			</div>
+
 			<div className="w-full max-w-md rounded-3xl border border-white/10 bg-[#081016]/80 p-8 text-center shadow-2xl backdrop-blur-md">
+
 				<h2 className="mb-2 text-2xl font-bold">
-					Welcome {user.username}
+					{t("welcome")} {user.username}
 				</h2>
 
 				<p className="mb-6 text-white/60">
-					Game Lobby
+					{t("gameLobby")}
 				</p>
 
 				{error && (
@@ -341,7 +348,7 @@ export default function GameMenu({
 				{showCreateRoom ? (
 					<div className="grid gap-3">
 						<h3 className="text-lg font-bold">
-							Create Room
+							{t("createRoom")}
 						</h3>
 
 						<input
@@ -352,7 +359,7 @@ export default function GameMenu({
 									event.target.value
 								)
 							}
-							placeholder="Room name"
+							placeholder={t("roomName")}
 							maxLength={30}
 							disabled={loading}
 							className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 outline-none placeholder:text-white/30 focus:border-[#ffcf5c] disabled:opacity-50"
@@ -366,8 +373,8 @@ export default function GameMenu({
 								className="flex-1 rounded-xl bg-[#ffcf5c] px-4 py-3 font-bold text-[#10212a] transition hover:brightness-110 disabled:opacity-50"
 							>
 								{loading
-									? "Creating..."
-									: "Create"}
+									? t("creating")
+									: t("create")}
 							</button>
 
 							<button
@@ -376,7 +383,7 @@ export default function GameMenu({
 								disabled={loading}
 								className="rounded-xl border border-white/15 px-4 py-3 transition hover:bg-white/10 disabled:opacity-50"
 							>
-								Cancel
+								{t("cancel")}
 							</button>
 						</div>
 					</div>
@@ -384,7 +391,7 @@ export default function GameMenu({
 					<div className="grid gap-3">
 						<div className="flex items-center justify-between">
 							<h3 className="text-lg font-bold">
-								Available Rooms
+								{t("availableRooms")}
 							</h3>
 
 							<button
@@ -393,19 +400,18 @@ export default function GameMenu({
 								disabled={loading}
 								className="text-sm text-white/50 transition hover:text-white"
 							>
-								Refresh
+								{t("refresh")}
 							</button>
 						</div>
 
 						{rooms.length === 0 ? (
 							<div className="rounded-xl border border-white/10 bg-white/5 px-4 py-6">
 								<p className="text-sm text-white/50">
-									No rooms available.
+									{t("noRooms")}
 								</p>
 
 								<p className="mt-1 text-xs text-white/30">
-									Create a room and
-									invite your friends.
+									{t("inviteFriends")}
 								</p>
 							</div>
 						) : (
@@ -433,12 +439,12 @@ export default function GameMenu({
 													{
 														room.maxPlayers
 													}{" "}
-													players
+													{t("players")}
 												</p>
 
 												{room.code && (
 													<p className="mt-1 text-xs text-white/30">
-														Code:{" "}
+														{t("code")}:{" "}
 														{
 															room.code
 														}
@@ -460,7 +466,7 @@ export default function GameMenu({
 												}
 												className="ml-3 rounded-xl bg-[#ffcf5c] px-4 py-2 font-bold text-[#10212a] transition hover:brightness-110 disabled:opacity-40"
 											>
-												Join
+												{t("join")}
 											</button>
 										</div>
 									)
@@ -474,7 +480,7 @@ export default function GameMenu({
 							disabled={loading}
 							className="rounded-xl border border-white/15 px-4 py-3 transition hover:bg-white/10 disabled:opacity-50"
 						>
-							Back
+							{t("back")}
 						</button>
 					</div>
 				) : (
@@ -488,7 +494,7 @@ export default function GameMenu({
 							disabled={loading}
 							className="rounded-xl bg-linear-to-r from-[#ffcf5c] to-[#ff9f43] px-4 py-3 font-bold text-[#10212a] transition hover:brightness-110 disabled:opacity-50"
 						>
-							Create Room
+							{t("createRoom")}
 						</button>
 
 						<button
@@ -497,7 +503,7 @@ export default function GameMenu({
 							disabled={loading}
 							className="rounded-xl border border-white/15 bg-white/5 px-4 py-3 font-bold transition hover:bg-white/10 disabled:opacity-50"
 						>
-							Join Room
+							{t("joinRoom")}
 						</button>
 
 						<div className="flex gap-2">
@@ -509,7 +515,7 @@ export default function GameMenu({
 										event.target.value
 									)
 								}
-								placeholder="Room code"
+								placeholder={t("roomCode")}
 								maxLength={6}
 								disabled={loading}
 								className="min-w-0 flex-1 rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-center uppercase outline-none placeholder:text-white/30 focus:border-[#ffcf5c] disabled:opacity-50"
@@ -521,7 +527,7 @@ export default function GameMenu({
 								disabled={loading}
 								className="rounded-xl border border-white/15 bg-white/5 px-4 py-3 font-bold transition hover:bg-white/10 disabled:opacity-50"
 							>
-								Join
+								{t("join")}
 							</button>
 						</div>
 
@@ -531,7 +537,7 @@ export default function GameMenu({
 							disabled={loading}
 							className="mt-3 rounded-xl border border-white/15 bg-transparent px-4 py-3 text-[#f4f7fb] transition hover:bg-white/10"
 						>
-							Logout
+							{t("logout")}
 						</button>
 					</div>
 				)}

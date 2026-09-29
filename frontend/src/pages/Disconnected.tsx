@@ -1,3 +1,5 @@
+import { t } from "i18next";
+
 export default function Disconnected() {
 	return (
 		<div className="grid min-h-screen place-items-center bg-linear-to-b from-[#10212a] to-[#081016] p-6">
@@ -7,12 +9,11 @@ export default function Disconnected() {
 				</div>
 
 				<h2 className="mb-2 text-2xl font-bold">
-					Connection lost
+					{t("connectionLost")}
 				</h2>
 
 				<p className="mb-6 leading-relaxed text-white/70">
-					You were disconnected because the server may have gone
-					down or your connection latency became too high.
+					{t("disconnectedSeverDown")}
 				</p>
 			</div>
 		</div>
