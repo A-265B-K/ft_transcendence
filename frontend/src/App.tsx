@@ -8,7 +8,11 @@ import { useState, useEffect } from "react";
 import { type JoinedPayload } from "./types/game";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
-import { disconnectSocket } from "./socket";
+import { connectSocket, disconnectSocket } from "./socket";
+import { BrowserRouter, useNavigate, Routes, Route, Navigate} from "react-router-dom";
+import CreateRoom from "./pages/CreateRoom";
+import Room from "./pages/Room";
+import JoinRoom from "./pages/JoinRoom";
 
 type User = {
 	id: number;
@@ -17,58 +21,115 @@ type User = {
 };
 
 export default function App() {
+	return (
+		<BrowserRouter>
+			<AppContent />
+		</BrowserRouter>
+	);
+}
 
-	const [screen, setScreen] = useState<
-			| "loading" 
-			| "menu" 
-			| "signup" 
-			| "login" 
-			| "gameMenu" 
-			| "game" 
-			| "forgotPassword" 
-			| "resetPassword" 
-			| "disconnected"
-	>("loading");
+function AppContent() {
 
+	const navigate = useNavigate();
+	const [loading, setLoading] = useState(true);
 	const [user, setUser] = useState<User | null>(null);
 	const [joinedData, setJoinedData] = useState<JoinedPayload | null>(null);
+	const [restoringGame, setRestoringGame] = useState(() =>
+		Boolean(localStorage.getItem("gameRoomId"))
+	);
 
 	useEffect(() => {
-		const path = window.location.pathname;
-
-		if (path === "/reset-password") {
-			setScreen("resetPassword");
-			return;
-		}
-
 		async function checkSession() {
 			try {
 				const response = await fetch("/api/auth/me", {
 					credentials: "include",
 				});
-				if (response.ok) {
 
+				if (response.ok) {
 					const data = await response.json();
 
 					console.log(
 						"Restored session:",
 						data.user
 					);
+
 					setUser(data.user);
-					setScreen("gameMenu");
-					return;
 				}
-			} catch(error) {
+			} catch (error) {
 				console.log(
 					"Session check failed",
 					error
 				);
+			} finally {
+				setLoading(false);
 			}
-			setScreen("menu");
 		}
 		checkSession();
 	}, []);
 
+	useEffect(() => {
+		if (!user) return;
+
+		const roomId =
+			localStorage.getItem("gameRoomId");
+
+		if (!roomId) return;
+
+		const socket = connectSocket();
+
+		const handleJoined = (
+			data: JoinedPayload
+		) => {
+			console.log(
+				"Restored game room:",
+				data.roomId
+			);
+
+			setJoinedData(data);
+			setRestoringGame(false);
+		};
+
+		const handleJoinError = ({
+			message,
+		}: {
+			message: string;
+		}) => {
+			console.error(
+				"Could not restore game:",
+				message
+			);
+
+			localStorage.removeItem(
+				"gameRoomId"
+			);
+
+			setRestoringGame(false);
+		};
+
+		socket.once("joined", handleJoined);
+
+		socket.once("join_error", handleJoinError);
+
+		const joinRoom = () => { 
+			socket.emit("join_room", { roomId, }); 
+		};
+
+		if (socket.connected) {
+			joinRoom();
+		} else {
+			socket.once("connect", joinRoom);
+		}
+
+		return () => {
+			socket.off("joined", handleJoined);
+			socket.off(
+				"join_error",
+				handleJoinError
+			);
+			socket.off("connect", joinRoom);
+		};
+	}, [user]);
+	
 	useEffect(() => {
 		if (!user) {
 			return;
@@ -109,7 +170,7 @@ export default function App() {
 				if (failedChecks >= 3 && !stopped) {
 					setUser(null);
 					setJoinedData(null);
-					setScreen("disconnected");
+					navigate("/disconnected");
 					disconnectSocket();
 				}
 			} finally {
@@ -125,7 +186,7 @@ export default function App() {
 			stopped = true;
 			window.clearInterval(interval);
 		};
-	}, [user]);
+	}, [user, navigate]);
 
 
 
@@ -135,16 +196,10 @@ export default function App() {
 			credentials:"include",
 		});
 		setUser(null);
-		setScreen("menu");
+		navigate("/");
 	}
 
-	if (screen === "disconnected") {
-		return (
-			<Disconnected/>
-		);	
-	}
-
-	if(screen === "loading") {
+	if (loading) {
 		return (
 			<div>
 				Checking session...
@@ -152,86 +207,164 @@ export default function App() {
 		);
 	}
 
-	if(screen === "menu") {
-		return (
-			<Menu
-				onCreateAccount={() => {
-					setScreen("signup");
-				}}
-				onLogin={() => {
-					setScreen("login");
-				}}
-			/>
-		);
-	}
-
-	if(screen === "signup") {
-		return (
-			<Signup
-				onBack={() => {
-					setScreen("menu");
-				}}
-			/>
-		);
-	}
-
-	if (screen === "login") {
-		return (
-			<LogIn
-				onBack={() => {
-					setScreen("menu");
-				}}
-				onLoginSuccess={(loggedUser) => {
-					setUser(loggedUser);
-					setScreen("gameMenu");
-				}}
-				onForgotPassword={() => {
-					setScreen("forgotPassword");
-				}}
-			/>
-		);
-	}
-
-	if (screen === "forgotPassword") {
-		return (
-			<ForgotPassword
-				onBack={() => {
-					setScreen("login");
-				}}
-			/>
-		);
-	}
-
-	if (screen === "resetPassword") {
 	return (
-		<ResetPassword
-			onBack={() => {
-				setScreen("login");
-			}}
-		/>
-		);
-	}
-
-	if(screen === "gameMenu" && user) {
-		return (
-			<GameMenu
-			user={user}
-			onStartGame={(data)=>{
-				setJoinedData(data);
-				setScreen("game");
-			}}
-			onLogout={logout}
+		<Routes>
+			<Route
+				path="/"
+				element={
+					<Menu
+						onCreateAccount={() => {
+							navigate("/signup");
+						}}
+						onLogin={() => {
+							navigate("/login");
+						}}
+					/>
+				}
 			/>
-		);
-	}
 
-	if(screen === "game" && user && joinedData) {
-		return (
-			<GameCanvas
-				joinedData={joinedData}
+			<Route
+				path="/signup"
+				element={
+					<Signup
+						onBack={() => {
+							navigate("/");
+						}}
+					/>
+				}
 			/>
-		);
-	}
 
-	return null;
+			<Route
+				path="/login"
+				element={
+					<LogIn
+						onBack={() => {
+							navigate("/");
+						}}
+						onLoginSuccess={(loggedUser) => {
+							setUser(loggedUser);
+							navigate("/game-menu");
+						}}
+						onForgotPassword={() => {
+							navigate("/forgot-password");
+						}}
+					/>
+				}
+			/>
+
+			<Route
+				path="/forgot-password"
+				element={
+					<ForgotPassword
+						onBack={() => {
+							navigate("/login");
+						}}
+					/>
+				}
+			/>
+
+			<Route
+				path="/reset-password"
+				element={
+					<ResetPassword
+						onBack={() => {
+							navigate("/login");
+						}}
+					/>
+				}
+			/>
+
+			<Route
+				path="/game-menu"
+				element={
+					user ? (
+						<GameMenu
+							user={user}
+							onLogout={logout}
+						/>
+					) : (
+						<Navigate to="/login" />
+					)
+				}
+			/>
+
+			<Route
+				path="/game-menu/create-room"
+				element={
+					user ? (
+						<CreateRoom
+							onBack={() => {
+								navigate("/game-menu");
+							}}
+							onCreated={(data) => {
+								setJoinedData(data);
+								navigate(`/game-menu/room/${data.roomId}`);
+							}}
+						/>
+					) : (
+						<Navigate to="/login" />
+					)
+				}
+			/>
+
+			<Route
+				path="/game-menu/join-room"
+				element={
+					user ? (
+						<JoinRoom
+							onBack={() => {
+								navigate("/game-menu");
+							}}
+							onJoined={(data) => {
+								setJoinedData(data);
+								navigate(`/game-menu/room/${data.roomId}`);
+							}}
+						/>
+					) : (
+						<Navigate to="/login" />
+					)
+				}
+			/>
+
+			<Route
+				path="/game-menu/room/:roomId"
+				element={
+					user ? (
+						<Room
+							joinedData={joinedData}
+							onStartGame={(data) => {
+								setJoinedData(data);
+								navigate("/game");
+							}}
+						/>
+					) : (
+						<Navigate to="/login" />
+					)
+				}
+			/>
+
+			<Route
+				path="/game"
+				element={
+					restoringGame ? (
+						<div>Reconnecting to game...</div>
+					) : user && joinedData ? (
+						<GameCanvas joinedData={joinedData} />
+					) : (
+						<Navigate to="/game-menu" />
+					)
+				}
+			/>
+
+			<Route
+				path="/disconnected"
+				element={<Disconnected />}
+			/>
+
+			<Route
+				path="*"
+				element={<Navigate to="/" replace />}
+			/>
+		</Routes>
+	);
 }

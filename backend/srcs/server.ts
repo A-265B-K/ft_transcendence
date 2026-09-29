@@ -307,7 +307,7 @@ fastify.get<{ Querystring: VerifyEmailQuery }>("/verify-email", async (request, 
 			}
 		);
 
-		return reply.redirect("/");
+		return reply.redirect("/game-menu");
 		} catch (error) {
 
 			console.error(
