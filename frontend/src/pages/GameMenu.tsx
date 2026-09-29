@@ -1,3 +1,9 @@
+import type { GameMenuProps } from "./gameMenuProps";
+import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import LanguageSwitcher from "../components/LanguageSwitcher";
+
+
 export default function GameMenu({
 	user,
 	onLogout,
