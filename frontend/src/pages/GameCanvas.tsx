@@ -6,10 +6,12 @@ import { type CastlePointer } from "./CastlePointer";
 import type { JoinedPayload } from "../types/game";
 import { connectSocket, disconnectSocket } from "../socket";
 import type { GameCanvasProps } from "./gameCanvasProps";
+import { useTranslation } from "react-i18next";
 
 export default function GameCanvas({
 	joinedData,
 }: GameCanvasProps) {
+	const { t } = useTranslation();
 	const gameContainer = useRef<HTMLDivElement>(null);
 	const gameRef = useRef<Game | null>(null);
 
@@ -279,10 +281,10 @@ export default function GameCanvas({
 			{castlePointer && (
 				<div
 					className="pointer-events-none absolute left-1/2 top-[18px] -translate-x-1/2 grid min-w-[140px] justify-items-center gap-1 rounded-[18px] border border-white/15 bg-[#0a1016]/75 px-4 py-3.5 text-[#f4f7fb] shadow-[0_16px_40px_rgba(0,0,0,0.28)] backdrop-blur-xl"
-					aria-label="Castle direction"
+					aria-label={t("castleDirection")}
 				>
 					<div className="text-xs font-medium uppercase tracking-[0.16em] text-white/70">
-						Castle
+						{t("castle")}
 					</div>
 
 					<div
@@ -296,8 +298,8 @@ export default function GameCanvas({
 
 					<div className="text-[13px] font-semibold text-white/85">
 						{castlePointer.visible
-							? `${castlePointer.direction} · ${castlePointer.bearingDegrees.toFixed(0)}° · ${castlePointer.distance.toFixed(1)} tiles away`
-							: "You are here"}
+							? `${castlePointer.direction} · ${castlePointer.bearingDegrees.toFixed(0)}° · ${castlePointer.distance.toFixed(1)} ${t("tilesAway")}`
+							: t("youAreHere")}
 					</div>
 				</div>
 			)}
@@ -333,7 +335,7 @@ export default function GameCanvas({
 						className="rounded-xl border border-white/15 bg-[#0a1016]/75 px-4 py-2 text-sm font-bold text-white shadow-lg backdrop-blur-xl transition hover:bg-white/10"
 						aria-label="Open game menu"
 					>
-						☰ Menu
+						☰ {t("menu")}
 					</button>
 				</div>
 			)}
@@ -359,11 +361,11 @@ export default function GameCanvas({
 							</div>
 
 							<h2 className="mb-1 text-2xl font-bold">
-								You Died
+								{t("youDied")}
 							</h2>
 
 							<p className="mb-4 text-sm text-white/50">
-								You are now spectating.
+								{t("spectating")}
 							</p>
 
 							<button
@@ -371,7 +373,7 @@ export default function GameCanvas({
 								onClick={handleLeave}
 								className="w-full rounded-xl bg-red-500 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-red-600"
 							>
-								Leave Game
+								 {t("leaveGame")}
 							</button>
 						</div>
 					</div>

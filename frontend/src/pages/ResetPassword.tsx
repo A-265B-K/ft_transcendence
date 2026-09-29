@@ -2,12 +2,15 @@ import {
 	useState,
 	type SubmitEvent,
 } from "react";
+import { useTranslation } from "react-i18next";
 
 import type { ResetPasswordProps } from "./resetPasswordProps";
 
 export default function ResetPassword({
 	onBack,
 }: ResetPasswordProps) {
+	const { t } = useTranslation();
+
 	const [password, setPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
 	const [status, setStatus] = useState("");
@@ -20,12 +23,12 @@ export default function ResetPassword({
 		e.preventDefault();
 
 		if (!password || !confirmPassword) {
-			setStatus("Please fill in all fields.");
+			setStatus(t("fillAllFields"));
 			return;
 		}
 
 		if (password !== confirmPassword) {
-			setStatus("Passwords do not match.");
+			setStatus(t("passwordsDoNotMatch"));
 			return;
 		}
 
@@ -37,7 +40,7 @@ export default function ResetPassword({
 
 		if (!token) {
 			setStatus(
-				"Invalid or missing password reset token."
+				t("invalidResetToken")
 			);
 			return;
 		}
@@ -65,7 +68,7 @@ export default function ResetPassword({
 			if (!response.ok) {
 				setStatus(
 					data.message ??
-						"Password reset failed."
+						t("passwordResetFailed")
 				);
 				return;
 			}
@@ -74,11 +77,11 @@ export default function ResetPassword({
 
 			setStatus(
 				data.message ??
-					"Password reset successfully."
+					t("passwordResetSuccessful")
 			);
 		} catch {
 			setStatus(
-				"Could not reach the backend."
+				t("backendError")
 			);
 		} finally {
 			setLoading(false);
@@ -89,13 +92,13 @@ export default function ResetPassword({
 		<div className="grid min-h-screen place-items-center bg-linear-to-b from-[#10212a] to-[#081016] p-6 text-[#f4f7fb]">
 			<div className="w-full max-w-[460px] rounded-3xl border border-white/10 bg-[#081016]/85 p-[30px] shadow-[0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur-[14px]">
 				<h2 className="mb-2 text-2xl font-bold">
-					Reset password
+					{t("resetPassword")}
 				</h2>
 
 				{!success && (
 					<>
 						<p className="mb-5 text-white/70">
-							Enter your new password below.
+							{t("enterNewPassword")}
 						</p>
 
 						<form
@@ -104,7 +107,7 @@ export default function ResetPassword({
 						>
 							<input
 								type="password"
-								placeholder="New password"
+								placeholder={t("newPassword")}
 								value={password}
 								onChange={(e) =>
 									setPassword(
@@ -118,7 +121,7 @@ export default function ResetPassword({
 
 							<input
 								type="password"
-								placeholder="Confirm new password"
+								placeholder={t("confirmNewPassword")}
 								value={confirmPassword}
 								onChange={(e) =>
 									setConfirmPassword(
@@ -136,8 +139,8 @@ export default function ResetPassword({
 								className="mt-1 rounded-xl bg-linear-to-br from-[#ffcf5c] to-[#ff9f43] px-3.5 py-3 font-bold text-[#10212a] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
 							>
 								{loading
-									? "Resetting..."
-									: "Reset password"}
+									? t("resetting")
+									: t("resetPassword")}
 							</button>
 						</form>
 					</>
@@ -161,7 +164,7 @@ export default function ResetPassword({
 						onClick={onBack}
 						className="mt-3 w-full rounded-xl bg-linear-to-br from-[#ffcf5c] to-[#ff9f43] px-3.5 py-3 font-bold text-[#10212a] transition hover:brightness-110"
 					>
-						Back to main menu
+						{t("backToMainMenu")}
 					</button>
 				) : (
 					<button
@@ -169,7 +172,7 @@ export default function ResetPassword({
 						onClick={onBack}
 						className="mt-3 w-full rounded-xl border border-white/15 bg-transparent px-3.5 py-3 text-[#f4f7fb] transition hover:bg-white/5"
 					>
-						Back
+						{t("back")}
 					</button>
 				)}
 			</div>
