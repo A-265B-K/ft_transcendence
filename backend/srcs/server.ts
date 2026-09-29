@@ -15,6 +15,7 @@ import { enableUser2FA, disableUser2FA, confirm2FASetup, verify2FALogin } from "
 import { passwordResetRequest } from "./security/auth/passwordReset.js";
 import bcrypt from "bcrypt";
 import { rooms } from "./state/gameState.js";
+import { getWinner } from "./rooms/gameRoom.js";
 const fastify = Fastify();
 
 await fastify.register(cookie);
@@ -401,29 +402,21 @@ fastify.get("/verify-2fa", async (request, reply) => {
 const interval = setInterval(() => {
   console.log('Checking whether a game has started or ended...');
 
-  for (const [roomID, room] of Object.entries(rooms)) {
+  for (const [roomId, room] of Object.entries(rooms)) {
     if (!room.gameStarted && room.playerCount >= 2) {
       room.gameStarted = true;
-      console.log(`Game started in room ${roomID}`);
+      console.log(`Game started in room ${roomId}`);
     }
 
+	const winner = getWinner(room);
     if (
-      room.gameStarted &&
-      !room.gameEnded &&
-      room.playerCount < 2
+      winner
     ) {
       room.gameEnded = true;
 
-      const winner = room.players[0];
+      console.log(`${winner.username} won`);
 
-      if (winner) {
-        console.log(`${winner.username} won`);
-      } else {
-        console.log('The game ended with no remaining players');
-      }
-
-      // Close or remove the room here
-      // rooms.splice(rooms.indexOf(room), 1);
+      delete rooms[roomId];
     }
   }
 }, 250);
