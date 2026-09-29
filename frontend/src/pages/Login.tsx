@@ -1,4 +1,5 @@
 import { useState, type SubmitEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { connectSocket } from "../socket";
 import type { LoginProps } from "./loginProps";
 
@@ -7,6 +8,8 @@ export default function LogIn({
 	onLoginSuccess,
 	onForgotPassword,
 }: LoginProps) {
+	const { t } = useTranslation();
+
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [status, setStatus] = useState("");
@@ -17,11 +20,11 @@ export default function LogIn({
 		e.preventDefault();
 
 		if (!email.trim() || !password.trim()) {
-			setStatus("Please fill in all fields.");
+			setStatus(t("fillAllFields"));
 			return;
 		}
 
-		setStatus("Signing in...");
+		setStatus(t("signingIn"));
 
 		try {
 			const response = await fetch(
@@ -48,7 +51,7 @@ export default function LogIn({
 
 			if (!response.ok) {
 				setStatus(
-					data.message ?? "Login failed",
+					data.message ?? t("loginFailed"),
 				);
 				return;
 			}
@@ -61,11 +64,11 @@ export default function LogIn({
 			onLoginSuccess(data.user);
 
 			setStatus(
-				data.message ?? "Log in successful",
+				data.message ?? t("loginSuccessful"),
 			);
 		} catch {
 			setStatus(
-				"Could not reach the backend sign in route.",
+				t("backendSignInError"),
 			);
 		}
 	}
@@ -74,11 +77,11 @@ export default function LogIn({
 		<div className="grid min-h-screen place-items-center bg-linear-to-b from-[#10212a] to-[#081016] p-6 text-[#f4f7fb]">
 			<div className="w-full max-w-[460px] rounded-3xl border border-white/10 bg-[#081016]/85 p-[30px] shadow-[0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur-[14px]">
 				<h2 className="mb-2 text-2xl font-bold">
-					Sign in
+					{t("signIn")}
 				</h2>
 
 				<p className="mb-5 text-white/70">
-					Sign in to continue playing.
+					{t("signInContinue")}
 				</p>
 
 				<form
@@ -87,7 +90,7 @@ export default function LogIn({
 				>
 					<input
 						type="email"
-						placeholder="Email"
+						placeholder={t("email")}
 						value={email}
 						onChange={(e) =>
 							setEmail(e.target.value)
@@ -98,7 +101,7 @@ export default function LogIn({
 
 					<input
 						type="password"
-						placeholder="Password"
+						placeholder={t("password")}
 						value={password}
 						onChange={(e) =>
 							setPassword(e.target.value)
@@ -112,14 +115,14 @@ export default function LogIn({
 						onClick={onForgotPassword}
 						className="self-end border-0 bg-transparent p-0 text-sm text-[#ffcf5c] hover:text-[#ff9f43]"
 					>
-						Forgot your password?
+						{t("forgotYourPassword")}
 					</button>
 
 					<button
 						type="submit"
 						className="mt-1 rounded-xl bg-linear-to-br from-[#ffcf5c] to-[#ff9f43] px-3.5 py-3 font-bold text-[#10212a] transition hover:brightness-110"
 					>
-						Sign In
+						{t("signInButton")}
 					</button>
 				</form>
 
@@ -134,7 +137,7 @@ export default function LogIn({
 					onClick={onBack}
 					className="mt-3 w-full rounded-xl border border-white/15 bg-transparent px-3.5 py-3 text-[#f4f7fb] transition hover:bg-white/5"
 				>
-					Back to menu
+					{t("backToMenu")}
 				</button>
 			</div>
 		</div>

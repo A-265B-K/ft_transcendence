@@ -18,23 +18,24 @@ const createPlayer = (
   slot: number,
   spawn: Spawn,
 ): Player => {
-  return {
-    userId: user.id,
-    socketId: socket.id,
-    username: user.username,
-    slot,
-    hp: PLAYER_DEFAULT_HP,
-    x: spawn.pos.x,
-    y: spawn.pos.y,
-    inventory: {
-      iron: PLAYER_DEFAULT_IRON,
-      wood: PLAYER_DEFAULT_WOOD,
-      castleLevel: PLAYER_DEFAULT_CASTLE_LEVEL,
-    },
-    lastMoveAt: Date.now(),
-    equippedweapon: "sword",
-    nextattack: 0,
-  };
+	return {
+		userId: user.id,
+		socketId: socket.id,
+		username: user.username,
+		slot,
+		hp: PLAYER_DEFAULT_HP,
+		isDead: false,
+		x: spawn.pos.x,
+		y: spawn.pos.y,
+		inventory: {
+			iron: PLAYER_DEFAULT_IRON,
+			wood: PLAYER_DEFAULT_WOOD,
+			castleLevel: PLAYER_DEFAULT_CASTLE_LEVEL,
+		},
+		lastMoveAt: Date.now(),
+		equippedweapon: "sword",
+		nextattack: 0,
+	};
 };
 
 const findAvailableSlot = (room: Room, maxSize: number) => {

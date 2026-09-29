@@ -1,14 +1,17 @@
 import { Inventory } from "../components/Inventory";
-import { useEffect, useRef, useState } from "react";
+import GamePauseMenu from "./GamePauseMenu"
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Game } from "../game/Game";
 import { type CastlePointer } from "./CastlePointer";
 import type { JoinedPayload } from "../types/game";
 import { connectSocket } from "../socket";
 import type { GameCanvasProps } from "./gameCanvasProps";
+import { useTranslation } from "react-i18next";
 
 export default function GameCanvas({
 	joinedData,
 }: GameCanvasProps) {
+	const { t } = useTranslation();
 	const gameContainer = useRef<HTMLDivElement>(null);
 	const gameRef = useRef<Game | null>(null);
 
@@ -18,15 +21,31 @@ export default function GameCanvas({
 	});
 
 	const [hp, setHp] = useState(joinedData.player.hp);
-
+	const [spectating, setSpectating] = useState(false);
 	const [castlePointer, setCastlePointer] =
 		useState<CastlePointer | null>(null);
+
+	const [paused, setPaused] = useState(false);
+
+	const resumeGame = useCallback(() => {
+		setPaused(false);
+		gameRef.current?.resume();
+	}, []);
+
+
+	function pauseGame() {
+		setPaused(true);
+		gameRef.current?.pause();
+	}
 
 	useEffect(() => {
 		if (!joinedData || !gameContainer.current)
 			return;
 
-		console.log("Starting game with:", joinedData);
+		console.log(
+			"Starting game with:",
+			joinedData,
+		);
 
 		const socket = connectSocket();
 		const game = new Game();
@@ -59,15 +78,15 @@ export default function GameCanvas({
 
 		function handlePlayerHP({
 			socketId,
-			hp
+			hp,
 		}: {
 			socketId: string;
 			hp: number;
 		}) {
-				if (socketId !== joinedData.player.socketId)
-					return;
+			if (socketId !== joinedData.player.socketId)
+				return;
 
-				setHp(hp);
+			setHp(hp);
 		}
 
 		function handleJoinError({
@@ -75,7 +94,10 @@ export default function GameCanvas({
 		}: {
 			message: string;
 		}) {
-			console.error("Join failed:", message);
+			console.error(
+				"Join failed:",
+				message,
+			);
 		}
 
 		function handlePlayerMove({
@@ -97,6 +119,20 @@ export default function GameCanvas({
 			game.updateRemotePlayer(socketId, x, y, moving);
 		}
 
+		function handlePlayerDied(data: {
+			player: JoinedPayload["players"][number];
+		}) {
+			if (data.player.userId === joinedData.player.userId) {
+				game.setPlayerDead();
+				setSpectating(true);
+				setHp(0);
+				return;
+			}
+
+			game.removeRemotePlayer(data.player);
+			game.removeRemoteCastle(data.player);
+		}
+		
 		function handleResourceCollected({
 			x,
 			y,
@@ -106,12 +142,21 @@ export default function GameCanvas({
 			x: number;
 			y: number;
 			playerId: string;
-			inventory: { wood: number; iron: number };
+			inventory: {
+				wood: number;
+				iron: number;
+			};
 		}) {
 			game.removeResourceTile(x, y);
 
-			if (playerId === joinedData.player.userId) {
-				game.syncInventory(inventory.wood, inventory.iron);
+			if (
+				playerId ===
+				joinedData.player.userId
+			) {
+				game.syncInventory(
+					inventory.wood,
+					inventory.iron,
+				);
 			}
 		}
 
@@ -128,7 +173,11 @@ export default function GameCanvas({
 			y: number;
 			type: "wood" | "iron";
 		}) {
-			game.spawnResourceTile(x, y, type);
+			game.spawnResourceTile(
+				x,
+				y,
+				type,
+			);
 		}
 
 		function handleCastleUpgrade({
@@ -138,7 +187,10 @@ export default function GameCanvas({
 			socketId: string;
 			level: number;
 		}) {
-			game.updateRemoteCastle(socketId, level);
+			game.updateRemoteCastle(
+				socketId,
+				level,
+			);
 		}
 
 		socket.on("player_joined", handlePlayerJoined);
@@ -150,10 +202,14 @@ export default function GameCanvas({
 		socket.on("player_attacked", handlePlayerAttacked)
 		socket.on("resource_spawned", handleResourceSpawned);
 		socket.on("castle_update", handleCastleUpgrade);
+		socket.on("player_died", handlePlayerDied);
 
 		const intervalId = window.setInterval(() => {
-			const snapshot = game.getInventorySnapshot();
-			const pointer = game.getCastlePointerSnapshot();
+			const snapshot =
+				game.getInventorySnapshot();
+
+			const pointer =
+				game.getCastlePointerSnapshot();
 
 			if (snapshot)
 				setInventory(snapshot);
@@ -168,6 +224,7 @@ export default function GameCanvas({
 			socket.off("player_left", handlePlayerLeft);
 			socket.off("player_hp", handlePlayerHP);
 			socket.off("player_attacked", handlePlayerAttacked);
+			socket.off("player_died", handlePlayerDied);
 			socket.off("resource_collected", handleResourceCollected);
 			socket.off("resource_spawned", handleResourceSpawned);
 			socket.off("join_error", handleJoinError);
@@ -179,6 +236,43 @@ export default function GameCanvas({
 		};
 	}, [joinedData]);
 
+	useEffect(() => {
+		function handleEscape(event: KeyboardEvent) {
+			if (
+				event.key !== "Escape" ||
+				paused
+			)
+				return;
+
+			pauseGame();
+		}
+
+		window.addEventListener(
+			"keydown",
+			handleEscape,
+		);
+
+		return () => {
+			window.removeEventListener(
+				"keydown",
+				handleEscape,
+			);
+		};
+	}, [paused]);
+
+	function handleLeave() {
+		gameRef.current?.destroy();
+		gameRef.current = null;
+
+		/*
+		 * For now this only destroys the local game.
+		 *
+		 * We will add socket.emit("leave_room")
+		 * when the backend leave_room event exists.
+		 */
+		window.location.reload();
+	}
+
 	return (
 		<div className="relative h-screen w-screen overflow-hidden">
 			<div
@@ -188,11 +282,11 @@ export default function GameCanvas({
 
 			{castlePointer && (
 				<div
-					className="pointer-events-none absolute right-[18px] top-[18px] grid min-w-[140px] justify-items-center gap-1 rounded-[18px] border border-white/15 bg-[#0a1016]/75 px-4 py-3.5 text-[#f4f7fb] shadow-[0_16px_40px_rgba(0,0,0,0.28)] backdrop-blur-xl"
-					aria-label="Castle direction"
+					className="pointer-events-none absolute left-1/2 top-[18px] -translate-x-1/2 grid min-w-[140px] justify-items-center gap-1 rounded-[18px] border border-white/15 bg-[#0a1016]/75 px-4 py-3.5 text-[#f4f7fb] shadow-[0_16px_40px_rgba(0,0,0,0.28)] backdrop-blur-xl"
+					aria-label={t("castleDirection")}
 				>
 					<div className="text-xs font-medium uppercase tracking-[0.16em] text-white/70">
-						Castle
+						{t("castle")}
 					</div>
 
 					<div
@@ -206,8 +300,8 @@ export default function GameCanvas({
 
 					<div className="text-[13px] font-semibold text-white/85">
 						{castlePointer.visible
-							? `${castlePointer.direction} · ${castlePointer.bearingDegrees.toFixed(0)}° · ${castlePointer.distance.toFixed(1)} tiles away`
-							: "You are here"}
+							? `${castlePointer.direction} · ${castlePointer.bearingDegrees.toFixed(0)}° · ${castlePointer.distance.toFixed(1)} ${t("tilesAway")}`
+							: t("youAreHere")}
 					</div>
 				</div>
 			)}
@@ -224,7 +318,10 @@ export default function GameCanvas({
 							style={{
 								width: `${Math.max(
 									0,
-									Math.min(100, hp),
+									Math.min(
+										100,
+										hp,
+									),
 								)}%`,
 							}}
 						/>
@@ -232,11 +329,57 @@ export default function GameCanvas({
 				</div>
 			</div>
 
+			{!spectating && (
+				<div className="absolute right-4 top-4 z-50">
+					<button
+						type="button"
+						onClick={pauseGame}
+						className="rounded-xl border border-white/15 bg-[#0a1016]/75 px-4 py-2 text-sm font-bold text-white shadow-lg backdrop-blur-xl transition hover:bg-white/10"
+						aria-label="Open game menu"
+					>
+						☰ {t("menu")}
+					</button>
+				</div>
+			)}
+
 			<div className="pointer-events-none absolute inset-0 flex items-end justify-center px-4 pb-6">
 				<div className="pointer-events-auto">
 					<Inventory counts={inventory} />
 				</div>
 			</div>
+
+			{!spectating && paused && (
+				<GamePauseMenu
+					roomCode={joinedData.room.code}
+					onResume={resumeGame}
+					onLeave={handleLeave}
+				/>
+			)}
+			{spectating && (
+				<div className="absolute left-1/2 top-3 z-[100] -translate-x-1/2">
+						<div className="w-80 rounded-2xl border border-white/10 bg-[#081016]/90 p-5 text-center text-white shadow-2xl backdrop-blur-xl">
+							<div className="mb-2 text-3xl">
+								💀
+							</div>
+
+							<h2 className="mb-1 text-2xl font-bold">
+								{t("youDied")}
+							</h2>
+
+							<p className="mb-4 text-sm text-white/50">
+								{t("spectating")}
+							</p>
+
+							<button
+								type="button"
+								onClick={handleLeave}
+								className="w-full rounded-xl bg-red-500 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-red-600"
+							>
+								 {t("leaveGame")}
+							</button>
+						</div>
+					</div>
+			)}
 		</div>
 	);
 }
