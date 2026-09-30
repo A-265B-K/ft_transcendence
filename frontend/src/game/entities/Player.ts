@@ -78,10 +78,22 @@ export class Player {
         let moveX = 0;
         let moveY = 0;
 
-        if (input.up) moveY -= 1;
-        if (input.down) moveY += 1;
-        if (input.left) moveX -= 1;
-        if (input.right) moveX += 1;
+        if (input.up) {
+			moveX -= 1;
+			moveY -= 1;
+		}
+		if (input.down) {
+			moveX += 1;
+			moveY += 1;
+		} 
+		if (input.left) {
+			moveX -= 0.25;
+			moveY += 0.25;
+		} 
+		if (input.right) {
+			moveX += 0.25;
+			moveY -= 0.25;
+		}
 
         const magnitude = Math.hypot(moveX, moveY);
         if (magnitude > 0) {
@@ -115,14 +127,17 @@ export class Player {
     }
 
     private updateDirection(moveX: number, moveY: number) {
-        const newDirection =
-            Math.abs(moveX) > Math.abs(moveY)
-                ? moveX < 0 ? "left" : "right"
-                : moveY < 0 ? "up" : "down";
+        const tileMoveX = moveX - moveY;
+		const tileMoveY = moveY + moveX;
 
-        if (newDirection === this.direction) {
-            return;
-        }
+		const newDirection =
+    				Math.abs(tileMoveX) > Math.abs(tileMoveY)
+        		? tileMoveX < 0
+        		    ? "left"
+        		    : "right"
+        		: tileMoveY < 0
+        		    ? "up"
+        		    : "down";
 
         this.direction = newDirection;
         this.setWalkAnimation();

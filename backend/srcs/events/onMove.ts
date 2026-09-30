@@ -2,10 +2,9 @@ import { players, rooms, type Room, type Player } from "../state/gameState.js"
 import { PLAYER_RADIUS, PLAYER_MAX_SPEED, MOVE_TOLERANCE_SECONDS, MOVE_MAX_ELAPSED_SECONDS, MAP_WIDTH, MAP_HEIGHT } from "../constants.js"
 import type { Socket, SocketUser, Vec2 } from "../types.js"
 
-type Pos = { x: number; y: number };
 type Resource = Room["map"]["resourceSpawns"][number];
 
-function getDistance(a: Pos, b: Pos): number {
+function getDistance(a: Vec2, b: Vec2): number {
 	const dx = a.x - b.x;
 	const dy = a.y - b.y;
 	return Math.sqrt(dx * dx + dy * dy);
@@ -15,7 +14,7 @@ function getDistance(a: Pos, b: Pos): number {
 // player could actually reach, given how much time passed since their
 // last move. Also advances player.lastMoveAt as a side effect, so time
 // keeps flowing even while movement is being rejected.
-function isMovingTooFast(player: Player, pos: Pos): boolean {
+function isMovingTooFast(player: Player, pos: Vec2): boolean {
 	const now = Date.now();
 	const elapsedSeconds = Math.min(
 		(now - player.lastMoveAt) / 1000,
@@ -29,7 +28,7 @@ function isMovingTooFast(player: Player, pos: Pos): boolean {
 	return getDistance({ x: player.x, y: player.y }, pos) > maxDistance;
 }
 
-function isCollidingWithOtherPlayer(room: Room, selfUserId: string, pos: Pos): boolean {
+function isCollidingWithOtherPlayer(room: Room, selfUserId: string, pos: Vec2): boolean {
 	for (const otherPlayer of room.players) {
 		if (otherPlayer.userId === selfUserId ||
 			otherPlayer.isDead) continue;
@@ -41,7 +40,7 @@ function isCollidingWithOtherPlayer(room: Room, selfUserId: string, pos: Pos): b
 	return false;
 }
 
-function isOutOfBounds(pos: Pos): boolean {
+function isOutOfBounds(pos: Vec2): boolean {
 
 	if (pos.x < 0 || pos.x > MAP_WIDTH ||
 		pos.y < 0 || pos.y > MAP_HEIGHT) {
@@ -50,7 +49,7 @@ function isOutOfBounds(pos: Pos): boolean {
 	return false;
 }
 
-function isCollidingWithCastle(room: Room, selfSlot: number, pos: Pos): boolean {
+function isCollidingWithOccupiedCastle(room: Room, selfSlot: number, pos: Vec2): boolean {
 	for (const castle of room.map.castleZones) {
 		const isOccupied = room.players.some(p => p.slot === castle.playerSlot && !p.isDead);
 		if (!isOccupied) continue;
@@ -63,7 +62,7 @@ function isCollidingWithCastle(room: Room, selfSlot: number, pos: Pos): boolean 
 	return false;
 }
 
-function tryCollectResource(room: Room, player: Player, pos: Pos) {
+function tryCollectResource(room: Room, player: Player, pos: Vec2) {
 	if (player.isDead)
 		return;
 	for (const resource of room.map.resourceSpawns) {
