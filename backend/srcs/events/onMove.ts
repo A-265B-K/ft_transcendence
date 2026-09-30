@@ -109,7 +109,7 @@ function scheduleResourceRespawn(socket: Socket, roomId: string, resource: Resou
 function positionIsAllowed(player: Player, user: SocketUser, room: Room, pos: Vec2): boolean {
 	return !(isOutOfBounds(pos) || (!player.isDead
 			&& (isCollidingWithOtherPlayer(room, user.id, pos)
-				|| isCollidingWithCastle(room, player.slot, pos)
+				|| isCollidingWithOccupiedCastle(room, player.slot, pos)
 		)));
 }
 
