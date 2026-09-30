@@ -1,3 +1,5 @@
+import { t } from 'i18next';
+
 type InventoryCounts = {
     wood: number;
     iron: number;

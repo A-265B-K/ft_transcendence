@@ -8,5 +8,4 @@ export type GameMenuProps = {
     };
 
     onLogout: () => void;
-    onStartGame: (data: JoinedPayload) => void;
 };

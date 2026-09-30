@@ -77,10 +77,22 @@ export class Player {
         let moveX = 0;
         let moveY = 0;
 
-        if (input.up) moveY -= 1;
-        if (input.down) moveY += 1;
-        if (input.left) moveX -= 1;
-        if (input.right) moveX += 1;
+        if (input.up) {
+            moveX -= 1;
+            moveY -= 1;
+        }
+        if (input.down) {
+            moveX += 1;
+            moveY += 1;
+        }
+        if (input.left) {
+            moveX -= 0.25;
+            moveY += 0.25;
+        }
+        if (input.right) {
+            moveX += 0.25;
+            moveY -= 0.25;
+        }
 
         const magnitude = Math.hypot(moveX, moveY);
         if (magnitude > 0) {
@@ -125,12 +137,10 @@ export class Player {
                   ? 'up'
                   : 'down';
 
-        if (newDirection === this.direction) {
-            return;
+        if (newDirection !== this.direction || !this.sprite.playing) {
+            this.direction = newDirection;
+            this.setWalkAnimation();
         }
-
-        this.direction = newDirection;
-        this.setWalkAnimation();
     }
 
     private setWalkAnimation() {
