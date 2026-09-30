@@ -1,6 +1,7 @@
 import { connectSocket } from '../socket';
 import { useEffect, useState } from 'react';
 import type { JoinedPayload } from '../types/game';
+import { t } from 'i18next';
 
 type LobbyRoom = {
     roomId: string;
@@ -96,7 +97,7 @@ export default function JoinRoom({ onBack, onJoined }: JoinRoomProps) {
         const code = roomCode.trim().toUpperCase();
 
         if (!code) {
-            setError('Enter a room code.');
+            setError('enterRoomCode');
             return;
         }
 
@@ -125,19 +126,21 @@ export default function JoinRoom({ onBack, onJoined }: JoinRoomProps) {
     return (
         <div className="grid min-h-screen place-items-center bg-linear-to-b from-[#10212a] to-[#081016] text-[#f4f7fb]">
             <div className="w-full max-w-md rounded-3xl border border-white/10 bg-[#081016]/80 p-8 text-center shadow-2xl backdrop-blur-md">
-                <h2 className="mb-2 text-2xl font-bold">Join Room</h2>
+                <h2 className="mb-2 text-2xl font-bold">{t('joinRoom')}</h2>
 
-                <p className="mb-6 text-white/60">Game Lobby</p>
+                <p className="mb-6 text-white/60">{t('gameLobby')}</p>
 
                 {error && (
                     <div className="mb-4 rounded-xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm text-red-300">
-                        {error}
+                        {t(error)}
                     </div>
                 )}
 
                 <div className="grid gap-3">
                     <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-bold">Available Rooms</h3>
+                        <h3 className="text-lg font-bold">
+                            {t('availableRooms')}
+                        </h3>
 
                         <button
                             type="button"
@@ -145,18 +148,18 @@ export default function JoinRoom({ onBack, onJoined }: JoinRoomProps) {
                             disabled={loading}
                             className="text-sm text-white/50 transition hover:text-white"
                         >
-                            Refresh
+                            {t('refresh')}
                         </button>
                     </div>
 
                     {rooms.length === 0 ? (
                         <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-6">
                             <p className="text-sm text-white/50">
-                                No rooms available.
+                                {t('noRooms')}
                             </p>
 
                             <p className="mt-1 text-xs text-white/30">
-                                Create a room and invite your friends.
+                                {t('inviteFriends')}
                             </p>
                         </div>
                     ) : (
@@ -173,12 +176,12 @@ export default function JoinRoom({ onBack, onJoined }: JoinRoomProps) {
 
                                         <p className="text-sm text-white/50">
                                             {room.playerCount} /{' '}
-                                            {room.maxPlayers} players
+                                            {room.maxPlayers} {t('players')}
                                         </p>
 
                                         {room.code && (
                                             <p className="mt-1 text-xs text-white/30">
-                                                Code: {room.code}
+                                                {t('code')}: {room.code}
                                             </p>
                                         )}
                                     </div>
@@ -194,7 +197,7 @@ export default function JoinRoom({ onBack, onJoined }: JoinRoomProps) {
                                         }
                                         className="ml-3 rounded-xl bg-[#ffcf5c] px-4 py-2 font-bold text-[#10212a] transition hover:brightness-110 disabled:opacity-40"
                                     >
-                                        Join
+                                        {t('join')}
                                     </button>
                                 </div>
                             ))}
@@ -208,7 +211,7 @@ export default function JoinRoom({ onBack, onJoined }: JoinRoomProps) {
                             onChange={(event) =>
                                 setRoomCode(event.target.value)
                             }
-                            placeholder="Room code"
+                            placeholder={t('roomCode')}
                             maxLength={6}
                             disabled={loading}
                             className="min-w-0 flex-1 rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-center uppercase outline-none placeholder:text-white/30 focus:border-[#ffcf5c] disabled:opacity-50"
@@ -220,7 +223,7 @@ export default function JoinRoom({ onBack, onJoined }: JoinRoomProps) {
                             disabled={loading}
                             className="rounded-xl border border-white/15 bg-white/5 px-4 py-3 font-bold transition hover:bg-white/10 disabled:opacity-50"
                         >
-                            Join
+                            {t('join')}
                         </button>
                     </div>
 
@@ -230,7 +233,7 @@ export default function JoinRoom({ onBack, onJoined }: JoinRoomProps) {
                         disabled={loading}
                         className="mt-3 rounded-xl border border-white/15 bg-transparent px-4 py-3 text-[#f4f7fb] transition hover:bg-white/10"
                     >
-                        Back
+                        {t('back')}
                     </button>
                 </div>
             </div>
