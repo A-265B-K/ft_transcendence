@@ -100,7 +100,7 @@ jobs:
         run: npm run format:check     
 
       - name: Linter
-       run: npm run lint 
+        run: npm run lint 
 
       - name: Try to compile backend
         run: npm run build
