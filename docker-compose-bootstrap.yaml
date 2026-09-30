@@ -1,0 +1,10 @@
+services:
+  postgres:
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets:
+      - postgres_password
+
+secrets:
+  postgres_password:
+    file: ${BOOTSTRAP_POSTGRES_PASSWORD_FILE:?BOOTSTRAP_POSTGRES_PASSWORD_FILE is not set}

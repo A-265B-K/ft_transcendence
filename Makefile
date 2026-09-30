@@ -2,18 +2,18 @@ all: prod
 
 prod:
 	@mkdir -p ./backups/backups
-	@docker compose up -d
+	./scripts/start.sh
 	@echo Game reachable at https://localhost:8443/
 
 dev:
 	@mkdir -p ./backups/backups
-	@docker compose -f docker-compose-dev.yaml up
+	./scripts/start-dev.sh
 
 down:
-	@docker compose down
+	./scripts/stop.sh
 
 restart:
-	@docker compose restart
+	./scripts/restart.sh
 	@echo Game reachable at https://localhost:8443/
 
 cleanimages: 

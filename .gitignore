@@ -80,3 +80,8 @@ AGENTS.md
 .DS_Store
 backups/backups
 frontend/dist
+
+# Secrets
+.secret
+.vault_secrets
+.backend_vault_token

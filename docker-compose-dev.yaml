@@ -11,6 +11,7 @@ services:
         timeout: 3s
         retries: 10
         start_period: 10s
+
     backend:
       build:
         context: ./backend
@@ -18,9 +19,6 @@ services:
       volumes:
         - ./backend:/workspace/app
       environment:
-        POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is not set}
-        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is not set}
-        POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is not set}
         EMAIL_USER: ${EMAIL_USER:?EMAIL_USER is not set}
         EMAIL_PASSWORD: ${EMAIL_PASSWORD:?EMAIL_PASSWORD is not set}
         HOSTNAME: ${HOSTNAME:?HOSTNAME is not set}
@@ -30,6 +28,8 @@ services:
         timeout: 3s
         retries: 10
         start_period: 10s
+      secrets:
+       - backend_vault_token
 
     nginx_dev:
       build: 
@@ -44,6 +44,7 @@ services:
           condition: service_healthy
       ports:
         - "8443:443"
+
     postgres:
       image: postgres:18.4
       volumes:
@@ -51,7 +52,6 @@ services:
         - ./postgres/init:/docker-entrypoint-initdb.d:ro
       environment:
         POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is not set}
-        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is not set}
         POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is not set}
       healthcheck:
         test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
@@ -63,7 +63,7 @@ services:
       build: ./postgres/exporter
       environment:
         POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is not set}
-        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is not set}
+        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
         POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is not set}
 
     nginx_exporter:
@@ -90,7 +90,7 @@ services:
       image: grafana/grafana:13.0-slim
       environment:
         GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:?GRAFANA_ADMIN_USER is not set}
-        GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD is not set}
+        GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-}
         GF_LOG_LEVEL: warn
         GF_SERVER_SERVE_FROM_SUB_PATH: "true"
         GF_SERVER_ROOT_URL: "https://monitoring.localhost:8443/"
@@ -114,7 +114,7 @@ services:
         - ./backups/backups:/app/backups
       environment:
         POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is not set}
-        PGPASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is not set}
+        PGPASSWORD: ${POSTGRES_PASSWORD:-}
         POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is not set}
       depends_on:
         prometheus:
@@ -122,7 +122,51 @@ services:
         postgres:
           condition: service_healthy
 
+    vault-init:
+      image: hashicorp/vault:1.20.4
+      user: "0:0"
+      volumes:
+        - vault_data:/vault/data
+      command:
+        - sh
+        - -c
+        - |
+          chown -R 100:1000 /vault/data
+
+    vault:
+      image: hashicorp/vault:1.20.4
+      container_name: vault
+      restart: unless-stopped
+      depends_on:
+        vault-init:
+          condition: service_completed_successfully
+      cap_add:
+        - IPC_LOCK
+      ports:
+        - "127.0.0.1:8200:8200"
+      environment:
+        VAULT_ADDR: http://127.0.0.1:8200
+      volumes:
+        - vault_data:/vault/data
+        - ./vault/config/vault.hcl:/vault/config/vault.hcl:ro
+      healthcheck:
+        test:
+          [
+            "CMD-SHELL",
+            "wget -q -O /dev/null 'http://127.0.0.1:8200/v1/sys/health?sealedcode=200&uninitcode=200'"
+          ]
+        interval: 5s
+        timeout: 3s
+        retries: 10
+      command: vault server -config=/vault/config/vault.hcl
+
 volumes:
   prometheus:
   grafana:
   postgres_data:
+    name: ${POSTGRES_VOLUME_NAME:-ft_transcendence_postgres_data}
+  vault_data:
+
+secrets:
+  backend_vault_token:
+    file: ./.backend_vault_token
