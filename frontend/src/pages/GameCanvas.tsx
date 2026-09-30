@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Game } from "../game/Game";
 import { type CastlePointer } from "./CastlePointer";
 import type { JoinedPayload } from "../types/game";
-import { connectSocket } from "../socket";
+import { connectSocket, disconnectSocket } from "../socket";
 import type { GameCanvasProps } from "./gameCanvasProps";
 import { useTranslation } from "react-i18next";
 
@@ -264,13 +264,11 @@ export default function GameCanvas({
 		gameRef.current?.destroy();
 		gameRef.current = null;
 
-		/*
-		 * For now this only destroys the local game.
-		 *
-		 * We will add socket.emit("leave_room")
-		 * when the backend leave_room event exists.
-		 */
-		window.location.reload();
+		localStorage.removeItem("gameRoomId");
+
+		disconnectSocket();
+
+		window.location.href = "/game-menu";
 	}
 
 	return (
