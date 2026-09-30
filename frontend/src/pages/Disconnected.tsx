@@ -1,5 +1,3 @@
-import { t } from 'i18next';
-
 export default function Disconnected() {
     return (
         <div className="grid min-h-screen place-items-center bg-linear-to-b from-[#10212a] to-[#081016] p-6">

@@ -1,5 +1,3 @@
-import { type JoinedPayload } from '../types/game';
-
 export type GameMenuProps = {
     user: {
         id: number;
