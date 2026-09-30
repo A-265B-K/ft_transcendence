@@ -16,7 +16,7 @@ export const tileHeight = 32; // Height of each tile
  * @returns Screen X position
  */
 export function isoX(x: number, y: number) {
-  return (x - y) * (tileWidth / 2);
+    return (x - y) * (tileWidth / 2);
 }
 
 /**
@@ -26,5 +26,5 @@ export function isoX(x: number, y: number) {
  * @returns Screen Y position
  */
 export function isoY(x: number, y: number) {
-  return (x + y) * (tileHeight / 2);
+    return (x + y) * (tileHeight / 2);
 }

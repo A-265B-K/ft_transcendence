@@ -1,72 +1,72 @@
 <!doctype html>
 
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Verify 2FA</title>
-  </head>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Verify 2FA</title>
+    </head>
 
-  <body>
-    <h1>Two-Factor Authentication</h1>
+    <body>
+        <h1>Two-Factor Authentication</h1>
 
-    <label>
-      Email:
-      <input id="email" type="email" />
-    </label>
+        <label>
+            Email:
+            <input id="email" type="email" />
+        </label>
 
-    <br /><br />
+        <br /><br />
 
-    <label>
-      Authentication code:
-      <input id="token" type="text" maxlength="6" />
-    </label>
+        <label>
+            Authentication code:
+            <input id="token" type="text" maxlength="6" />
+        </label>
 
-    <br /><br />
+        <br /><br />
 
-    <button onclick="verify2FA()">Verify</button>
+        <button onclick="verify2FA()">Verify</button>
 
-    <p id="message"></p>
+        <p id="message"></p>
 
-    <script>
-      async function verify2FA() {
-        const email = document.getElementById("email").value;
+        <script>
+            async function verify2FA() {
+                const email = document.getElementById('email').value;
 
-        const token = document.getElementById("token").value;
+                const token = document.getElementById('token').value;
 
-        if (!email || !token) {
-          document.getElementById("message").innerText =
-            "Email and authentication code are required";
+                if (!email || !token) {
+                    document.getElementById('message').innerText =
+                        'Email and authentication code are required';
 
-          return;
-        }
+                    return;
+                }
 
-        const response = await fetch("/api/auth/2fa/verify", {
-          method: "POST",
+                const response = await fetch('/api/auth/2fa/verify', {
+                    method: 'POST',
 
-          headers: {
-            "Content-Type": "application/json",
-          },
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
 
-          body: JSON.stringify({
-            token,
-          }),
-        });
+                    body: JSON.stringify({
+                        token
+                    })
+                });
 
-        const data = await response.json();
-        console.log("[2FA frontend] status:", response.status);
-        console.log("[2FA frontend] data:", data);
-        if (data.ok) {
-          document.getElementById("message").innerText =
-            "2FA verified successfully. Redirecting...";
+                const data = await response.json();
+                console.log('[2FA frontend] status:', response.status);
+                console.log('[2FA frontend] data:', data);
+                if (data.ok) {
+                    document.getElementById('message').innerText =
+                        '2FA verified successfully. Redirecting...';
 
-          setTimeout(() => {
-            window.location.href = "/";
-          }, 1000);
-        } else {
-          document.getElementById("message").innerText =
-            data.message ?? "2FA verification failed";
-        }
-      }
-    </script>
-  </body>
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 1000);
+                } else {
+                    document.getElementById('message').innerText =
+                        data.message ?? '2FA verification failed';
+                }
+            }
+        </script>
+    </body>
 </html>

@@ -1,25 +1,28 @@
 # ft_transcendence — Castle Game: WebSocket API
 
-Documentation of the real-time communication protocol between frontend and backend, based on the current implementation (`onConnection.js`).
+Documentation of the real-time communication protocol between frontend and
+backend, based on the current implementation (`onConnection.js`).
 
 **Base URL:** `http://localhost:3000` (adjust for production/Docker environment)
-**Client lib:** `socket.io-client` (or the script served at `/socket.io/socket.io.js`)
+**Client lib:** `socket.io-client` (or the script served at
+`/socket.io/socket.io.js`)
 
 ---
 
 ## Connecting
 
 ```js
-import { io } from "socket.io-client";
+import { io } from 'socket.io-client';
 
-const socket = io("http://localhost:3000");
+const socket = io('http://localhost:3000');
 ```
 
-The connection handshake happens automatically. Use the native `connect` event to know when it's ready:
+The connection handshake happens automatically. Use the native `connect` event
+to know when it's ready:
 
 ```js
-socket.on("connect", () => {
-  console.log("connected:", socket.id);
+socket.on('connect', () => {
+    console.log('connected:', socket.id);
 });
 ```
 
@@ -31,7 +34,8 @@ socket.on("connect", () => {
 | ------ | ------- | -------------- | ------------------- |
 | GET    | `/ping` | `{ ok: true }` | Server health-check |
 
-> No game-related REST routes exist yet — all match logic currently lives in WebSocket events.
+> No game-related REST routes exist yet — all match logic currently lives in
+> WebSocket events.
 
 ---
 
@@ -39,12 +43,13 @@ socket.on("connect", () => {
 
 ### `join` — Frontend → Server
 
-Requests entry into a room. The server automatically decides the room (finds one with space or creates a new one) — the frontend does **not** choose the room.
+Requests entry into a room. The server automatically decides the room (finds one
+with space or creates a new one) — the frontend does **not** choose the room.
 
 ```js
-socket.emit("join", {
-  id: "user-001", // user identifier (not yet validated against real auth)
-  username: "flima", // display name
+socket.emit('join', {
+    id: 'user-001', // user identifier (not yet validated against real auth)
+    username: 'flima' // display name
 });
 ```
 
@@ -57,12 +62,13 @@ socket.emit("join", {
 
 ### `joined` — Server → Frontend (direct reply)
 
-Confirmation sent **only to the player who joined**, containing their initial state and assigned room.
+Confirmation sent **only to the player who joined**, containing their initial
+state and assigned room.
 
 ```js
-socket.on("joined", (data) => {
-  console.log(data.roomId);
-  console.log(data.player);
+socket.on('joined', (data) => {
+    console.log(data.roomId);
+    console.log(data.player);
 });
 ```
 
@@ -70,15 +76,15 @@ socket.on("joined", (data) => {
 
 ```json
 {
-  "roomId": "room-uuid",
-  "player": {
-    "userID": "user-001",
-    "socketID": "abc123",
-    "username": "flima",
-    "hp": 100,
-    "x": 0,
-    "y": 0
-  }
+    "roomId": "room-uuid",
+    "player": {
+        "userID": "user-001",
+        "socketID": "abc123",
+        "username": "flima",
+        "hp": 100,
+        "x": 0,
+        "y": 0
+    }
 }
 ```
 
@@ -86,11 +92,12 @@ socket.on("joined", (data) => {
 
 ### `player_joined` — Server → rest of the room
 
-Notifies the players **already present in the room** that someone new has joined. **Not sent to the player who just joined** (only to the others).
+Notifies the players **already present in the room** that someone new has
+joined. **Not sent to the player who just joined** (only to the others).
 
 ```js
-socket.on("player_joined", (username) => {
-  console.log(`${username} joined the room`);
+socket.on('player_joined', (username) => {
+    console.log(`${username} joined the room`);
 });
 ```
 
@@ -103,56 +110,64 @@ socket.on("player_joined", (username) => {
 Notifies the room that a player has left (disconnected).
 
 ```js
-socket.on("player_left", (username) => {
-  console.log(`${username} left the room`);
+socket.on('player_left', (username) => {
+    console.log(`${username} left the room`);
 });
 ```
 
 **Payload:** `username: string` (name only)
 
-> ⚠️ **Known limitation:** since this only identifies by `username`, two players with the same name in the same room can't be distinguished by this event. This should stop being an issue once real authentication (OAuth) guarantees unique names.
+> ⚠️ **Known limitation:** since this only identifies by `username`, two players
+> with the same name in the same room can't be distinguished by this event. This
+> should stop being an issue once real authentication (OAuth) guarantees unique
+> names.
 
 ---
 
 ### `disconnect` — native Socket.IO event
 
-Automatically triggered by the client when the connection is lost (tab closed, network drop, server restart). Doesn't need to be emitted manually — only listened to if the frontend wants to react:
+Automatically triggered by the client when the connection is lost (tab closed,
+network drop, server restart). Doesn't need to be emitted manually — only
+listened to if the frontend wants to react:
 
 ```js
-socket.on("disconnect", (reason) => {
-  console.log("disconnected:", reason);
+socket.on('disconnect', (reason) => {
+    console.log('disconnected:', reason);
 });
 ```
 
-> **Note:** there is currently no session recovery. If the socket drops and reconnects, the server treats it as a **brand-new player** (new `socketID`, may land in a different room, loses `hp`/position). Reconnection with state preservation is planned for Sprint 3.
+> **Note:** there is currently no session recovery. If the socket drops and
+> reconnects, the server treats it as a **brand-new player** (new `socketID`,
+> may land in a different room, loses `hp`/position). Reconnection with state
+> preservation is planned for Sprint 3.
 
 ---
 
 ## Minimal integration example
 
 ```js
-import { io } from "socket.io-client";
+import { io } from 'socket.io-client';
 
-const socket = io("http://localhost:3000");
+const socket = io('http://localhost:3000');
 
-socket.on("connect", () => {
-  socket.emit("join", { id: currentUser.id, username: currentUser.name });
+socket.on('connect', () => {
+    socket.emit('join', { id: currentUser.id, username: currentUser.name });
 });
 
-socket.on("joined", ({ roomId, player }) => {
-  // save roomId and player in frontend state
+socket.on('joined', ({ roomId, player }) => {
+    // save roomId and player in frontend state
 });
 
-socket.on("player_joined", (username) => {
-  // update the room's player list
+socket.on('player_joined', (username) => {
+    // update the room's player list
 });
 
-socket.on("player_left", (username) => {
-  // remove player from the list
+socket.on('player_left', (username) => {
+    // remove player from the list
 });
 
-socket.on("disconnect", (reason) => {
-  // show a "reconnecting" state in the UI
+socket.on('disconnect', (reason) => {
+    // show a "reconnecting" state in the UI
 });
 ```
 
@@ -160,7 +175,8 @@ socket.on("disconnect", (reason) => {
 
 ## Not yet implemented (planned)
 
-These events **don't exist** on the server yet — don't use them in production, they're listed here for alignment on what's coming next:
+These events **don't exist** on the server yet — don't use them in production,
+they're listed here for alignment on what's coming next:
 
 | Event             | Direction         | Expected payload                                  | Description                                       |
 | ----------------- | ----------------- | ------------------------------------------------- | ------------------------------------------------- |
@@ -172,4 +188,5 @@ These events **don't exist** on the server yet — don't use them in production,
 
 ---
 
-_Last updated: based on `onConnection.js` after adjusting `player_left` to return `username` (consistent with `player_joined`)._
+_Last updated: based on `onConnection.js` after adjusting `player_left` to
+return `username` (consistent with `player_joined`)._

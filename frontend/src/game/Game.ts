@@ -1,118 +1,123 @@
-import { Application, Ticker } from "pixi.js";
-import { loadGameTextures } from "./assets/loadGameTextures";
-import { GameScene } from "./scenes/GameScene";
-import { Input } from "./systems/Input";
-import { type JoinedPayload } from "../types/game";
-import type { Socket } from "socket.io-client";
-import type { HarvestableTile } from "./world/tileResource";
+import { Application, Ticker } from 'pixi.js';
+import { loadGameTextures } from './assets/loadGameTextures';
+import { GameScene } from './scenes/GameScene';
+import { Input } from './systems/Input';
+import { type JoinedPayload } from '../types/game';
+import type { Socket } from 'socket.io-client';
+import type { HarvestableTile } from './world/tileResource';
 
 export class Game {
-  readonly app: Application;
-  readonly input = new Input();
+    readonly app: Application;
+    readonly input = new Input();
 
-  private scene?: GameScene;
+    private scene?: GameScene;
 
-  private readonly handleTick = (ticker: Ticker) => {
-    if (!this.scene) return;
+    private readonly handleTick = (ticker: Ticker) => {
+        if (!this.scene) return;
 
-    const deltaSeconds = ticker.deltaMS / 1000;
-    this.scene.player.weapon?.update(deltaSeconds);
-    for (const enemy of this.scene.remotePlayers.values())
-      enemy.weapon?.update(deltaSeconds);
-    this.scene.update(
-      this.input.state,
-      this.app.renderer.width,
-      this.app.renderer.height,
-      deltaSeconds,
-    );
-  };
-
-  constructor() {
-    this.app = new Application();
-    this.input.Attack = () => {
-      this.scene?.requestattack();
+        const deltaSeconds = ticker.deltaMS / 1000;
+        this.scene.player.weapon?.update(deltaSeconds);
+        for (const enemy of this.scene.remotePlayers.values())
+            enemy.weapon?.update(deltaSeconds);
+        this.scene.update(
+            this.input.state,
+            this.app.renderer.width,
+            this.app.renderer.height,
+            deltaSeconds
+        );
     };
-  }
 
-  addRemotePlayer(player: JoinedPayload["players"][number]) {
-    this.scene?.addRemotePlayer(player);
-  }
+    constructor() {
+        this.app = new Application();
+        this.input.Attack = () => {
+            this.scene?.requestattack();
+        };
+    }
 
-  addRemoteCastle(player: JoinedPayload["players"][number]) {
-    this.scene?.addRemoteCastle(player);
-  }
+    addRemotePlayer(player: JoinedPayload['players'][number]) {
+        this.scene?.addRemotePlayer(player);
+    }
 
-  removeRemoteCastle(player: JoinedPayload["players"][number]) {
-    this.scene?.removeRemoteCastle(player);
-  }
+    addRemoteCastle(player: JoinedPayload['players'][number]) {
+        this.scene?.addRemoteCastle(player);
+    }
 
-  removeRemotePlayer(player: JoinedPayload["players"][number]) {
-    this.scene?.removeRemotePlayer(player);
-  }
+    removeRemoteCastle(player: JoinedPayload['players'][number]) {
+        this.scene?.removeRemoteCastle(player);
+    }
 
-  updateRemotePlayer(socketId: string, x: number, y: number, moving: boolean) {
-    this.scene?.updateRemotePlayer(socketId, x, y, moving);
-  }
+    removeRemotePlayer(player: JoinedPayload['players'][number]) {
+        this.scene?.removeRemotePlayer(player);
+    }
 
-  RemotePlayerattack(
-    socketId: string,
-    direction: "up" | "down" | "left" | "right",
-  ): void {
-    this.scene?.RemotePlayerattack(socketId, direction);
-  }
+    updateRemotePlayer(
+        socketId: string,
+        x: number,
+        y: number,
+        moving: boolean
+    ) {
+        this.scene?.updateRemotePlayer(socketId, x, y, moving);
+    }
 
-  correctLocalPlayer(x: number, y: number) {
-    this.scene?.correctLocalPlayer(x, y);
-  }
+    RemotePlayerattack(
+        socketId: string,
+        direction: 'up' | 'down' | 'left' | 'right'
+    ): void {
+        this.scene?.RemotePlayerattack(socketId, direction);
+    }
 
-  removeResourceTile(x: number, y: number) {
-    this.scene?.removeResourceTile(x, y);
-  }
+    correctLocalPlayer(x: number, y: number) {
+        this.scene?.correctLocalPlayer(x, y);
+    }
 
-  syncInventory(wood: number, iron: number) {
-    this.scene?.syncInventory(wood, iron);
-  }
+    removeResourceTile(x: number, y: number) {
+        this.scene?.removeResourceTile(x, y);
+    }
 
-  spawnResourceTile(x: number, y: number, type: HarvestableTile) {
-    this.scene?.spawnResourceTile(x, y, type);
-  }
+    syncInventory(wood: number, iron: number) {
+        this.scene?.syncInventory(wood, iron);
+    }
 
-  updateRemoteCastle(socketId: string, level: number) {
-    this.scene?.updateRemoteCastle(socketId, level);
-  }
+    spawnResourceTile(x: number, y: number, type: HarvestableTile) {
+        this.scene?.spawnResourceTile(x, y, type);
+    }
 
-  async start(
-    container: HTMLDivElement,
-    joinedData: JoinedPayload,
-    socket: Socket,
-  ) {
-    await this.app.init({
-      resizeTo: window, // Automatically resize canvas with window
-      autoDensity: true, // Handle high-DPI displays
-      resolution: window.devicePixelRatio || 1, // Device pixel ratio for crisp rendering
-    });
+    updateRemoteCastle(socketId: string, level: number) {
+        this.scene?.updateRemoteCastle(socketId, level);
+    }
 
-    container.appendChild(this.app.canvas);
+    async start(
+        container: HTMLDivElement,
+        joinedData: JoinedPayload,
+        socket: Socket
+    ) {
+        await this.app.init({
+            resizeTo: window, // Automatically resize canvas with window
+            autoDensity: true, // Handle high-DPI displays
+            resolution: window.devicePixelRatio || 1 // Device pixel ratio for crisp rendering
+        });
 
-    const textures = await loadGameTextures();
+        container.appendChild(this.app.canvas);
 
-    this.scene = new GameScene(textures, joinedData, socket);
+        const textures = await loadGameTextures();
 
-    this.app.stage.addChild(this.scene.world);
-    this.app.ticker.add(this.handleTick);
-  }
+        this.scene = new GameScene(textures, joinedData, socket);
 
-  destroy() {
-    this.app.ticker.remove(this.handleTick);
-    this.input.destroy();
-    this.app.destroy();
-  }
+        this.app.stage.addChild(this.scene.world);
+        this.app.ticker.add(this.handleTick);
+    }
 
-  getInventorySnapshot() {
-    return this.scene?.player.inventory.snapshot() ?? null;
-  }
+    destroy() {
+        this.app.ticker.remove(this.handleTick);
+        this.input.destroy();
+        this.app.destroy();
+    }
 
-  getCastlePointerSnapshot() {
-    return this.scene?.getCastlePointer() ?? null;
-  }
+    getInventorySnapshot() {
+        return this.scene?.player.inventory.snapshot() ?? null;
+    }
+
+    getCastlePointerSnapshot() {
+        return this.scene?.getCastlePointer() ?? null;
+    }
 }

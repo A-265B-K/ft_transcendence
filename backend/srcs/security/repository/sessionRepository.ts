@@ -1,11 +1,11 @@
-import { query } from "../auth/db.js";
+import { query } from '../auth/db.js';
 
 export async function insertSessionById(
-  session_id_hash: string,
-  userId: number,
+    session_id_hash: string,
+    userId: number
 ) {
-  await query(
-    `
+    await query(
+        `
 		INSERT INTO session_
 		(
 			session_id_hash,
@@ -19,17 +19,17 @@ export async function insertSessionById(
 			NOW() + INTERVAL '1 day'
 		)
 		`,
-    [session_id_hash, userId],
-  );
-  return session_id_hash;
+        [session_id_hash, userId]
+    );
+    return session_id_hash;
 }
 
 export async function insertTemporary2FAstate(
-  temporary_auth_hash: string,
-  userId: number,
+    temporary_auth_hash: string,
+    userId: number
 ) {
-  await query(
-    `
+    await query(
+        `
 		INSERT INTO session_
 		(
 			temporary_auth_hash,
@@ -43,16 +43,16 @@ export async function insertTemporary2FAstate(
 			NOW() + INTERVAL '5 minutes'
 		)
 		`,
-    [temporary_auth_hash, userId],
-  );
-  return temporary_auth_hash;
+        [temporary_auth_hash, userId]
+    );
+    return temporary_auth_hash;
 }
 
 export async function selectTemporary2FAFromSession(
-  temporary_auth_hash: string,
+    temporary_auth_hash: string
 ) {
-  const result = await query(
-    `
+    const result = await query(
+        `
 		SELECT
 			users.id,
 			users.username,
@@ -63,14 +63,14 @@ export async function selectTemporary2FAFromSession(
 		WHERE session_.temporary_auth_hash = $1
 		AND session_.temporary_auth_expires_at > NOW()
 		`,
-    [temporary_auth_hash],
-  );
-  return result.rows[0] || null;
+        [temporary_auth_hash]
+    );
+    return result.rows[0] || null;
 }
 
 export async function selectFromSession(session_id_hash: string) {
-  const result = await query(
-    `
+    const result = await query(
+        `
 		SELECT
 			users.id,
 			users.username,
@@ -81,41 +81,41 @@ export async function selectFromSession(session_id_hash: string) {
 		WHERE session_.session_id_hash = $1
 		AND session_.expires_at > NOW()
 		`,
-    [session_id_hash],
-  );
-  return result.rows[0] || null;
+        [session_id_hash]
+    );
+    return result.rows[0] || null;
 }
 
 export async function deleteSessionById(session_id_hash: string) {
-  await query(
-    `
+    await query(
+        `
 		DELETE FROM session_
 		WHERE session_id_hash = $1
 		`,
-    [session_id_hash],
-  );
-  return true;
+        [session_id_hash]
+    );
+    return true;
 }
 
 export async function deleteTemporary2FA(temporary_auth_hash: string) {
-  await query(
-    `
+    await query(
+        `
 		DELETE FROM session_
 		WHERE temporary_auth_hash = $1
 		`,
-    [temporary_auth_hash],
-  );
-  return true;
+        [temporary_auth_hash]
+    );
+    return true;
 }
 
 export async function deleteTemporary2FAByUserId(userId: string) {
-  await query(
-    `
+    await query(
+        `
 		DELETE FROM session_
 		WHERE user_id = $1
 		  AND temporary_auth_hash IS NOT NULL
 		  AND temporary_auth_expires_at > NOW()
 		`,
-    [userId],
-  );
+        [userId]
+    );
 }
