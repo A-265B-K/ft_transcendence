@@ -1,12 +1,15 @@
-import { getattackstats} from "./Attackstats.js"
-import { istargethit } from "./Detection.js"
-import type { Player, Room } from "../state/gameState.js"
-import type { Socket, SocketUser } from "../types.js"
+import { getattackstats } from './Attackstats.js';
+import { istargethit } from './Detection.js';
+import type { Player, Room } from '../state/gameState.js';
+import type { Socket, SocketUser } from '../types.js';
 
-function isvaliddirection(direction : unknown)
-{
-    return (direction === "up"	 || direction === "down"
-                || direction === "left" || direction === "right")
+function isvaliddirection(direction: unknown) {
+    return (
+        direction === 'up' ||
+        direction === 'down' ||
+        direction === 'left' ||
+        direction === 'right'
+    );
 }
 
 export function handleattack(
@@ -16,49 +19,60 @@ export function handleattack(
     currentRoomId: string | null,
     rooms: Record<string, Room>,
     socket: Socket
-): void
-{
-    const player = players[user.id]
-        if (player && player.equippedweapon && player.hp > 0 && !player.isDead)
-        {
-            const direction = data.direction
-            if (isvaliddirection(direction) && currentRoomId)
-            {
-                const room = rooms[currentRoomId]
-                if (room)
-                {
-                    const stats = getattackstats(player.equippedweapon);
-                    if (stats)
-                    {
-                        socket.to(currentRoomId).emit("player_attacked",
-                        {
-                            socketId: player.socketId,
-                            direction: direction,
-                        });
-                        for (const target of room.players)
-                        {
-                            if (target.userId !== player.userId && target.hp > 0 && !target.isDead)
-                            {
-                                if (istargethit(player, target, stats, direction))
-                                {
-                                    target.hp = Math.max(0, target.hp - stats.damage)
-                                    socket.nsp.to(target.socketId).emit("player_hp", {
+): void {
+    const player = players[user.id];
+    if (player && player.equippedweapon && player.hp > 0 && !player.isDead) {
+        const direction = data.direction;
+        if (isvaliddirection(direction) && currentRoomId) {
+            const room = rooms[currentRoomId];
+            if (room) {
+                const stats = getattackstats(player.equippedweapon);
+                if (stats) {
+                    socket.to(currentRoomId).emit('player_attacked', {
+                        socketId: player.socketId,
+                        direction: direction
+                    });
+                    for (const target of room.players) {
+                        if (
+                            target.userId !== player.userId &&
+                            target.hp > 0 &&
+                            !target.isDead
+                        ) {
+                            if (istargethit(player, target, stats, direction)) {
+                                target.hp = Math.max(
+                                    0,
+                                    target.hp - stats.damage
+                                );
+                                socket.nsp
+                                    .to(target.socketId)
+                                    .emit('player_hp', {
                                         socketId: target.socketId,
-                                        hp: target.hp,
+                                        hp: target.hp
                                     });
-                                    if (target.hp === 0) {
-                                        target.isDead = true;
-                                        socket.nsp.to(target.socketId).emit("player_died");
-                                        socket.nsp.to(currentRoomId).emit("player_died", {
-                                                player: target,
+                                if (target.hp === 0) {
+                                    target.isDead = true;
+                                    socket.nsp
+                                        .to(target.socketId)
+                                        .emit('player_died');
+                                    socket.nsp
+                                        .to(currentRoomId)
+                                        .emit('player_died', {
+                                            player: target
                                         });
-                                    }
-                                    console.log(player.username, "hit", target.username, "for", stats.damage, "damage")
                                 }
+                                console.log(
+                                    player.username,
+                                    'hit',
+                                    target.username,
+                                    'for',
+                                    stats.damage,
+                                    'damage'
+                                );
                             }
                         }
                     }
                 }
             }
         }
+    }
 }

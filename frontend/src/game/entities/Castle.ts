@@ -1,12 +1,6 @@
-import {
-    Container,
-    Sprite,
-    Text,
-    TextStyle,
-    Texture
-} from "pixi.js";
-import { MAP_SIZE } from "../config/constants";
-import { isoX, isoY } from "../world/iso";
+import { Container, Sprite, Text, TextStyle, Texture } from 'pixi.js';
+import { MAP_SIZE } from '../config/constants';
+import { isoX, isoY } from '../world/iso';
 
 export type CastleTextures = {
     castle1: Texture;
@@ -29,24 +23,22 @@ export class Castle {
     constructor(textures: CastleTextures) {
         this.textures = textures;
         this.container = new Container();
-        this.sprite = new Sprite(
-            textures.castle1
-        );
+        this.sprite = new Sprite(textures.castle1);
         this.sprite.anchor.set(0.5, 0.6);
-        this.sprite.scale.set(0.84, 0.60);
+        this.sprite.scale.set(0.84, 0.6);
         this.levelLabel = new Text({
-            text: "Lv. 1",
+            text: 'Lv. 1',
             style: new TextStyle({
-                fontFamily: "Inter, system-ui, sans-serif",
+                fontFamily: 'Inter, system-ui, sans-serif',
                 fontSize: 16,
-                fontWeight: "700",
-                fill: "#f4f7fb",
+                fontWeight: '700',
+                fill: '#f4f7fb',
                 stroke: {
-                    color: "#081016",
+                    color: '#081016',
                     width: 4
                 },
-                align: "center",
-            }),
+                align: 'center'
+            })
         });
 
         this.levelLabel.anchor.set(0.5, 2);
@@ -57,22 +49,15 @@ export class Castle {
     }
 
     placeAt(gridX: number, gridY: number) {
-        this.gridX = Math.max(
-            0,
-            Math.min(MAP_SIZE - 2, gridX)
-        );
+        this.gridX = Math.max(0, Math.min(MAP_SIZE - 2, gridX));
 
-        this.gridY = Math.max(
-            0,
-            Math.min(MAP_SIZE - 2, gridY)
-        );
+        this.gridY = Math.max(0, Math.min(MAP_SIZE - 2, gridY));
 
         this.syncPosition();
     }
 
     setLevel(level: number) {
-        if (level < 1 || level > 4)
-            return;
+        if (level < 1 || level > 4) return;
 
         this.level = level;
 
@@ -85,7 +70,7 @@ export class Castle {
             1: this.textures.castle1,
             2: this.textures.castle2,
             3: this.textures.castle3,
-            4: this.textures.castle4,
+            4: this.textures.castle4
         };
 
         this.sprite.texture = textures[this.level];
@@ -93,23 +78,18 @@ export class Castle {
 
     private refreshLabel() {
         if (this.level >= 4) {
-            this.levelLabel.text =
-                `Lv. ${this.level}\nMax level`;
+            this.levelLabel.text = `Lv. ${this.level}\nMax level`;
             return;
         }
 
-        this.levelLabel.text =
-            `Lv. ${this.level}`;
+        this.levelLabel.text = `Lv. ${this.level}`;
     }
 
     private syncPosition() {
-        this.container.x =
-            isoX(this.gridX, this.gridY);
+        this.container.x = isoX(this.gridX, this.gridY);
 
-        this.container.y =
-            isoY(this.gridX, this.gridY);
+        this.container.y = isoY(this.gridX, this.gridY);
 
-        this.container.zIndex =
-            this.gridX + this.gridY;
+        this.container.zIndex = this.gridX + this.gridY;
     }
 }
