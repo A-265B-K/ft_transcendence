@@ -1,12 +1,10 @@
-import { Container, Sprite, Texture } from "pixi.js";
-import { isoX, isoY, tileHeight, tileWidth } from "./iso";
-import { TileType } from "./TileType";
-import { isHarvestableTile, type HarvestableTile } from "./tileResource";
-import type { JoinedPayload } from "../../types/game";
-
+import { Container, Sprite, Texture } from 'pixi.js';
+import { isoX, isoY, tileHeight, tileWidth } from './iso';
+import { TileType } from './TileType';
+import { isHarvestableTile, type HarvestableTile } from './tileResource';
+import type { JoinedPayload } from '../../types/game';
 
 export class GameMap {
-
     container: Container;
     textures: Record<TileType, Texture>;
     map: TileType[][] = [];
@@ -20,15 +18,14 @@ export class GameMap {
         grass: Texture,
         wood: Texture,
         iron: Texture,
-        serverMap: JoinedPayload["map"]
+        serverMap: JoinedPayload['map']
     ) {
-
         this.container = new Container();
         this.container.sortableChildren = true;
         this.textures = {
             [TileType.Grass]: grass,
             [TileType.Wood]: wood,
-            [TileType.Iron]: iron,
+            [TileType.Iron]: iron
         };
 
         this.width = serverMap.width;
@@ -38,31 +35,24 @@ export class GameMap {
             Create empty grass map.
             Server decides where resources are.
         */
-        this.map = Array.from(
-            { length: this.height },
-            () => Array(this.width).fill(TileType.Grass)
+        this.map = Array.from({ length: this.height }, () =>
+            Array(this.width).fill(TileType.Grass)
         );
 
         /*
             Add server resources
         */
         for (const resource of serverMap.resourceSpawns) {
-
             const x = Math.floor(resource.x);
             const y = Math.floor(resource.y);
 
-            if (
-                x < 0 ||
-                y < 0 ||
-                x >= this.width ||
-                y >= this.height
-            ) {
+            if (x < 0 || y < 0 || x >= this.width || y >= this.height) {
                 continue;
             }
-            if (resource.type === "wood") {
+            if (resource.type === 'wood') {
                 this.map[y][x] = TileType.Wood;
             }
-            if (resource.type === "iron") {
+            if (resource.type === 'iron') {
                 this.map[y][x] = TileType.Iron;
             }
         }
@@ -70,10 +60,7 @@ export class GameMap {
         const poolSize = 3500;
 
         for (let i = 0; i < poolSize; i++) {
-
-            const tile = new Sprite(
-                this.textures[TileType.Grass]
-            );
+            const tile = new Sprite(this.textures[TileType.Grass]);
 
             tile.width = tileWidth;
             tile.height = tileHeight;
@@ -100,44 +87,24 @@ export class GameMap {
             this.screenToGrid(left, top),
             this.screenToGrid(right, top),
             this.screenToGrid(left, bottom),
-            this.screenToGrid(right, bottom),
+            this.screenToGrid(right, bottom)
         ];
 
         const minGridX =
-            Math.floor(
-                Math.min(...corners.map(c => c.x))
-            )
-            - this.viewPadding;
+            Math.floor(Math.min(...corners.map((c) => c.x))) - this.viewPadding;
 
         const maxGridX =
-            Math.ceil(
-                Math.max(...corners.map(c => c.x))
-            )
-            + this.viewPadding;
+            Math.ceil(Math.max(...corners.map((c) => c.x))) + this.viewPadding;
 
         const minGridY =
-            Math.floor(
-                Math.min(...corners.map(c => c.y))
-            )
-            - this.viewPadding;
+            Math.floor(Math.min(...corners.map((c) => c.y))) - this.viewPadding;
 
         const maxGridY =
-            Math.ceil(
-                Math.max(...corners.map(c => c.y))
-            )
-            + this.viewPadding;
+            Math.ceil(Math.max(...corners.map((c) => c.y))) + this.viewPadding;
 
-        for (let x = minGridX; x <= maxGridX; x++
-        ) {
-
-            for ( let y = minGridY; y <= maxGridY; y++
-            ) {
-                if (
-                    x < 0 ||
-                    y < 0 ||
-                    x >= this.width ||
-                    y >= this.height
-                ) {
+        for (let x = minGridX; x <= maxGridX; x++) {
+            for (let y = minGridY; y <= maxGridY; y++) {
+                if (x < 0 || y < 0 || x >= this.width || y >= this.height) {
                     continue;
                 }
 
@@ -158,8 +125,7 @@ export class GameMap {
 
                 const grassTile = this.tiles[index++];
 
-                if (!grassTile)
-                    return;
+                if (!grassTile) return;
 
                 grassTile.visible = true;
                 grassTile.texture = this.textures[TileType.Grass];
@@ -176,12 +142,9 @@ export class GameMap {
                 const tileType = this.map[y]?.[x] ?? TileType.Grass;
 
                 if (tileType !== TileType.Grass) {
+                    const objectTile = this.tiles[index++];
 
-                    const objectTile =
-                        this.tiles[index++];
-
-                    if (!objectTile)
-                        return;
+                    if (!objectTile) return;
 
                     objectTile.visible = true;
                     objectTile.texture = this.textures[tileType];
@@ -197,69 +160,41 @@ export class GameMap {
         /*
             Hide unused sprites
         */
-        for ( ; index < this.tiles.length; index++
-        ) {
+        for (; index < this.tiles.length; index++) {
             this.tiles[index].visible = false;
         }
     }
 
-    harvestAt(x:number, y:number
-    ): HarvestableTile | null {
-
-        if (
-            x < 0 ||
-            y < 0 ||
-            x >= this.width ||
-            y >= this.height
-        ) {
+    harvestAt(x: number, y: number): HarvestableTile | null {
+        if (x < 0 || y < 0 || x >= this.width || y >= this.height) {
             return null;
         }
         const tileType = this.map[y]?.[x] ?? TileType.Grass;
 
         if (!isHarvestableTile(tileType)) {
-
             return null;
-
         }
-        this.map[y][x] =
-            TileType.Grass;
+        this.map[y][x] = TileType.Grass;
         return tileType;
     }
-    clearTile(x:number, y:number) {
-        if (
-            x < 0 ||
-            y < 0 ||
-            x >= this.width ||
-            y >= this.height
-        ) {
+    clearTile(x: number, y: number) {
+        if (x < 0 || y < 0 || x >= this.width || y >= this.height) {
             return;
         }
-        this.map[y][x] =
-            TileType.Grass;
+        this.map[y][x] = TileType.Grass;
     }
 
     setResourceTile(x: number, y: number, type: HarvestableTile) {
-        if (
-            x < 0 ||
-            y < 0 ||
-            x >= this.width ||
-            y >= this.height
-        ) {
+        if (x < 0 || y < 0 || x >= this.width || y >= this.height) {
             return;
         }
         this.map[y][x] = type;
     }
 
-    private screenToGrid(
-        screenX:number,
-        screenY:number
-    ) {
-
+    private screenToGrid(screenX: number, screenY: number) {
         return {
-            x:
-                screenY / tileHeight + screenX / tileWidth,
-            y:
-                screenY / tileHeight - screenX / tileWidth,
+            x: screenY / tileHeight + screenX / tileWidth,
+            y: screenY / tileHeight - screenX / tileWidth
         };
     }
 }

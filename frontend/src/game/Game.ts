@@ -1,10 +1,10 @@
-import { Application, Ticker } from "pixi.js";
-import { loadGameTextures } from "./assets/loadGameTextures";
-import { GameScene } from "./scenes/GameScene";
-import { Input } from "./systems/Input";
-import { type JoinedPayload } from "../types/game";
-import type { Socket } from "socket.io-client";
-import type { HarvestableTile } from "./world/tileResource";
+import { Application, Ticker } from 'pixi.js';
+import { loadGameTextures } from './assets/loadGameTextures';
+import { GameScene } from './scenes/GameScene';
+import { Input } from './systems/Input';
+import { type JoinedPayload } from '../types/game';
+import type { Socket } from 'socket.io-client';
+import type { HarvestableTile } from './world/tileResource';
 
 export class Game {
     readonly app: Application;
@@ -13,50 +13,40 @@ export class Game {
     private scene?: GameScene;
 
     private readonly handleTick = (ticker: Ticker) => {
-        if (!this.scene) 
-            return;
+        if (!this.scene) return;
 
         const deltaSeconds = ticker.deltaMS / 1000;
         this.scene.player.weapon?.update(deltaSeconds);
-        for ( const enemy of this.scene.remotePlayers.values())
+        for (const enemy of this.scene.remotePlayers.values())
             enemy.weapon?.update(deltaSeconds);
         this.scene.update(
             this.input.state,
             this.app.renderer.width,
             this.app.renderer.height,
-            deltaSeconds,
+            deltaSeconds
         );
-
     };
 
     constructor() {
         this.app = new Application();
         this.input.Attack = () => {
-        this.scene?.requestattack();
-};
+            this.scene?.requestattack();
+        };
     }
 
-    addRemotePlayer(
-        player: JoinedPayload["players"][number]
-    ) {
+    addRemotePlayer(player: JoinedPayload['players'][number]) {
         this.scene?.addRemotePlayer(player);
     }
 
-    addRemoteCastle(
-        player: JoinedPayload["players"][number]
-    ) {
+    addRemoteCastle(player: JoinedPayload['players'][number]) {
         this.scene?.addRemoteCastle(player);
     }
 
-    removeRemoteCastle(
-        player: JoinedPayload["players"][number]
-    ) {
+    removeRemoteCastle(player: JoinedPayload['players'][number]) {
         this.scene?.removeRemoteCastle(player);
     }
 
-    removeRemotePlayer(
-        player: JoinedPayload["players"][number]
-    ) {
+    removeRemotePlayer(player: JoinedPayload['players'][number]) {
         this.scene?.removeRemotePlayer(player);
     }
 
@@ -64,13 +54,15 @@ export class Game {
         socketId: string,
         x: number,
         y: number,
-        moving: boolean,
+        moving: boolean
     ) {
         this.scene?.updateRemotePlayer(socketId, x, y, moving);
     }
 
-    RemotePlayerattack(socketId: string, direction: "up" | "down" | "left" | "right"): void
-    {
+    RemotePlayerattack(
+        socketId: string,
+        direction: 'up' | 'down' | 'left' | 'right'
+    ): void {
         this.scene?.RemotePlayerattack(socketId, direction);
     }
 
@@ -94,24 +86,23 @@ export class Game {
         this.scene?.updateRemoteCastle(socketId, level);
     }
 
-    async start(container: HTMLDivElement, joinedData: JoinedPayload, socket: Socket) {
-
+    async start(
+        container: HTMLDivElement,
+        joinedData: JoinedPayload,
+        socket: Socket
+    ) {
         await this.app.init({
-            resizeTo: window,           // Automatically resize canvas with window
-            autoDensity: true,          // Handle high-DPI displays
-            resolution: window.devicePixelRatio || 1, // Device pixel ratio for crisp rendering
+            resizeTo: window, // Automatically resize canvas with window
+            autoDensity: true, // Handle high-DPI displays
+            resolution: window.devicePixelRatio || 1 // Device pixel ratio for crisp rendering
         });
 
         container.appendChild(this.app.canvas);
 
         const textures = await loadGameTextures();
 
-        this.scene = new GameScene(
-            textures,
-            joinedData,
-            socket,
-        );
-        
+        this.scene = new GameScene(textures, joinedData, socket);
+
         this.app.stage.addChild(this.scene.world);
         this.app.ticker.add(this.handleTick);
     }
@@ -131,7 +122,7 @@ export class Game {
     }
 
     pause() {
-	    this.app.ticker.stop();
+        this.app.ticker.stop();
     }
 
     resume() {
@@ -139,6 +130,6 @@ export class Game {
     }
 
     setPlayerDead(): void {
-	    this.scene?.setPlayerDead();
+        this.scene?.setPlayerDead();
     }
 }

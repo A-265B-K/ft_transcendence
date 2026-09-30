@@ -1,49 +1,49 @@
-import { Assets, Texture } from "pixi.js";
-import castle1Url from "../../assets/castle1.png";
-import castle2Url from "../../assets/castle2.png";
-import castle3Url from "../../assets/castle3.png";
-import castle4Url from "../../assets/castle4.png";
-import down1Url from "../../assets/down1.png";
-import down2Url from "../../assets/down2.png";
-import grassUrl from "../../assets/grass.png";
-import ironUrl from "../../assets/iron.png";
-import left1Url from "../../assets/left1.png";
-import left2Url from "../../assets/left2.png";
-import right1Url from "../../assets/right1.png";
-import right2Url from "../../assets/right2.png";
-import standUrl from "../../assets/stand.png";
-import up1Url from "../../assets/up1.png";
-import up2Url from "../../assets/up2.png";
-import woodUrl from "../../assets/wood.png";
-import sword1Url from "../../assets/weapons/sword/sword1.png";
-import sword2Url from "../../assets/weapons/sword/sword2.png";
-import sword3Url from "../../assets/weapons/sword/sword3.png";
-import sword4Url from "../../assets/weapons/sword/sword4.png";
+import { Assets, Texture } from 'pixi.js';
+import castle1Url from '../../assets/castle1.png';
+import castle2Url from '../../assets/castle2.png';
+import castle3Url from '../../assets/castle3.png';
+import castle4Url from '../../assets/castle4.png';
+import down1Url from '../../assets/down1.png';
+import down2Url from '../../assets/down2.png';
+import grassUrl from '../../assets/grass.png';
+import ironUrl from '../../assets/iron.png';
+import left1Url from '../../assets/left1.png';
+import left2Url from '../../assets/left2.png';
+import right1Url from '../../assets/right1.png';
+import right2Url from '../../assets/right2.png';
+import standUrl from '../../assets/stand.png';
+import up1Url from '../../assets/up1.png';
+import up2Url from '../../assets/up2.png';
+import woodUrl from '../../assets/wood.png';
+import sword1Url from '../../assets/weapons/sword/sword1.png';
+import sword2Url from '../../assets/weapons/sword/sword2.png';
+import sword3Url from '../../assets/weapons/sword/sword3.png';
+import sword4Url from '../../assets/weapons/sword/sword4.png';
 
-import axe1Url from "../../assets/weapons/axe/axe1.png";
-import axe2Url from "../../assets/weapons/axe/axe2.png";
-import axe3Url from "../../assets/weapons/axe/axe3.png";
-import axe4Url from "../../assets/weapons/axe/axe4.png";
+import axe1Url from '../../assets/weapons/axe/axe1.png';
+import axe2Url from '../../assets/weapons/axe/axe2.png';
+import axe3Url from '../../assets/weapons/axe/axe3.png';
+import axe4Url from '../../assets/weapons/axe/axe4.png';
 
-import bow1Url from "../../assets/weapons/bow/bow1.png";
-import bow2Url from "../../assets/weapons/bow/bow2.png";
-import bow3Url from "../../assets/weapons/bow/bow3.png";
-import bow4Url from "../../assets/weapons/bow/bow4.png";
+import bow1Url from '../../assets/weapons/bow/bow1.png';
+import bow2Url from '../../assets/weapons/bow/bow2.png';
+import bow3Url from '../../assets/weapons/bow/bow3.png';
+import bow4Url from '../../assets/weapons/bow/bow4.png';
 
-import dagger1Url from "../../assets/weapons/dagger/dagger1.png";
-import dagger2Url from "../../assets/weapons/dagger/dagger2.png";
-import dagger3Url from "../../assets/weapons/dagger/dagger3.png";
-import dagger4Url from "../../assets/weapons/dagger/dagger4.png";
+import dagger1Url from '../../assets/weapons/dagger/dagger1.png';
+import dagger2Url from '../../assets/weapons/dagger/dagger2.png';
+import dagger3Url from '../../assets/weapons/dagger/dagger3.png';
+import dagger4Url from '../../assets/weapons/dagger/dagger4.png';
 
-import spear1Url from "../../assets/weapons/spear/spear1.png";
-import spear2Url from "../../assets/weapons/spear/spear2.png";
-import spear3Url from "../../assets/weapons/spear/spear3.png";
-import spear4Url from "../../assets/weapons/spear/spear4.png";
+import spear1Url from '../../assets/weapons/spear/spear1.png';
+import spear2Url from '../../assets/weapons/spear/spear2.png';
+import spear3Url from '../../assets/weapons/spear/spear3.png';
+import spear4Url from '../../assets/weapons/spear/spear4.png';
 
-import staff1Url from "../../assets/weapons/staff/staff1.png";
-import staff2Url from "../../assets/weapons/staff/staff2.png";
-import staff3Url from "../../assets/weapons/staff/staff3.png";
-import staff4Url from "../../assets/weapons/staff/staff4.png";
+import staff1Url from '../../assets/weapons/staff/staff1.png';
+import staff2Url from '../../assets/weapons/staff/staff2.png';
+import staff3Url from '../../assets/weapons/staff/staff3.png';
+import staff4Url from '../../assets/weapons/staff/staff4.png';
 
 export type GameTextures = {
     grass: Texture;
@@ -97,7 +97,6 @@ export type GameTextures = {
     staff2: Texture;
     staff3: Texture;
     staff4: Texture;
-
 };
 
 export async function loadGameTextures(): Promise<GameTextures> {
@@ -151,7 +150,7 @@ export async function loadGameTextures(): Promise<GameTextures> {
         staff1,
         staff2,
         staff3,
-        staff4,
+        staff4
     ] = await Promise.all([
         Assets.load(grassUrl),
         Assets.load(woodUrl),
@@ -204,7 +203,7 @@ export async function loadGameTextures(): Promise<GameTextures> {
         Assets.load<Texture>(staff1Url),
         Assets.load<Texture>(staff2Url),
         Assets.load<Texture>(staff3Url),
-        Assets.load<Texture>(staff4Url),
+        Assets.load<Texture>(staff4Url)
     ]);
 
     return {
@@ -217,7 +216,7 @@ export async function loadGameTextures(): Promise<GameTextures> {
         castle4,
 
         playerDown1,
-        playerDown2,   
+        playerDown2,
 
         playerUp1,
         playerUp2,
@@ -257,6 +256,6 @@ export async function loadGameTextures(): Promise<GameTextures> {
         staff1,
         staff2,
         staff3,
-        staff4,
+        staff4
     };
 }
