@@ -1,237 +1,336 @@
-import GameCanvas from "./pages/GameCanvas";
-import Menu from "./pages/Menu";
-import Signup from "./pages/SignUp";
-import LogIn from "./pages/Login";
-import GameMenu from "./pages/GameMenu";
-import Disconnected from "./pages/Disconnected";
-import { useState, useEffect } from "react";
-import { type JoinedPayload } from "./types/game";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-import { disconnectSocket } from "./socket";
+import GameCanvas from './pages/GameCanvas';
+import Menu from './pages/Menu';
+import Signup from './pages/SignUp';
+import LogIn from './pages/Login';
+import GameMenu from './pages/GameMenu';
+import Disconnected from './pages/Disconnected';
+import { useState, useEffect } from 'react';
+import { type JoinedPayload } from './types/game';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import { connectSocket, disconnectSocket } from './socket';
+import {
+    BrowserRouter,
+    useNavigate,
+    Routes,
+    Route,
+    Navigate
+} from 'react-router-dom';
+import CreateRoom from './pages/CreateRoom';
+import Room from './pages/Room';
+import JoinRoom from './pages/JoinRoom';
 
 type User = {
-	id: number;
-	username: string;
-	email: string;
+    id: number;
+    username: string;
+    email: string;
 };
 
 export default function App() {
+    return (
+        <BrowserRouter>
+            <AppContent />
+        </BrowserRouter>
+    );
+}
 
-	const [screen, setScreen] = useState<
-			| "loading" 
-			| "menu" 
-			| "signup" 
-			| "login" 
-			| "gameMenu" 
-			| "game" 
-			| "forgotPassword" 
-			| "resetPassword" 
-			| "disconnected"
-	>("loading");
+function AppContent() {
+    const navigate = useNavigate();
+    const [loading, setLoading] = useState(true);
+    const [user, setUser] = useState<User | null>(null);
+    const [joinedData, setJoinedData] = useState<JoinedPayload | null>(null);
+    const [restoringGame, setRestoringGame] = useState(() =>
+        Boolean(localStorage.getItem('gameRoomId'))
+    );
 
-	const [user, setUser] = useState<User | null>(null);
-	const [joinedData, setJoinedData] = useState<JoinedPayload | null>(null);
+    useEffect(() => {
+        async function checkSession() {
+            try {
+                const response = await fetch('/api/auth/me', {
+                    credentials: 'include'
+                });
 
-	useEffect(() => {
-		const path = window.location.pathname;
+                if (response.ok) {
+                    const data = await response.json();
 
-		if (path === "/reset-password") {
-			setScreen("resetPassword");
-			return;
-		}
+                    console.log('Restored session:', data.user);
 
-		async function checkSession() {
-			try {
-				const response = await fetch("/api/auth/me", {
-					credentials: "include",
-				});
-				if (response.ok) {
+                    setUser(data.user);
+                }
+            } catch (error) {
+                console.log('Session check failed', error);
+            } finally {
+                setLoading(false);
+            }
+        }
+        checkSession();
+    }, []);
 
-					const data = await response.json();
+    useEffect(() => {
+        if (!user) return;
 
-					console.log(
-						"Restored session:",
-						data.user
-					);
-					setUser(data.user);
-					setScreen("gameMenu");
-					return;
-				}
-			} catch(error) {
-				console.log(
-					"Session check failed",
-					error
-				);
-			}
-			setScreen("menu");
-		}
-		checkSession();
-	}, []);
+        const roomId = localStorage.getItem('gameRoomId');
 
-	useEffect(() => {
-		if (!user) {
-			return;
-		}
+        if (!roomId) return;
 
-		let stopped = false;
-		let failedChecks = 0;
+        const socket = connectSocket();
 
-		async function checkServer() {
-			const controller = new AbortController();
+        const handleJoined = (data: JoinedPayload) => {
+            console.log('Restored game room:', data.roomId);
 
-			// Allow requests up to 2 seconds
-			const timeout = window.setTimeout(() => {
-				controller.abort();
-			}, 2000);
+            setJoinedData(data);
+            setRestoringGame(false);
+        };
 
-			try {
-				const response = await fetch("/api/ping", {
-					method: "GET",
-					cache: "no-store",
-					signal: controller.signal,
-				});
+        const handleJoinError = ({ message }: { message: string }) => {
+            console.error('Could not restore game:', message);
 
-				if (!response.ok) {
-					throw new Error(`Health check failed: ${response.status}`);
-				}
+            localStorage.removeItem('gameRoomId');
 
-				failedChecks = 0;
-			} catch (error) {
-				failedChecks += 1;
+            setRestoringGame(false);
+        };
 
-				console.error(
-					`Health check failed ${failedChecks} time(s):`,
-					error
-				);
+        socket.once('joined', handleJoined);
 
-				// Three failures × two seconds between checks
-				if (failedChecks >= 3 && !stopped) {
-					setUser(null);
-					setJoinedData(null);
-					setScreen("disconnected");
-					disconnectSocket();
-				}
-			} finally {
-				window.clearTimeout(timeout);
-			}
-		}
+        socket.once('join_error', handleJoinError);
 
-		checkServer();
+        const joinRoom = () => {
+            socket.emit('join_room', { roomId });
+        };
 
-		const interval = window.setInterval(checkServer, 2000);
+        if (socket.connected) {
+            joinRoom();
+        } else {
+            socket.once('connect', joinRoom);
+        }
 
-		return () => {
-			stopped = true;
-			window.clearInterval(interval);
-		};
-	}, [user]);
+        return () => {
+            socket.off('joined', handleJoined);
+            socket.off('join_error', handleJoinError);
+            socket.off('connect', joinRoom);
+        };
+    }, [user]);
 
+    useEffect(() => {
+        if (!user) {
+            return;
+        }
 
+        let stopped = false;
+        let failedChecks = 0;
 
-	async function logout() {
-		await fetch("/api/auth/logout", {
-			method:"POST",
-			credentials:"include",
-		});
-		setUser(null);
-		setScreen("menu");
-	}
+        async function checkServer() {
+            const controller = new AbortController();
 
-	if (screen === "disconnected") {
-		return (
-			<Disconnected/>
-		);	
-	}
+            // Allow requests up to 2 seconds
+            const timeout = window.setTimeout(() => {
+                controller.abort();
+            }, 2000);
 
-	if(screen === "loading") {
-		return (
-			<div>
-				Checking session...
-			</div>
-		);
-	}
+            try {
+                const response = await fetch('/api/ping', {
+                    method: 'GET',
+                    cache: 'no-store',
+                    signal: controller.signal
+                });
 
-	if(screen === "menu") {
-		return (
-			<Menu
-				onCreateAccount={() => {
-					setScreen("signup");
-				}}
-				onLogin={() => {
-					setScreen("login");
-				}}
-			/>
-		);
-	}
+                if (!response.ok) {
+                    throw new Error(`Health check failed: ${response.status}`);
+                }
 
-	if(screen === "signup") {
-		return (
-			<Signup
-				onBack={() => {
-					setScreen("menu");
-				}}
-			/>
-		);
-	}
+                failedChecks = 0;
+            } catch (error) {
+                failedChecks += 1;
 
-	if (screen === "login") {
-		return (
-			<LogIn
-				onBack={() => {
-					setScreen("menu");
-				}}
-				onLoginSuccess={(loggedUser) => {
-					setUser(loggedUser);
-					setScreen("gameMenu");
-				}}
-				onForgotPassword={() => {
-					setScreen("forgotPassword");
-				}}
-			/>
-		);
-	}
+                console.error(
+                    `Health check failed ${failedChecks} time(s):`,
+                    error
+                );
 
-	if (screen === "forgotPassword") {
-		return (
-			<ForgotPassword
-				onBack={() => {
-					setScreen("login");
-				}}
-			/>
-		);
-	}
+                // Three failures × two seconds between checks
+                if (failedChecks >= 3 && !stopped) {
+                    setUser(null);
+                    setJoinedData(null);
+                    navigate('/disconnected');
+                    disconnectSocket();
+                }
+            } finally {
+                window.clearTimeout(timeout);
+            }
+        }
 
-	if (screen === "resetPassword") {
-	return (
-		<ResetPassword
-			onBack={() => {
-				setScreen("login");
-			}}
-		/>
-		);
-	}
+        checkServer();
 
-	if(screen === "gameMenu" && user) {
-		return (
-			<GameMenu
-			user={user}
-			onStartGame={(data)=>{
-				setJoinedData(data);
-				setScreen("game");
-			}}
-			onLogout={logout}
-			/>
-		);
-	}
+        const interval = window.setInterval(checkServer, 2000);
 
-	if(screen === "game" && user && joinedData) {
-		return (
-			<GameCanvas
-				joinedData={joinedData}
-			/>
-		);
-	}
+        return () => {
+            stopped = true;
+            window.clearInterval(interval);
+        };
+    }, [user, navigate]);
 
-	return null;
+    async function logout() {
+        await fetch('/api/auth/logout', {
+            method: 'POST',
+            credentials: 'include'
+        });
+        setUser(null);
+        navigate('/');
+    }
+
+    if (loading) {
+        return <div>Checking session...</div>;
+    }
+
+    return (
+        <Routes>
+            <Route
+                path="/"
+                element={
+                    <Menu
+                        onCreateAccount={() => {
+                            navigate('/signup');
+                        }}
+                        onLogin={() => {
+                            navigate('/login');
+                        }}
+                    />
+                }
+            />
+
+            <Route
+                path="/signup"
+                element={
+                    <Signup
+                        onBack={() => {
+                            navigate('/');
+                        }}
+                    />
+                }
+            />
+
+            <Route
+                path="/login"
+                element={
+                    <LogIn
+                        onBack={() => {
+                            navigate('/');
+                        }}
+                        onLoginSuccess={(loggedUser) => {
+                            setUser(loggedUser);
+                            navigate('/game-menu');
+                        }}
+                        onForgotPassword={() => {
+                            navigate('/forgot-password');
+                        }}
+                    />
+                }
+            />
+
+            <Route
+                path="/forgot-password"
+                element={
+                    <ForgotPassword
+                        onBack={() => {
+                            navigate('/login');
+                        }}
+                    />
+                }
+            />
+
+            <Route
+                path="/reset-password"
+                element={
+                    <ResetPassword
+                        onBack={() => {
+                            navigate('/login');
+                        }}
+                    />
+                }
+            />
+
+            <Route
+                path="/game-menu"
+                element={
+                    user ? (
+                        <GameMenu user={user} onLogout={logout} />
+                    ) : (
+                        <Navigate to="/login" />
+                    )
+                }
+            />
+
+            <Route
+                path="/game-menu/create-room"
+                element={
+                    user ? (
+                        <CreateRoom
+                            onBack={() => {
+                                navigate('/game-menu');
+                            }}
+                            onCreated={(data) => {
+                                setJoinedData(data);
+                                navigate(`/game-menu/room/${data.roomId}`);
+                            }}
+                        />
+                    ) : (
+                        <Navigate to="/login" />
+                    )
+                }
+            />
+
+            <Route
+                path="/game-menu/join-room"
+                element={
+                    user ? (
+                        <JoinRoom
+                            onBack={() => {
+                                navigate('/game-menu');
+                            }}
+                            onJoined={(data) => {
+                                setJoinedData(data);
+                                navigate(`/game-menu/room/${data.roomId}`);
+                            }}
+                        />
+                    ) : (
+                        <Navigate to="/login" />
+                    )
+                }
+            />
+
+            <Route
+                path="/game-menu/room/:roomId"
+                element={
+                    user ? (
+                        <Room
+                            joinedData={joinedData}
+                            onStartGame={(data) => {
+                                setJoinedData(data);
+                                navigate('/game');
+                            }}
+                        />
+                    ) : (
+                        <Navigate to="/login" />
+                    )
+                }
+            />
+
+            <Route
+                path="/game"
+                element={
+                    restoringGame ? (
+                        <div>Reconnecting to game...</div>
+                    ) : user && joinedData ? (
+                        <GameCanvas joinedData={joinedData} />
+                    ) : (
+                        <Navigate to="/game-menu" />
+                    )
+                }
+            />
+
+            <Route path="/disconnected" element={<Disconnected />} />
+
+            <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+    );
 }
