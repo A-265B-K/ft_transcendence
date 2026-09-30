@@ -31,7 +31,7 @@ function isMovingTooFast(player: Player, pos: Vec2): boolean {
 function isCollidingWithOtherPlayer(room: Room, selfUserId: string, pos: Vec2): boolean {
 	for (const otherPlayer of room.players) {
 		if (otherPlayer.userId === selfUserId ||
-    		otherPlayer.isDead) continue;
+			otherPlayer.isDead) continue;
 
 		if (getDistance(pos, otherPlayer) < PLAYER_RADIUS * 2)
 			return true;
@@ -44,15 +44,13 @@ function isOutOfBounds(pos: Vec2): boolean {
 
 	if (pos.x < 0 || pos.x > MAP_WIDTH ||
 		pos.y < 0 || pos.y > MAP_HEIGHT) {
-			return true;
+		return true;
 	}
 	return false;
 }
 
 function isCollidingWithOccupiedCastle(room: Room, selfSlot: number, pos: Vec2): boolean {
 	for (const castle of room.map.castleZones) {
-		if (castle.playerSlot === selfSlot) continue;
-
 		const isOccupied = room.players.some(p => p.slot === castle.playerSlot && !p.isDead);
 		if (!isOccupied) continue;
 
@@ -108,7 +106,29 @@ function scheduleResourceRespawn(socket: Socket, roomId: string, resource: Resou
 	}, resource.respawnTime * 1000);
 }
 
-const onMove = (socket: Socket, user: SocketUser, roomId: string | null, { x, y }: { x: number; y: number }, moving : boolean) => {
+function positionIsAllowed(player: Player, user: SocketUser, room: Room, pos: Vec2): boolean {
+	return !(isOutOfBounds(pos) || (!player.isDead
+			&& (isCollidingWithOtherPlayer(room, user.id, pos)
+				|| isCollidingWithOccupiedCastle(room, player.slot, pos)
+		)));
+}
+
+function getClosestValidPosition(player: Player, user: SocketUser, room: Room, startPos: Vec2): Vec2 {
+	for (let distance = 0; distance < 100; distance++) {
+		for (let x = startPos.x - distance; x <= startPos.x + distance; x++) {
+			for (let y = startPos.y - distance; y <= startPos.y + distance; y++) {
+				if (positionIsAllowed(player, user, room, { x, y })) {
+					return { x, y };
+				}
+			}
+		}
+	}
+
+	// In case nothing can be found, spawn at 0
+	return { x: 0, y: 0 };
+}
+
+const onMove = (socket: Socket, user: SocketUser, roomId: string | null, { x, y }: { x: number; y: number }, moving: boolean) => {
 
 	const player = players[user.id];
 	if (!player || !roomId)
@@ -119,15 +139,11 @@ const onMove = (socket: Socket, user: SocketUser, roomId: string | null, { x, y 
 
 	const nextPos = { x, y };
 
-  const blocked =
-      isOutOfBounds(nextPos) ||
-      isMovingTooFast(player, nextPos) ||
-      (!player.isDead && (
-          isCollidingWithOtherPlayer(room, user.id, nextPos) ||
-          isCollidingWithOccupiedCastle(room, player.slot, nextPos)
-      ));
-
-	if (!blocked) {
+	if (!positionIsAllowed(player, user, room, { x: player.x, y: player.y })) {
+		const closestValidPos = getClosestValidPosition(player, user, room, { x: player.x, y: player.x });
+		player.x = closestValidPos.x;
+		player.y = closestValidPos.y;
+	} else if (positionIsAllowed(player, user, room, nextPos) && !isMovingTooFast(player, nextPos)) {
 		player.x = x;
 		player.y = y;
 
