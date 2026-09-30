@@ -38,5 +38,9 @@
         "prettier": "^3.9.9",
         "tsx": "^4.23.7",
         "typescript-eslint": "^8.70.1"
+    },
+    "allowScripts": {
+        "bcrypt@6.0.0": true,
+        "esbuild@0.28.2": true
     }
 }
