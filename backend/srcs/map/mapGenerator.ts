@@ -80,7 +80,7 @@ function distance(a: { x: number; y: number }, b: { x: number; y: number }) {
 function isValidPosition(
     pos: { x: number; y: number },
     castleZones: { playerSlot: number; x: number; y: number; radius: number }[],
-    placedObjects: any[],
+    placedObjects: { x: number; y: number }[],
     minDistFromCastle: number,
     minDistFromOthers: number
 ) {
