@@ -1,15 +1,15 @@
 /**
  * Camera System
- * 
+ *
  * Manages the viewport and camera movement.
  * Smoothly follows the player while keeping them centered on screen.
  * Implements bounds checking to prevent showing out-of-map areas.
  */
 
-import { Container } from "pixi.js";
-import { MAP_SIZE } from "../config/constants";
-import { Player } from "../entities/Player";
-import { isoX, isoY, tileHeight, tileWidth } from "../world/iso";
+import { Container } from 'pixi.js';
+import { MAP_SIZE } from '../config/constants';
+import { Player } from '../entities/Player';
+import { isoX, isoY, tileHeight, tileWidth } from '../world/iso';
 
 /**
  * Camera class - manages viewport and smooth player following
@@ -40,7 +40,12 @@ export class Camera {
      * @param screenH - Screen height in pixels
      * @param deltaSeconds - Time since last frame (seconds)
      */
-    update(player: Player, screenW: number, screenH: number, deltaSeconds: number) {
+    update(
+        player: Player,
+        screenW: number,
+        screenH: number,
+        deltaSeconds: number
+    ) {
         // Convert player grid coordinates to isometric world pixel coordinates
         const targetX = isoX(player.gridX, player.gridY);
         const targetY = isoY(player.gridX, player.gridY);
@@ -50,8 +55,8 @@ export class Camera {
         const desiredY = screenH / 2 - targetY;
 
         // Calculate camera bounds to prevent viewing outside the map
-        const minX = screenW - MAP_SIZE * tileWidth / 2;
-        const maxX = MAP_SIZE * tileWidth / 2;
+        const minX = screenW - (MAP_SIZE * tileWidth) / 2;
+        const maxX = (MAP_SIZE * tileWidth) / 2;
         const minY = screenH - (MAP_SIZE * tileHeight - tileHeight / 2);
         const maxY = tileHeight / 2;
 

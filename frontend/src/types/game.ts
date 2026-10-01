@@ -1,4 +1,4 @@
-import { type WeaponType } from "../game/entities/weapons/weapon";
+import { type WeaponType } from '../game/entities/weapons/weapon';
 
 export interface PlayerInventory {
     wood: number;
@@ -15,8 +15,8 @@ export interface PlayerData {
     x: number;
     y: number;
     inventory: PlayerInventory;
-    lastMoveAt: number; 
-    equippedweapon?: WeaponType
+    lastMoveAt: number;
+    equippedweapon?: WeaponType;
 }
 
 export interface SpawnPoint {
@@ -41,7 +41,7 @@ export interface Obstacle {
 }
 
 export interface ResourceSpawn {
-    type: "wood" | "iron";
+    type: 'wood' | 'iron';
     x: number;
     y: number;
 }
@@ -62,11 +62,11 @@ export interface MapData {
 }
 
 export interface LobbyRoom {
-	roomId: string;
-	name: string;
-	code: string;
-	playerCount: number;
-	maxPlayers: number;
+    roomId: string;
+    name: string;
+    code: string;
+    playerCount: number;
+    maxPlayers: number;
 }
 
 export interface JoinedPayload {

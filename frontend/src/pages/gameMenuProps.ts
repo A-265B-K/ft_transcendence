@@ -1,4 +1,3 @@
-
 export type GameMenuProps = {
     user: {
         id: number;
