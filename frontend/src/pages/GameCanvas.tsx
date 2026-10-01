@@ -72,9 +72,12 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             socketId: string;
             hp: number;
         }) {
-            if (socketId !== joinedData.player.socketId) return;
-
-            setHp(hp);
+            if (socketId === joinedData.player.socketId) {
+                setHp(hp);
+                game.playerhitanimation();
+            } else {
+                game.remoteplayerhitanimation(socketId);
+            }
         }
 
         function handleJoinError({ message }: { message: string }) {

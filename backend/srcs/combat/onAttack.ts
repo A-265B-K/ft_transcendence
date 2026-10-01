@@ -43,12 +43,10 @@ export function handleattack(
                                     0,
                                     target.hp - stats.damage
                                 );
-                                socket.nsp
-                                    .to(target.socketId)
-                                    .emit('player_hp', {
-                                        socketId: target.socketId,
-                                        hp: target.hp
-                                    });
+                                socket.nsp.to(currentRoomId).emit('player_hp', {
+                                    socketId: target.socketId,
+                                    hp: target.hp
+                                });
                                 if (target.hp === 0) {
                                     target.isDead = true;
                                     socket.nsp

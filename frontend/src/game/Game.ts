@@ -18,8 +18,10 @@ export class Game {
 
         const deltaSeconds = ticker.deltaMS / 1000;
         this.scene.player.weapon?.update(deltaSeconds);
-        for (const enemy of this.scene.remotePlayers.values())
+        for (const enemy of this.scene.remotePlayers.values()) {
             enemy.weapon?.update(deltaSeconds);
+            enemy.updateHitAnimation(deltaSeconds);
+        }
         this.scene.update(
             this.input.state,
             this.app.renderer.width,
@@ -130,6 +132,12 @@ export class Game {
         return this.scene?.isPlayerNearCastle() ?? false;
     }
 
+    playerhitanimation() {
+        this.scene?.player.hitanimation();
+    }
+    remoteplayerhitanimation(socketId: string) {
+        this.scene?.remotePlayers.get(socketId)?.hitanimation();
+    }
     pause() {
         this.app.ticker.stop();
     }
