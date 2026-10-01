@@ -32,7 +32,7 @@ export class Player {
     };
 
     private lastMoveAt: number;
-    private equippedWeapon: string;
+    private equippedWeapon: WeaponType;
     private nextAttack: number;
 
     constructor(socket: Socket, user: SocketUser, slot: number, spawn: Spawn) {
@@ -97,7 +97,7 @@ export class Player {
         return this.lastMoveAt;
     }
 
-    getEquippedWeapon(): string {
+    getEquippedWeapon(): WeaponType {
         return this.equippedWeapon;
     }
 
@@ -123,7 +123,7 @@ export class Player {
         this.nextAttack = timestamp;
     }
 
-    equipWeapon(weapon: string): void {
+    equipWeapon(weapon: WeaponType): void {
         this.equippedWeapon = weapon;
     }
 

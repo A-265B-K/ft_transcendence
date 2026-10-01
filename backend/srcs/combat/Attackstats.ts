@@ -1,4 +1,4 @@
-import type { WeaponType } from "../player.js";
+import type { WeaponType } from '../player.js';
 
 export type WeaponAttackStats = {
     damage: number;
