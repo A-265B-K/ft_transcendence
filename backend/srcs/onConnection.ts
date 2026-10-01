@@ -39,15 +39,16 @@ const onConnection = async (socket: Socket, roomManager: RoomManager) => {
             reply: (
                 result:
                     | {
-                        success: true;
-                        weapon: string;
-                        inventory: { wood: number; iron: number };
-                    }
+                          success: true;
+                          weapon: string;
+                          inventory: { wood: number; iron: number };
+                      }
                     | { success: false }
             ) => void
         ) => {
             if (
-                typeof data !== 'object' || !currentRoomId ||
+                typeof data !== 'object' ||
+                !currentRoomId ||
                 data === null ||
                 !('weapon' in data) ||
                 (data.weapon !== 'dagger' &&
@@ -60,16 +61,17 @@ const onConnection = async (socket: Socket, roomManager: RoomManager) => {
             }
 
             const room = roomManager.getRoomById(currentRoomId);
+            const weapon = data.weapon;
 
-            const res = room?.craftWeapon(user.id, data);
+            const res = room?.craftWeapon(user.id, weapon);
             if (!res) {
                 reply({ success: false });
-                return ;
+                return;
             }
             reply({
                 success: true,
                 weapon: res.weapon,
-                inventory: res.inventory,
+                inventory: res.inventory
             });
         }
     );

@@ -187,6 +187,9 @@ export class Player {
         this.inventory.wood -= cost.wood;
         this.inventory.iron -= cost.iron;
         this.equippedWeapon = weapon;
-        return { weapon, inventory: { wood: this.inventory.wood, iron: this.inventory.iron }};
+        return {
+            weapon,
+            inventory: { wood: this.inventory.wood, iron: this.inventory.iron }
+        };
     }
 }

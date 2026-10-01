@@ -7,7 +7,7 @@ import { getDistance, isvaliddirection } from './util.js';
 import { istargethit } from './combat/Detection.js';
 import { getattackstats } from './combat/Attackstats.js';
 
-export type Cost = { wood: number, iron: number };
+export type Cost = { wood: number; iron: number };
 
 export class Room {
     private name: string;
@@ -107,8 +107,8 @@ export class Room {
 
         console.log(
             `Player ${player.getUsername()} joined ` +
-            `${this.name} (${this.getPlayerCount()}/` +
-            `${ROOM_MAX_SIZE})`
+                `${this.name} (${this.getPlayerCount()}/` +
+                `${ROOM_MAX_SIZE})`
         );
 
         return this.roomId;
@@ -338,7 +338,13 @@ export class Room {
         console.log(`Removed old session for user ${userId}`);
     }
 
-    craftWeapon(userId: string, data: any): null | { weapon: WeaponType, inventory: { wood: number, iron: number } } {
+    craftWeapon(
+        userId: string,
+        weapon: WeaponType
+    ): null | {
+        weapon: WeaponType;
+        inventory: { wood: number; iron: number };
+    } {
         const weaponRecipes: Record<string, Cost> = {
             dagger: { wood: 15, iron: 15 },
             sword: { wood: 30, iron: 20 },
@@ -352,13 +358,13 @@ export class Room {
             return null;
         }
 
-        const cost = weaponRecipes[data.weapon];
+        const cost = weaponRecipes[weapon];
 
         if (!cost) {
             return null;
         }
 
-        return player.craftWeapon(cost, data.weapon);
+        return player.craftWeapon(cost, weapon);
     }
 
     handleAttack(
