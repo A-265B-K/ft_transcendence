@@ -67,8 +67,8 @@ jobs:
       - name: Check formatting
         run: npm run format:check   
 
-      # - name: Linter
-      #   run: npm run lint
+      - name: Linter
+        run: npm run lint
 
       - name: Try to compile frontend
         run: npm run build
@@ -99,5 +99,5 @@ jobs:
       - name: Check formatting
         run: npm run format:check     
 
-      # - name: Linter
-      #   run: npm run lint 
+      - name: Linter
+        run: npm run lint 

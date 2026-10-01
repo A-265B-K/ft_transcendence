@@ -21,7 +21,7 @@ export type Player = {
     username: string;
     isDead: boolean;
     hp: number;
-    slot: any;
+    slot: number;
     x: number;
     y: number;
     inventory: Inventory;
