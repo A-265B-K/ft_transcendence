@@ -357,65 +357,6 @@ const onConnection = async (socket: Socket) => {
         if (currentRoomId) onDisconnection(socket, user, currentRoomId);
     });
 
-    const kickFromRoom = (
-        roomId: string,
-        targetSocketId: string,
-        reason: string
-    ): boolean => {
-        const room = rooms[roomId];
-
-        if (!room) {
-            return false;
-        }
-
-        const playerIndex = room.players.findIndex(
-            (player) => player.socketId === targetSocketId
-        );
-
-        if (playerIndex === -1) {
-            return false;
-        }
-
-        const player = room.players[playerIndex];
-        const targetSocket = io.sockets.sockets.get(targetSocketId);
-
-        targetSocket?.emit('kicked_from_room', {
-            roomId,
-            reason: 'You were removed from the room'
-        });
-
-        targetSocket?.leave(roomId);
-
-        room.players.splice(playerIndex, 1);
-        room.playerCount = room.players.length;
-
-        const playerEntry = Object.entries(players).find(
-            ([, currentPlayer]) => currentPlayer.socketId === targetSocketId
-        );
-
-        if (playerEntry) {
-            const [userId] = playerEntry;
-            delete players[userId];
-        }
-
-        if (room.players.length === 0) {
-            delete rooms[roomId];
-
-            console.log('Room deleted:', roomId);
-            return true;
-        }
-
-        io.to(roomId).emit('player_left', player);
-
-        io.to(roomId).emit('room_update', {
-            roomId,
-            playerCount: room.playerCount,
-            maxPlayers: ROOM_MAX_SIZE
-        });
-
-        return true;
-    };
-
     socket.on(
         'kick_player',
         (roomId: string, targetSocketId: string, reason: string) => {
@@ -429,5 +370,64 @@ const onConnection = async (socket: Socket) => {
         }
     );
 };
+
+export function kickFromRoom(
+    roomId: string,
+    targetSocketId: string,
+    reason: string
+): boolean {
+    const room = rooms[roomId];
+
+    if (!room) {
+        return false;
+    }
+
+    const playerIndex = room.players.findIndex(
+        (player) => player.socketId === targetSocketId
+    );
+
+    if (playerIndex === -1) {
+        return false;
+    }
+
+    const player = room.players[playerIndex];
+    const targetSocket = io.sockets.sockets.get(targetSocketId);
+
+    targetSocket?.emit('kicked_from_room', {
+        roomId,
+        reason: 'You were removed from the room'
+    });
+
+    targetSocket?.leave(roomId);
+
+    room.players.splice(playerIndex, 1);
+    room.playerCount = room.players.length;
+
+    const playerEntry = Object.entries(players).find(
+        ([, currentPlayer]) => currentPlayer.socketId === targetSocketId
+    );
+
+    if (playerEntry) {
+        const [userId] = playerEntry;
+        delete players[userId];
+    }
+
+    if (room.players.length === 0) {
+        delete rooms[roomId];
+
+        console.log('Room deleted:', roomId);
+        return true;
+    }
+
+    io.to(roomId).emit('player_left', player);
+
+    io.to(roomId).emit('room_update', {
+        roomId,
+        playerCount: room.playerCount,
+        maxPlayers: ROOM_MAX_SIZE
+    });
+
+    return true;
+}
 
 export default onConnection;

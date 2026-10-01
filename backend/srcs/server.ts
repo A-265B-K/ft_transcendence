@@ -5,7 +5,7 @@ import { randomBytes, createHash } from 'node:crypto';
 import { Server } from 'socket.io';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import onConnection from './onConnection.js';
+import onConnection, { kickFromRoom } from './onConnection.js';
 import { registerUser } from './security/auth/registration.js';
 import { SignInUser } from './security/auth/signin.js';
 import {
@@ -413,7 +413,21 @@ const interval = setInterval(() => {
 
             console.log(`${winner.username} won`);
 
-            delete rooms[roomId];
+            for (var player of room.players) {
+                if (player == winner) {
+                    kickFromRoom(
+                        room.roomId,
+                        player.socketId,
+                        'Congratulations you won!'
+                    );
+                } else {
+                    kickFromRoom(
+                        room.roomId,
+                        player.socketId,
+                        'Unfortunately you lost!'
+                    );
+                }
+            }
         }
     }
 }, 250);
