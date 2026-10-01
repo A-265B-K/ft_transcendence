@@ -59,7 +59,6 @@ export class RemotePlayer {
         this.sprite.stop();
 
         this.sprite.texture = textures.playerStand;
-        
     }
 
     placeAt(x: number, y: number) {
