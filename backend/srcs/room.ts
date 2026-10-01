@@ -2,10 +2,12 @@ import { randomUUID } from 'crypto';
 import { PLAYER_RADIUS, ROOM_MAX_SIZE } from './constants.js';
 import { GameMap } from './map.js';
 import type { Socket, SocketUser, Vec2 } from './types.js';
-import { Player } from './player.js';
+import { Player, type WeaponType } from './player.js';
 import { getDistance, isvaliddirection } from './util.js';
 import { istargethit } from './combat/Detection.js';
 import { getattackstats } from './combat/Attackstats.js';
+
+export type Cost = { wood: number, iron: number };
 
 export class Room {
     private name: string;
@@ -105,8 +107,8 @@ export class Room {
 
         console.log(
             `Player ${player.getUsername()} joined ` +
-                `${this.name} (${this.getPlayerCount()}/` +
-                `${ROOM_MAX_SIZE})`
+            `${this.name} (${this.getPlayerCount()}/` +
+            `${ROOM_MAX_SIZE})`
         );
 
         return this.roomId;
@@ -183,6 +185,10 @@ export class Room {
             return;
         }
         const resource = this.map.collectResource(pos);
+
+        if (!resource) {
+            return;
+        }
 
         player.addResources(resource);
 
@@ -330,6 +336,29 @@ export class Room {
         this.leave(socket, userId);
 
         console.log(`Removed old session for user ${userId}`);
+    }
+
+    craftWeapon(userId: string, data: any): null | { weapon: WeaponType, inventory: { wood: number, iron: number } } {
+        const weaponRecipes: Record<string, Cost> = {
+            dagger: { wood: 15, iron: 15 },
+            sword: { wood: 30, iron: 20 },
+            spear: { wood: 30, iron: 20 },
+            axe: { wood: 20, iron: 30 }
+        };
+
+        const player = this.getPlayerByUserId(userId);
+
+        if (!player) {
+            return null;
+        }
+
+        const cost = weaponRecipes[data.weapon];
+
+        if (!cost) {
+            return null;
+        }
+
+        return player.craftWeapon(cost, data.weapon);
     }
 
     handleAttack(

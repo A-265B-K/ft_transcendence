@@ -7,8 +7,10 @@ import {
     PLAYER_MAX_SPEED,
     MOVE_MAX_ELAPSED_SECONDS
 } from './constants.js';
+import type { Cost } from './room.js';
 import type { Socket, SocketUser, Spawn, Vec2 } from './types.js';
 import { getDistance } from './util.js';
+import { type Resource } from './map.js';
 
 export type WeaponType = 'sword' | 'axe' | 'bow' | 'dagger' | 'spear' | 'staff';
 
@@ -173,5 +175,18 @@ export class Player {
             return true;
         }
         return false;
+    }
+
+    craftWeapon(cost: Cost, weapon: WeaponType) {
+        if (
+            this.inventory.wood < cost.wood ||
+            this.inventory.iron < cost.iron
+        ) {
+            return null;
+        }
+        this.inventory.wood -= cost.wood;
+        this.inventory.iron -= cost.iron;
+        this.equippedWeapon = weapon;
+        return { weapon, inventory: { wood: this.inventory.wood, iron: this.inventory.iron }};
     }
 }

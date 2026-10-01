@@ -10,7 +10,7 @@ import type { Socket, Spawn, Vec2 } from './types.js';
 import { getDistance, randomPos } from './util.js';
 import type { Room } from './room.js';
 
-type Resource = Room['map']['resourceSpawns'][number];
+export type Resource = Room['map']['resourceSpawns'][number];
 
 export class GameMap {
     private mapId: string;
@@ -134,8 +134,7 @@ export class GameMap {
             attempts++;
             const pos = randomPos();
 
-            if (!this.isValidPosition(pos, 5, 4))
-                continue;
+            if (!this.isValidPosition(pos, 5, 4)) continue;
 
             if (types.length === 0) {
                 throw new Error('types must not be empty');
@@ -201,8 +200,7 @@ export class GameMap {
             attempts++;
             const pos = randomPos();
 
-            if (!this.isValidPosition(pos, 6, 5))
-                continue;
+            if (!this.isValidPosition(pos, 6, 5)) continue;
 
             if (types.length === 0) {
                 throw new Error('types must not be empty');
@@ -230,7 +228,6 @@ export class GameMap {
             };
 
             resources.push(resource);
-            occupied.push(resource);
         }
 
         return resources;

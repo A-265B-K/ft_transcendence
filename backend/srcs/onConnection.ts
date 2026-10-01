@@ -39,15 +39,15 @@ const onConnection = async (socket: Socket, roomManager: RoomManager) => {
             reply: (
                 result:
                     | {
-                          success: true;
-                          weapon: string;
-                          inventory: { wood: number; iron: number };
-                      }
+                        success: true;
+                        weapon: string;
+                        inventory: { wood: number; iron: number };
+                    }
                     | { success: false }
             ) => void
         ) => {
             if (
-                typeof data !== 'object' ||
+                typeof data !== 'object' || !currentRoomId ||
                 data === null ||
                 !('weapon' in data) ||
                 (data.weapon !== 'dagger' &&
@@ -58,33 +58,18 @@ const onConnection = async (socket: Socket, roomManager: RoomManager) => {
                 reply({ success: false });
                 return;
             }
-            const weaponRecipes = {
-                dagger: { wood: 15, iron: 15 },
-                sword: { wood: 30, iron: 20 },
-                spear: { wood: 30, iron: 20 },
-                axe: { wood: 20, iron: 30 }
-            };
-            const weapon = data.weapon;
-            const cost = weaponRecipes[weapon];
-            const player = players[user.id];
-            if (
-                !player ||
-                player.inventory.wood < cost.wood ||
-                player?.inventory.iron < cost.iron
-            ) {
+
+            const room = roomManager.getRoomById(currentRoomId);
+
+            const res = room?.craftWeapon(user.id, data);
+            if (!res) {
                 reply({ success: false });
-                return;
+                return ;
             }
-            player.inventory.wood -= cost.wood;
-            player.inventory.iron -= cost.iron;
-            player.equippedweapon = weapon;
             reply({
                 success: true,
-                weapon: weapon,
-                inventory: {
-                    wood: player.inventory.wood,
-                    iron: player.inventory.iron
-                }
+                weapon: res.weapon,
+                inventory: res.inventory,
             });
         }
     );
