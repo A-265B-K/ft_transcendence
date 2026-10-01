@@ -1,3 +1,4 @@
+import { Forgemenu } from '../components/Forgemenu';
 import { Inventory } from '../components/Inventory';
 import GamePauseMenu from './GamePauseMenu';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -23,6 +24,8 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
     const [castlePointer, setCastlePointer] = useState<CastlePointer | null>(
         null
     );
+
+    const [nearCastle, setNearCastle] = useState(false);
 
     const [paused, setPaused] = useState(false);
 
@@ -182,6 +185,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             if (snapshot) setInventory(snapshot);
 
             if (pointer) setCastlePointer(pointer);
+            setNearCastle(game.isPlayerNearCastle());
         }, 32);
 
         return () => {
@@ -292,6 +296,12 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
                     <Inventory counts={inventory} />
                 </div>
             </div>
+
+            {nearCastle && (
+                <Forgemenu
+                    onEquip={(weapon) => gameRef.current?.equipWeapon(weapon)}
+                />
+            )}
 
             {!spectating && paused && (
                 <GamePauseMenu

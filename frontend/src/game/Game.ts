@@ -1,3 +1,4 @@
+import type { WeaponType } from './entities/weapons/weapon';
 import { Application, Ticker } from 'pixi.js';
 import { loadGameTextures } from './assets/loadGameTextures';
 import { GameScene } from './scenes/GameScene';
@@ -32,6 +33,10 @@ export class Game {
         this.input.Attack = () => {
             this.scene?.requestattack();
         };
+    }
+
+    equipWeapon(weapon: WeaponType) {
+        this.scene?.player.equipWeapon(weapon);
     }
 
     addRemotePlayer(player: JoinedPayload['players'][number]) {
@@ -119,6 +124,10 @@ export class Game {
 
     getCastlePointerSnapshot() {
         return this.scene?.getCastlePointer() ?? null;
+    }
+
+    isPlayerNearCastle(): boolean {
+        return this.scene?.isPlayerNearCastle() ?? false;
     }
 
     pause() {

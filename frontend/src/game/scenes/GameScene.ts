@@ -65,8 +65,6 @@ export class GameScene {
         });
 
         this.player.placeAt(joinedData.player.x, joinedData.player.y);
-        const serverweapon = joinedData.player.equippedweapon;
-        if (serverweapon) this.player.equipWeapon(serverweapon);
         this.world.addChild(this.player.container);
 
         this.createRemotePlayers();
@@ -387,6 +385,14 @@ export class GameScene {
 
     spawnResourceTile(x: number, y: number, type: HarvestableTile) {
         this.map.setResourceTile(Math.floor(x), Math.floor(y), type);
+    }
+
+    isPlayerNearCastle(): boolean {
+        const range = 3;
+        const dx = this.player.gridX - this.castle.gridX;
+        const dy = this.player.gridY - this.castle.gridY;
+
+        return Math.hypot(dx, dy) <= range;
     }
 
     configureweapontextures(): void {

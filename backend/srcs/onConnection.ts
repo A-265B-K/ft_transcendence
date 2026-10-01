@@ -32,7 +32,6 @@ const createPlayer = (
             castleLevel: PLAYER_DEFAULT_CASTLE_LEVEL
         },
         lastMoveAt: Date.now(),
-        equippedweapon: 'sword',
         nextattack: 0
     };
 };
@@ -226,6 +225,50 @@ const onConnection = async (socket: Socket) => {
     socket.on('get_rooms', () => {
         socket.emit('rooms_list', getRooms());
     });
+
+    socket.on(
+        'craftweapon',
+        (
+            data: unknown,
+            reply: (
+                result: { success: true; weapon: string } | { success: false }
+            ) => void
+        ) => {
+            if (
+                typeof data !== 'object' ||
+                data === null ||
+                !('weapon' in data) ||
+                (data.weapon !== 'dagger' &&
+                    data.weapon !== 'sword' &&
+                    data.weapon !== 'spear' &&
+                    data.weapon !== 'axe')
+            ) {
+                reply({ success: false });
+                return;
+            }
+            const weaponRecipes = {
+                dagger: { wood: 15, iron: 15 },
+                sword: { wood: 30, iron: 20 },
+                spear: { wood: 30, iron: 20 },
+                axe: { wood: 20, iron: 30 }
+            };
+            const weapon = data.weapon;
+            const cost = weaponRecipes[weapon];
+            const player = players[user.id];
+            if (
+                !player ||
+                player.inventory.wood < cost.wood ||
+                player?.inventory.iron < cost.iron
+            ) {
+                reply({ success: false });
+                return;
+            }
+            player.inventory.wood -= cost.wood;
+            player.inventory.iron -= cost.iron;
+            player.equippedweapon = weapon;
+            reply({ success: true, weapon: weapon });
+        }
+    );
 
     socket.on('get_room_by_code', ({ code }: { code: unknown }) => {
         if (typeof code !== 'string') {
