@@ -6,10 +6,9 @@ import {
     MIN_DIST_CASTLE,
     PLAYER_RADIUS
 } from './constants.js';
-import type { Socket, SocketUser, Spawn, Vec2 } from './types.js';
+import type { Socket, Spawn, Vec2 } from './types.js';
 import { getDistance, randomPos } from './util.js';
 import type { Room } from './room.js';
-import type { Player } from './player.js';
 
 type Resource = Room['map']['resourceSpawns'][number];
 
@@ -52,7 +51,7 @@ export class GameMap {
         const castleOffset = castleClearance / Math.sqrt(2);
 
         const spawnPoints = new Map<number, Spawn>(
-            this.castleZones.map((castle) => [
+            castleZones.map((castle) => [
                 castle.playerSlot,
                 {
                     playerSlot: castle.playerSlot,
@@ -135,7 +134,7 @@ export class GameMap {
             attempts++;
             const pos = randomPos();
 
-            if (!this.isValidPosition(pos, castleZones, obstacles, 5, 4))
+            if (!this.isValidPosition(pos, 5, 4))
                 continue;
 
             if (types.length === 0) {
@@ -156,23 +155,16 @@ export class GameMap {
 
     private isValidPosition(
         pos: { x: number; y: number },
-        castleZones: {
-            playerSlot: number;
-            x: number;
-            y: number;
-            radius: number;
-        }[],
-        placedObjects: any[],
         minDistFromCastle: number,
         minDistFromOthers: number
     ) {
-        for (const castle of castleZones) {
+        for (const castle of this.castleZones) {
             if (getDistance(pos, castle) < castle.radius + minDistFromCastle) {
                 return false;
             }
         }
 
-        for (const obj of placedObjects) {
+        for (const obj of this.obstacles) {
             if (getDistance(pos, obj) < minDistFromOthers) {
                 return false;
             }
@@ -203,14 +195,13 @@ export class GameMap {
             { type: 'iron', amount: 10, respawnTime: 45 }
         ];
 
-        const occupied = [...obstacles];
         let attempts = 0;
 
         while (resources.length < count && attempts < count * 20) {
             attempts++;
             const pos = randomPos();
 
-            if (!this.isValidPosition(pos, castleZones, occupied, 6, 5))
+            if (!this.isValidPosition(pos, 6, 5))
                 continue;
 
             if (types.length === 0) {
@@ -292,7 +283,7 @@ export class GameMap {
     collectResource(pos: Vec2): Resource | null {
         for (const resource of this.resourceSpawns) {
             if (getDistance(pos, resource) >= resource.radius + PLAYER_RADIUS)
-                continue ;
+                continue;
             this.resourceSpawns = this.resourceSpawns.filter(
                 (r) => r.id !== resource.id
             );

@@ -1,13 +1,5 @@
-import {
-    PLAYER_DEFAULT_HP,
-    ROOM_MAX_SIZE,
-    PLAYER_DEFAULT_WOOD,
-    PLAYER_DEFAULT_IRON,
-    PLAYER_DEFAULT_CASTLE_LEVEL
-} from './constants.js';
 import type { Socket, SocketUser } from './types.js';
 import { RoomManager } from './roomManager.js';
-
 
 const onDisconnection = (
     socket: Socket,

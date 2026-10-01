@@ -13,3 +13,12 @@ export function randomPos() {
         y: Math.floor(Math.random() * MAP_HEIGHT)
     };
 }
+
+export function isvaliddirection(direction: unknown) {
+    return (
+        direction === 'up' ||
+        direction === 'down' ||
+        direction === 'left' ||
+        direction === 'right'
+    );
+}

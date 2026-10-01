@@ -3,10 +3,9 @@ import { PLAYER_RADIUS, ROOM_MAX_SIZE } from './constants.js';
 import { GameMap } from './map.js';
 import type { Socket, SocketUser, Vec2 } from './types.js';
 import { Player } from './player.js';
-import { getDistance } from './util.js';
+import { getDistance, isvaliddirection } from './util.js';
 import { istargethit } from './combat/Detection.js';
-import { getattackstats, type WeaponAttackStats } from './combat/Attackstats.js';
-import { isvaliddirection } from './combat/onAttack.js';
+import { getattackstats } from './combat/Attackstats.js';
 
 export class Room {
     private name: string;
@@ -62,7 +61,7 @@ export class Room {
     }
 
     join(socket: Socket, user: SocketUser): string | null {
-        // ! WHY ? 
+        // ! WHY ?
         this.removeExistingPlayer(user.id, socket);
 
         if (this.getPlayerCount() >= ROOM_MAX_SIZE) {
@@ -101,13 +100,13 @@ export class Room {
             player,
             map: this.map,
             players: Array.from(this.players.values()),
-            room: this.getRoomInfo(),
+            room: this.getRoomInfo()
         });
 
         console.log(
             `Player ${player.getUsername()} joined ` +
-            `${this.name} (${this.getPlayerCount()}/` +
-            `${ROOM_MAX_SIZE})`
+                `${this.name} (${this.getPlayerCount()}/` +
+                `${ROOM_MAX_SIZE})`
         );
 
         return this.roomId;
@@ -127,10 +126,7 @@ export class Room {
 
     isSlotOccupied(slot: number): boolean {
         for (const player of this.players.values()) {
-            if (
-                player.getSlot() === slot &&
-                !player.getIsDead()
-            ) {
+            if (player.getSlot() === slot && !player.getIsDead()) {
                 return true;
             }
         }
@@ -152,10 +148,7 @@ export class Room {
                 continue;
             }
 
-            const distance = getDistance(
-                position,
-                player.getPosition()
-            );
+            const distance = getDistance(position, player.getPosition());
 
             if (distance < collisionRadius) {
                 return true;
@@ -165,11 +158,7 @@ export class Room {
         return false;
     }
 
-    positionIsAllowed(
-        player: Player,
-        user: SocketUser,
-        pos: Vec2
-    ): boolean {
+    positionIsAllowed(player: Player, user: SocketUser, pos: Vec2): boolean {
         return !(
             this.map.isOutOfBounds(pos) ||
             (!player.getIsDead() &&
@@ -200,15 +189,8 @@ export class Room {
         return resource;
     }
 
-    private isCollidingWithOtherPlayer(
-        selfUserId: string,
-        pos: Vec2
-    ): boolean {
-        return this.isPositionOccupied(
-            selfUserId,
-            pos,
-            PLAYER_RADIUS * 2
-        );
+    private isCollidingWithOtherPlayer(selfUserId: string, pos: Vec2): boolean {
+        return this.isPositionOccupied(selfUserId, pos, PLAYER_RADIUS * 2);
     }
 
     private getPlayerByUserId(userId: string): Player | null {
@@ -248,13 +230,19 @@ export class Room {
         moving: boolean
     ) {
         const player = this.getPlayerByUserId(user.id);
-        if (!player) { return; }
+        if (!player) {
+            return;
+        }
 
         const nextPos = { x, y };
 
         if (!this.positionIsAllowed(player, user, player.getPosition())) {
-            const closestValidPos = this.getClosestValidPosition(player, user, player.getPosition());
-            player.setPosition(closestValidPos.x, closestValidPos.y)
+            const closestValidPos = this.getClosestValidPosition(
+                player,
+                user,
+                player.getPosition()
+            );
+            player.setPosition(closestValidPos.x, closestValidPos.y);
         } else if (
             this.positionIsAllowed(player, user, nextPos) &&
             !player.isMovingTooFast(nextPos)
@@ -265,7 +253,7 @@ export class Room {
                 socketId: socket.id,
                 x,
                 y,
-                moving,
+                moving
             });
 
             const collectedResource = this.tryCollectResource(player, nextPos);
@@ -282,7 +270,11 @@ export class Room {
                 socket.emit('resource_collected', payload);
                 socket.to(this.roomId).emit('resource_collected', payload);
 
-                this.map.scheduleResourceRespawn(socket, this.roomId, collectedResource);
+                this.map.scheduleResourceRespawn(
+                    socket,
+                    this.roomId,
+                    collectedResource
+                );
             }
         }
 
@@ -293,9 +285,9 @@ export class Room {
         socket.emit('player_move', {
             socketId: socket.id,
             x: finalPosition.x,
-            y: finalPosition.y,
+            y: finalPosition.y
         });
-    };
+    }
 
     private getClosestValidPosition(
         player: Player,
@@ -303,7 +295,11 @@ export class Room {
         startPos: Vec2
     ): Vec2 {
         for (let distance = 0; distance < 100; distance++) {
-            for (let x = startPos.x - distance; x <= startPos.x + distance; x++) {
+            for (
+                let x = startPos.x - distance;
+                x <= startPos.x + distance;
+                x++
+            ) {
                 for (
                     let y = startPos.y - distance;
                     y <= startPos.y + distance;
@@ -334,7 +330,7 @@ export class Room {
         this.leave(socket, userId);
 
         console.log(`Removed old session for user ${userId}`);
-    };
+    }
 
     handleAttack(
         user: SocketUser,
@@ -356,14 +352,23 @@ export class Room {
                     socketId: player.getSocketId(),
                     direction: direction
                 });
-                for (const [targetId, target] of this.players) {
+                for (const [, target] of this.players) {
                     if (
                         target.getUserId() !== player.getUserId() &&
                         target.hasHp() &&
                         target.isAlive()
                     ) {
-                        if (istargethit(player.getPosition(), target.getPosition(), attackStats, direction)) {
-                            const isDead = target.takeDamage(attackStats.damage);
+                        if (
+                            istargethit(
+                                player.getPosition(),
+                                target.getPosition(),
+                                attackStats,
+                                direction
+                            )
+                        ) {
+                            const isDead = target.takeDamage(
+                                attackStats.damage
+                            );
 
                             socket.nsp
                                 .to(target.getSocketId())
@@ -385,11 +390,9 @@ export class Room {
                                 socket.nsp
                                     .to(target.getSocketId())
                                     .emit('player_died');
-                                socket.nsp
-                                    .to(this.roomId)
-                                    .emit('player_died', {
-                                        player: target
-                                    });
+                                socket.nsp.to(this.roomId).emit('player_died', {
+                                    player: target
+                                });
                             }
                         }
                     }

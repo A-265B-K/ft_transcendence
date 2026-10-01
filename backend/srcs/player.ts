@@ -125,7 +125,7 @@ export class Player {
         this.equippedWeapon = weapon;
     }
 
-    addResources(resource: any): void {
+    addResources(resource: Resource): void {
         if (resource) {
             if (resource.type === 'wood') {
                 this.inventory.wood += resource.amount;

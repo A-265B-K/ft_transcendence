@@ -86,14 +86,17 @@ export class RoomManager {
         return Object.keys(this.rooms).length;
     }
 
-    joinRoomById(socket: Socket, user: SocketUser, roomId: string): string | null {
+    joinRoomById(
+        socket: Socket,
+        user: SocketUser,
+        roomId: string
+    ): string | null {
         const room = this.getRoomById(roomId);
         if (!room) {
             socket.emit('join_error', {
                 message: 'Room not found'
             });
             return null;
-
         }
 
         return room.join(socket, user);
