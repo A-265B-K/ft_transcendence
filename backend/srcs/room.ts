@@ -1,0 +1,400 @@
+import { randomUUID } from 'crypto';
+import { PLAYER_RADIUS, ROOM_MAX_SIZE } from './constants.js';
+import { GameMap } from './map.js';
+import type { Socket, SocketUser, Vec2 } from './types.js';
+import { Player } from './player.js';
+import { getDistance } from './util.js';
+import { istargethit } from './combat/Detection.js';
+import { getattackstats, type WeaponAttackStats } from './combat/Attackstats.js';
+import { isvaliddirection } from './combat/onAttack.js';
+
+export class Room {
+    private name: string;
+    private hostId: string;
+    private roomId: string;
+    private code: string;
+    private players: Map<string, Player>;
+    private map: GameMap;
+
+    constructor(name: string, hostId: string, code: string) {
+        this.name = name;
+        this.hostId = hostId;
+        this.roomId = randomUUID();
+        this.code = code;
+        this.players = new Map<string, Player>();
+        this.map = new GameMap(ROOM_MAX_SIZE);
+
+        console.log(`Room created: ${name} [${this.code}]`);
+    }
+
+    // TODO add destructor;
+
+    getCode(): string {
+        return this.code;
+    }
+
+    getRoomId(): string {
+        return this.roomId;
+    }
+
+    getPlayerCount(): number {
+        return this.players.size;
+    }
+
+    getName(): string {
+        return this.name;
+    }
+
+    getRoomInfo(): {
+        roomId: string;
+        name: string;
+        code: string;
+        playerCount: number;
+        maxPlayers: number;
+    } {
+        return {
+            roomId: this.roomId,
+            name: this.name,
+            code: this.code,
+            playerCount: this.getPlayerCount(),
+            maxPlayers: ROOM_MAX_SIZE
+        };
+    }
+
+    join(socket: Socket, user: SocketUser): string | null {
+        // ! WHY ? 
+        this.removeExistingPlayer(user.id, socket);
+
+        if (this.getPlayerCount() >= ROOM_MAX_SIZE) {
+            socket.emit('join_error', {
+                message: 'Room is full'
+            });
+            return null;
+        }
+
+        const slot = this.findAvailableSlot(ROOM_MAX_SIZE);
+
+        if (slot === null) {
+            socket.emit('join_error', {
+                message: 'No player slot available'
+            });
+            return null;
+        }
+
+        const spawn = this.map.getSpawnPoint(slot);
+
+        if (!spawn) {
+            console.error(`No spawn point found for slot ${slot}`);
+            socket.emit('join_error', { message: 'No spawn point available' });
+            return null;
+        }
+
+        const player = new Player(socket, user, slot, spawn);
+
+        this.players.set(user.id, player);
+
+        socket.join(this.roomId);
+        socket.to(this.roomId).emit('player_joined', player);
+
+        socket.emit('joined', {
+            roomId: this.roomId,
+            player,
+            map: this.map,
+            players: Array.from(this.players.values()),
+            room: this.getRoomInfo(),
+        });
+
+        console.log(
+            `Player ${player.getUsername()} joined ` +
+            `${this.name} (${this.getPlayerCount()}/` +
+            `${ROOM_MAX_SIZE})`
+        );
+
+        return this.roomId;
+    }
+
+    private findAvailableSlot(maxSize: number): number | null {
+        const usedSlots = new Set(
+            Array.from(this.players.values()).map((player) => player.getSlot())
+        );
+
+        for (let slot = 1; slot <= maxSize; slot++) {
+            if (!usedSlots.has(slot)) return slot;
+        }
+
+        return null;
+    }
+
+    isSlotOccupied(slot: number): boolean {
+        for (const player of this.players.values()) {
+            if (
+                player.getSlot() === slot &&
+                !player.getIsDead()
+            ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    isPositionOccupied(
+        selfUserId: string,
+        position: Vec2,
+        collisionRadius: number
+    ): boolean {
+        for (const player of this.players.values()) {
+            if (player.getUserId() === selfUserId) {
+                continue;
+            }
+
+            if (player.getIsDead()) {
+                continue;
+            }
+
+            const distance = getDistance(
+                position,
+                player.getPosition()
+            );
+
+            if (distance < collisionRadius) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    positionIsAllowed(
+        player: Player,
+        user: SocketUser,
+        pos: Vec2
+    ): boolean {
+        return !(
+            this.map.isOutOfBounds(pos) ||
+            (!player.getIsDead() &&
+                (this.isCollidingWithOtherPlayer(user.id, pos) ||
+                    this.isCollidingWithCastle(pos)))
+        );
+    }
+
+    private isCollidingWithCastle(pos: Vec2): boolean {
+        for (const castle of this.map.getCastleZones()) {
+            if (this.isSlotOccupied(castle.playerSlot)) {
+                const blockRadius = castle.radius / 2 + PLAYER_RADIUS;
+                if (getDistance(pos, castle) < blockRadius) return true;
+            }
+        }
+
+        return false;
+    }
+
+    tryCollectResource(player: Player, pos: Vec2) {
+        if (player.getIsDead()) {
+            return;
+        }
+        const resource = this.map.collectResource(pos);
+
+        player.addResources(resource);
+
+        return resource;
+    }
+
+    private isCollidingWithOtherPlayer(
+        selfUserId: string,
+        pos: Vec2
+    ): boolean {
+        return this.isPositionOccupied(
+            selfUserId,
+            pos,
+            PLAYER_RADIUS * 2
+        );
+    }
+
+    private getPlayerByUserId(userId: string): Player | null {
+        const player = this.players.get(userId);
+
+        if (player) {
+            return player;
+        }
+        return null;
+    }
+
+    leave(socket: Socket, userId: string): boolean {
+        const player = this.getPlayerByUserId(userId);
+
+        if (player) {
+            socket.to(this.roomId).emit('player_left', player);
+
+            this.players.delete(userId);
+
+            socket.to(this.roomId).emit('room_update', {
+                roomId: this.roomId,
+                playerCount: this.getPlayerCount(),
+                maxPlayers: ROOM_MAX_SIZE
+            });
+        }
+
+        if (this.getPlayerCount() === 0) {
+            return true;
+        }
+        return false;
+    }
+
+    onMove(
+        socket: Socket,
+        user: SocketUser,
+        { x, y }: { x: number; y: number },
+        moving: boolean
+    ) {
+        const player = this.getPlayerByUserId(user.id);
+        if (!player) { return; }
+
+        const nextPos = { x, y };
+
+        if (!this.positionIsAllowed(player, user, player.getPosition())) {
+            const closestValidPos = this.getClosestValidPosition(player, user, player.getPosition());
+            player.setPosition(closestValidPos.x, closestValidPos.y)
+        } else if (
+            this.positionIsAllowed(player, user, nextPos) &&
+            !player.isMovingTooFast(nextPos)
+        ) {
+            player.setPosition(x, y);
+
+            socket.to(this.roomId).emit('player_move', {
+                socketId: socket.id,
+                x,
+                y,
+                moving,
+            });
+
+            const collectedResource = this.tryCollectResource(player, nextPos);
+            if (collectedResource) {
+                const payload = {
+                    resourceId: collectedResource.id,
+                    type: collectedResource.type,
+                    x: collectedResource.x,
+                    y: collectedResource.y,
+                    playerId: user.id,
+                    inventory: player.getInventory()
+                };
+
+                socket.emit('resource_collected', payload);
+                socket.to(this.roomId).emit('resource_collected', payload);
+
+                this.map.scheduleResourceRespawn(socket, this.roomId, collectedResource);
+            }
+        }
+
+        const finalPosition = player.getPosition();
+
+        // Always tell the mover the authoritative position, so the client
+        // snaps back when the server rejected the move (blocked or not).
+        socket.emit('player_move', {
+            socketId: socket.id,
+            x: finalPosition.x,
+            y: finalPosition.y,
+        });
+    };
+
+    private getClosestValidPosition(
+        player: Player,
+        user: SocketUser,
+        startPos: Vec2
+    ): Vec2 {
+        for (let distance = 0; distance < 100; distance++) {
+            for (let x = startPos.x - distance; x <= startPos.x + distance; x++) {
+                for (
+                    let y = startPos.y - distance;
+                    y <= startPos.y + distance;
+                    y++
+                ) {
+                    if (this.positionIsAllowed(player, user, { x, y })) {
+                        return { x, y };
+                    }
+                }
+            }
+        }
+
+        // In case nothing can be found, spawn at 0
+        return { x: 0, y: 0 };
+    }
+
+    removeExistingPlayer(userId: string, socket: Socket) {
+        const existingPlayer = this.getPlayerByUserId(userId);
+
+        if (!existingPlayer) {
+            return;
+        }
+
+        if (existingPlayer.getSocketId() === socket.id) {
+            return;
+        }
+
+        this.leave(socket, userId);
+
+        console.log(`Removed old session for user ${userId}`);
+    };
+
+    handleAttack(
+        user: SocketUser,
+        data: { direction: unknown },
+        socket: Socket
+    ): void {
+        const player = this.getPlayerByUserId(user.id);
+
+        if (!player) {
+            return;
+        }
+
+        if (player.getEquippedWeapon() && player.isAlive()) {
+            const direction = data.direction;
+            const attackStats = getattackstats(player.getEquippedWeapon());
+
+            if (isvaliddirection(direction) && attackStats) {
+                socket.to(this.roomId).emit('player_attacked', {
+                    socketId: player.getSocketId(),
+                    direction: direction
+                });
+                for (const [targetId, target] of this.players) {
+                    if (
+                        target.getUserId() !== player.getUserId() &&
+                        target.hasHp() &&
+                        target.isAlive()
+                    ) {
+                        if (istargethit(player.getPosition(), target.getPosition(), attackStats, direction)) {
+                            const isDead = target.takeDamage(attackStats.damage);
+
+                            socket.nsp
+                                .to(target.getSocketId())
+                                .emit('player_hp', {
+                                    socketId: target.getSocketId(),
+                                    hp: target.getHp()
+                                });
+
+                            console.log(
+                                player.getUsername(),
+                                'hit',
+                                target.getUsername(),
+                                'for',
+                                attackStats.damage,
+                                'damage'
+                            );
+
+                            if (isDead) {
+                                socket.nsp
+                                    .to(target.getSocketId())
+                                    .emit('player_died');
+                                socket.nsp
+                                    .to(this.roomId)
+                                    .emit('player_died', {
+                                        player: target
+                                    });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

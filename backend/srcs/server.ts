@@ -1,4 +1,4 @@
-import Fastify from 'fastify';
+import Fastify, { type FastifyInstance } from 'fastify';
 import cookie from '@fastify/cookie';
 import staticFiles from '@fastify/static';
 import { randomBytes, createHash } from 'node:crypto';
@@ -32,7 +32,7 @@ import {
 } from './security/2FA/twoFA.js';
 import { passwordResetRequest } from './security/auth/passwordReset.js';
 import bcrypt from 'bcrypt';
-import { rooms } from './state/gameState.js';
+import { RoomManager } from './roomManager.js';
 
 const fastify = Fastify();
 
@@ -66,9 +66,16 @@ fastify.post<{ Body: RegisterBody }>(
     }
 );
 
-fastify.get('/stats', () => {
-    return { activerooms: Object.keys(rooms).length };
-});
+function registerStatsRoutes(
+    fastify: FastifyInstance,
+    roomManager: RoomManager
+) {
+    fastify.get('/stats', async () => {
+        return {
+            activeRooms: roomManager.getActiveRoomCount()
+        };
+    });
+}
 
 type SignInBody = {
     email: string;
@@ -400,39 +407,49 @@ fastify.get('/verify-2fa', async (request, reply) => {
 });
 
 // Socket ..............................................................................
-io.use(async (socket, next) => {
-    const cookie = socket.handshake.headers.cookie;
 
-    const session_id = cookie
-        ?.split('; ')
-        .find((row) => row.startsWith('session_id='))
-        ?.split('=')[1];
+async function server() {
+    const roomManager = new RoomManager();
 
-    if (!session_id) {
-        console.log('Socket rejected: no session');
-        return next(new Error('Unauthorized'));
-    }
-    const session_id_hash = createHash('sha256')
-        .update(session_id)
-        .digest('hex');
-    const user = await getCurrentUser(session_id_hash);
+    io.use(async (socket, next) => {
+        const cookie = socket.handshake.headers.cookie;
 
-    if (!user) {
-        console.log('Socket rejected: no valid session');
-        return next(new Error('Unauthorized'));
-    }
+        const session_id = cookie
+            ?.split('; ')
+            .find((row) => row.startsWith('session_id='))
+            ?.split('=')[1];
 
-    socket.user = user;
-    console.log('Socket authenticated:', user.username);
-    next();
-});
+        if (!session_id) {
+            console.log('Socket rejected: no session');
+            return next(new Error('Unauthorized'));
+        }
+        const session_id_hash = createHash('sha256')
+            .update(session_id)
+            .digest('hex');
+        const user = await getCurrentUser(session_id_hash);
 
-io.on('connection', onConnection);
+        if (!user) {
+            console.log('Socket rejected: no valid session');
+            return next(new Error('Unauthorized'));
+        }
 
-// Start server
-await fastify.listen({
-    port: 3000,
-    host: '0.0.0.0'
-});
+        socket.user = user;
+        console.log('Socket authenticated:', user.username);
+        next();
+    });
 
-console.log('Server running on port 3000');
+    io.on('connection', (socket) => {
+        onConnection(socket, roomManager);
+    });
+
+    registerStatsRoutes(fastify, roomManager);
+
+    await fastify.listen({
+        port: 3000,
+        host: '0.0.0.0'
+    });
+
+    console.log('Server running on port 3000');
+}
+
+server();

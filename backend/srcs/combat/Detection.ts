@@ -1,16 +1,12 @@
 import type { WeaponAttackStats } from './Attackstats.js';
 import { PLAYER_RADIUS } from '../constants.js';
-
-type position = {
-    x: number;
-    y: number;
-};
+import type { Vec2 } from '../types.js';
 
 type Direction = 'up' | 'down' | 'left' | 'right';
 
 export function istargethit(
-    attacker: position,
-    target: position,
+    attacker: Vec2,
+    target: Vec2,
     weaponstats: WeaponAttackStats,
     Direction: Direction
 ): boolean {
