@@ -299,7 +299,11 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
 
             {nearCastle && (
                 <Forgemenu
-                    onEquip={(weapon) => gameRef.current?.equipWeapon(weapon)}
+                    onEquip={(weapon, updatedInventory) => {
+                        gameRef.current?.equipWeapon(weapon);
+                        gameRef.current?.syncInventory(updatedInventory.wood, updatedInventory.iron);
+                        setInventory(updatedInventory);
+                    }}
                 />
             )}
 

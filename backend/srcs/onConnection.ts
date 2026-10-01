@@ -8,7 +8,7 @@ import {
     PLAYER_DEFAULT_IRON,
     PLAYER_DEFAULT_CASTLE_LEVEL
 } from './constants.js';
-import type { Spawn, Socket, SocketUser } from './types.js';
+import type { Spawn, Socket, SocketUser, Inventory } from './types.js';
 import { handleattack } from './combat/onAttack.js';
 
 const createPlayer = (
@@ -231,7 +231,7 @@ const onConnection = async (socket: Socket) => {
         (
             data: unknown,
             reply: (
-                result: { success: true; weapon: string } | { success: false }
+                result: { success: true; weapon: string ; inventory: {wood: number ; iron: number}} | { success: false }
             ) => void
         ) => {
             if (
@@ -266,7 +266,7 @@ const onConnection = async (socket: Socket) => {
             player.inventory.wood -= cost.wood;
             player.inventory.iron -= cost.iron;
             player.equippedweapon = weapon;
-            reply({ success: true, weapon: weapon });
+            reply({ success: true, weapon: weapon, inventory: { wood: player.inventory.wood, iron: player.inventory.iron, }});
         }
     );
 
