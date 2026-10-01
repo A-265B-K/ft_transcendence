@@ -7,19 +7,12 @@ const onDisconnection = (
     roomId: string,
     roomManager: RoomManager
 ) => {
-    // const player = players[user.id];
-
-    // if (!player) return;
-
-    // if (player.socketId !== socket.id) return;
-
-    // delete players[user.id];
-
     const room = roomManager.getRoomById(roomId);
 
     if (!room) return;
 
     room.leave(socket, user.id);
+    // TODO roomManager.deleteRoom
 };
 
 const onConnection = async (socket: Socket, roomManager: RoomManager) => {
@@ -38,6 +31,63 @@ const onConnection = async (socket: Socket, roomManager: RoomManager) => {
     socket.on('get_rooms', () => {
         socket.emit('rooms_list', roomManager.getRooms());
     });
+
+    socket.on(
+        'craftweapon',
+        (
+            data: unknown,
+            reply: (
+                result:
+                    | {
+                          success: true;
+                          weapon: string;
+                          inventory: { wood: number; iron: number };
+                      }
+                    | { success: false }
+            ) => void
+        ) => {
+            if (
+                typeof data !== 'object' ||
+                data === null ||
+                !('weapon' in data) ||
+                (data.weapon !== 'dagger' &&
+                    data.weapon !== 'sword' &&
+                    data.weapon !== 'spear' &&
+                    data.weapon !== 'axe')
+            ) {
+                reply({ success: false });
+                return;
+            }
+            const weaponRecipes = {
+                dagger: { wood: 15, iron: 15 },
+                sword: { wood: 30, iron: 20 },
+                spear: { wood: 30, iron: 20 },
+                axe: { wood: 20, iron: 30 }
+            };
+            const weapon = data.weapon;
+            const cost = weaponRecipes[weapon];
+            const player = players[user.id];
+            if (
+                !player ||
+                player.inventory.wood < cost.wood ||
+                player?.inventory.iron < cost.iron
+            ) {
+                reply({ success: false });
+                return;
+            }
+            player.inventory.wood -= cost.wood;
+            player.inventory.iron -= cost.iron;
+            player.equippedweapon = weapon;
+            reply({
+                success: true,
+                weapon: weapon,
+                inventory: {
+                    wood: player.inventory.wood,
+                    iron: player.inventory.iron
+                }
+            });
+        }
+    );
 
     socket.on('get_room_by_code', ({ code }: { code: unknown }) => {
         if (typeof code !== 'string') {

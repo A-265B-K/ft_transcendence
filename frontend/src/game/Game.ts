@@ -1,3 +1,4 @@
+import type { WeaponType } from './entities/weapons/weapon';
 import { Application, Ticker } from 'pixi.js';
 import { loadGameTextures } from './assets/loadGameTextures';
 import { GameScene } from './scenes/GameScene';
@@ -17,8 +18,10 @@ export class Game {
 
         const deltaSeconds = ticker.deltaMS / 1000;
         this.scene.player.weapon?.update(deltaSeconds);
-        for (const enemy of this.scene.remotePlayers.values())
+        for (const enemy of this.scene.remotePlayers.values()) {
             enemy.weapon?.update(deltaSeconds);
+            enemy.updateHitAnimation(deltaSeconds);
+        }
         this.scene.update(
             this.input.state,
             this.app.renderer.width,
@@ -32,6 +35,10 @@ export class Game {
         this.input.Attack = () => {
             this.scene?.requestattack();
         };
+    }
+
+    equipWeapon(weapon: WeaponType) {
+        this.scene?.player.equipWeapon(weapon);
     }
 
     addRemotePlayer(player: JoinedPayload['players'][number]) {
@@ -121,6 +128,16 @@ export class Game {
         return this.scene?.getCastlePointer() ?? null;
     }
 
+    isPlayerNearCastle(): boolean {
+        return this.scene?.isPlayerNearCastle() ?? false;
+    }
+
+    playerhitanimation() {
+        this.scene?.player.hitanimation();
+    }
+    remoteplayerhitanimation(socketId: string) {
+        this.scene?.remotePlayers.get(socketId)?.hitanimation();
+    }
     pause() {
         this.app.ticker.stop();
     }
