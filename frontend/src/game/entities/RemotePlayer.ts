@@ -34,6 +34,7 @@ export class RemotePlayer {
     private direction: Direction = 'down';
     private readonly textures: RemotePlayerTextures;
     readonly container = new Container();
+    private hittimer = 0;
     weapon?: Weapon;
 
     constructor(textures: RemotePlayerTextures, userId: string) {
@@ -58,6 +59,7 @@ export class RemotePlayer {
         this.sprite.stop();
 
         this.sprite.texture = textures.playerStand;
+        
     }
 
     placeAt(x: number, y: number) {
@@ -161,5 +163,19 @@ export class RemotePlayer {
         if (!this.weapon) return false;
         this.weapon?.attack(direction);
         return true;
+    }
+    hitanimation() {
+        this.hittimer = 0.2;
+        this.sprite.tint = 0xff9999;
+    }
+
+    updateHitAnimation(deltaSeconds: number) {
+        if (this.hittimer <= 0) return;
+
+        this.hittimer = Math.max(0, this.hittimer - deltaSeconds);
+
+        if (this.hittimer === 0) {
+            this.sprite.tint = 0xffffff;
+        }
     }
 }

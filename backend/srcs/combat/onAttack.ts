@@ -44,7 +44,7 @@ export function handleattack(
                                     target.hp - stats.damage
                                 );
                                 socket.nsp
-                                    .to(target.socketId)
+                                    .to(currentRoomId)
                                     .emit('player_hp', {
                                         socketId: target.socketId,
                                         hp: target.hp
