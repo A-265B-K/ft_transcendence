@@ -73,8 +73,9 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             hp: number;
         }) {
             if (socketId !== joinedData.player.socketId) return;
-
+            
             setHp(hp);
+            game.playerhitanimation();            
         }
 
         function handleJoinError({ message }: { message: string }) {

@@ -41,6 +41,7 @@ export class Player {
     direction: Direction = 'down';
     private readonly textures: PlayerTextures;
     weapon?: Weapon;
+    private hittimer = 0 ;
 
     constructor(textures: PlayerTextures) {
         this.textures = textures;
@@ -125,6 +126,12 @@ export class Player {
         this.gridY = Math.max(0, Math.min(MAP_SIZE - 1, this.gridY));
 
         this.syncSpritePosition();
+
+        if (this.hittimer > 0){
+            this.hittimer = Math.max(0, this.hittimer - deltaSeconds)
+        }
+        if (this.hittimer == 0)
+            this.sprite.tint = 0xffffff;
     }
 
     private updateDirection(moveX: number, moveY: number) {
@@ -192,5 +199,9 @@ export class Player {
         if (!this.weapon) return false;
         this.weapon?.attack(this.direction);
         return true;
+    }
+    hitanimation(){
+        this.hittimer = 0.2;
+        this.sprite.tint = 0xff9999;
     }
 }

@@ -130,6 +130,9 @@ export class Game {
         return this.scene?.isPlayerNearCastle() ?? false;
     }
 
+    playerhitanimation(){
+        this.scene?.player.hitanimation();
+    }
     pause() {
         this.app.ticker.stop();
     }
