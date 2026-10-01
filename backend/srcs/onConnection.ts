@@ -8,7 +8,7 @@ import {
     PLAYER_DEFAULT_IRON,
     PLAYER_DEFAULT_CASTLE_LEVEL
 } from './constants.js';
-import type { Spawn, Socket, SocketUser, Inventory } from './types.js';
+import type { Spawn, Socket, SocketUser } from './types.js';
 import { handleattack } from './combat/onAttack.js';
 
 const createPlayer = (
