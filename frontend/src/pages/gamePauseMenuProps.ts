@@ -1,5 +1,5 @@
 export type GamePauseMenuProps = {
-	roomCode: string;
-	onResume: () => void;
-	onLeave: () => void;
+    roomCode: string;
+    onResume: () => void;
+    onLeave: () => void;
 };

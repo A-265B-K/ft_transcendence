@@ -1,4 +1,4 @@
-import { type JoinedPayload } from "../types/game";
+import { type JoinedPayload } from '../types/game';
 
 export type GameMenuProps = {
     user: {

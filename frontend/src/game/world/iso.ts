@@ -1,13 +1,13 @@
 /**
  * Isometric Projection Utilities
- * 
+ *
  * Converts between grid coordinates and isometric screen coordinates.
  * Uses standard isometric projection with 64x32 tile dimensions.
  */
 
 // Tile dimensions in pixels
-export const tileWidth = 64;   // Width of each tile
-export const tileHeight = 32;  // Height of each tile
+export const tileWidth = 64; // Width of each tile
+export const tileHeight = 32; // Height of each tile
 
 /**
  * Convert grid coordinates to isometric screen X coordinate
