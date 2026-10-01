@@ -301,7 +301,10 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
                 <Forgemenu
                     onEquip={(weapon, updatedInventory) => {
                         gameRef.current?.equipWeapon(weapon);
-                        gameRef.current?.syncInventory(updatedInventory.wood, updatedInventory.iron);
+                        gameRef.current?.syncInventory(
+                            updatedInventory.wood,
+                            updatedInventory.iron
+                        );
                         setInventory(updatedInventory);
                     }}
                 />

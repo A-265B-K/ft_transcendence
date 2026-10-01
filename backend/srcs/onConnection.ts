@@ -231,7 +231,13 @@ const onConnection = async (socket: Socket) => {
         (
             data: unknown,
             reply: (
-                result: { success: true; weapon: string ; inventory: {wood: number ; iron: number}} | { success: false }
+                result:
+                    | {
+                          success: true;
+                          weapon: string;
+                          inventory: { wood: number; iron: number };
+                      }
+                    | { success: false }
             ) => void
         ) => {
             if (
@@ -266,7 +272,14 @@ const onConnection = async (socket: Socket) => {
             player.inventory.wood -= cost.wood;
             player.inventory.iron -= cost.iron;
             player.equippedweapon = weapon;
-            reply({ success: true, weapon: weapon, inventory: { wood: player.inventory.wood, iron: player.inventory.iron, }});
+            reply({
+                success: true,
+                weapon: weapon,
+                inventory: {
+                    wood: player.inventory.wood,
+                    iron: player.inventory.iron
+                }
+            });
         }
     );
 

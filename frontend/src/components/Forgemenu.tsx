@@ -12,13 +12,21 @@ const weaponrecipes = {
 export function Forgemenu({
     onEquip
 }: {
-    onEquip: (weapon: WeaponType, inventory: {wood: number ; iron: number}) => void;
+    onEquip: (
+        weapon: WeaponType,
+        inventory: { wood: number; iron: number }
+    ) => void;
 }) {
     const [open, setOpen] = useState(false);
 
     function craftweapon(weapon: WeaponType) {
         type craftresult =
-            { success: true; weapon: WeaponType ;  inventory: {wood: number ; iron: number}} | { success: false };
+            | {
+                  success: true;
+                  weapon: WeaponType;
+                  inventory: { wood: number; iron: number };
+              }
+            | { success: false };
         const socket = getSocket();
         if (!socket?.connected) return;
         socket.emit('craftweapon', { weapon }, (result: craftresult) => {
