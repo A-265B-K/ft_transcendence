@@ -172,7 +172,7 @@ type TwoFAEnableBody = {
 };
 fastify.post<{ Body: TwoFAEnableBody }>(
     '/api/auth/2fa/setup',
-    async (request, reply) => {
+    async (request) => {
         const { email } = request.body;
 
         return await enableUser2FA(email);
@@ -185,7 +185,7 @@ type TwoFAConfirmBody = {
 };
 fastify.post<{ Body: TwoFAConfirmBody }>(
     '/api/auth/2fa/confirm',
-    async (request, reply) => {
+    async (request) => {
         const { email, token } = request.body;
 
         return await confirm2FASetup(email, token);
@@ -197,7 +197,7 @@ type TwoFADisableBody = {
 };
 fastify.post<{ Body: TwoFADisableBody }>(
     '/api/auth/2fa/disable',
-    async (request, reply) => {
+    async (request) => {
         const { email } = request.body;
         // delete cookies
         return await disableUser2FA(email);
@@ -311,7 +311,7 @@ fastify.get<{ Querystring: VerifyEmailQuery }>(
                 path: '/'
             });
 
-            return reply.redirect('/');
+            return reply.redirect('/game-menu');
         } catch (error) {
             console.error(
                 '[verify-email] failed:',
@@ -401,8 +401,6 @@ fastify.get('/verify-2fa', async (request, reply) => {
 
 // Game logic
 const interval = setInterval(() => {
-    console.log('Checking whether a game has started or ended...');
-
     for (const [roomId, room] of Object.entries(rooms)) {
         if (!room.gameStarted && room.playerCount >= 2) {
             room.gameStarted = true;

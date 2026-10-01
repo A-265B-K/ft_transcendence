@@ -48,18 +48,56 @@ const findAvailableSlot = (room: Room, maxSize: number) => {
     return null;
 };
 
+const removeExistingPlayer = (userId: string, socket: Socket) => {
+    const existingPlayer = players[userId];
+
+    if (!existingPlayer) {
+        return;
+    }
+
+    if (existingPlayer.socketId === socket.id) {
+        return;
+    }
+
+    const oldSocketId = existingPlayer.socketId;
+
+    for (const room of Object.values(rooms)) {
+        const playerInRoom = room.players.find(
+            (player) => player.socketId === oldSocketId
+        );
+
+        if (!playerInRoom) {
+            continue;
+        }
+
+        room.players = room.players.filter(
+            (player) => player.socketId !== oldSocketId
+        );
+
+        room.playerCount = room.players.length;
+
+        socket.to(room.roomId).emit('player_left', playerInRoom);
+
+        socket.to(room.roomId).emit('room_update', {
+            roomId: room.roomId,
+            playerCount: room.playerCount,
+            maxPlayers: ROOM_MAX_SIZE
+        });
+
+        break;
+    }
+
+    delete players[userId];
+
+    console.log(`Removed old session ${oldSocketId} for user ${userId}`);
+};
+
 const joinRoom = (
     socket: Socket,
     user: SocketUser,
     room: Room
 ): string | null => {
-    if (players[user.id]) {
-        socket.emit('join_error', {
-            message: 'Already connected in another session'
-        });
-
-        return null;
-    }
+    removeExistingPlayer(user.id, socket);
 
     if (room.players.length >= ROOM_MAX_SIZE) {
         socket.emit('join_error', {
@@ -380,7 +418,7 @@ const onConnection = async (socket: Socket) => {
 
     socket.on(
         'kick_player',
-        (roomId: string, targetSocketId: Socket, reason: string) => {
+        (roomId: string, targetSocketId: string, reason: string) => {
             const wasKicked = kickFromRoom(roomId, targetSocketId, reason);
 
             if (!wasKicked) {

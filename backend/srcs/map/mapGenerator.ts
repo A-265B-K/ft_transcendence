@@ -4,7 +4,8 @@ import {
     MAP_WIDTH,
     MAP_HEIGHT,
     CASTLE_RADIUS,
-    MIN_DIST_CASTLE
+    MIN_DIST_CASTLE,
+    PLAYER_RADIUS
 } from '../constants.js';
 import type { Spawn } from '../types.js';
 
@@ -53,9 +54,12 @@ function generateSpawnAndCastleData(maxPlayers: number) {
         );
     }
 
+    const castleclearance = CASTLE_RADIUS / 2 + PLAYER_RADIUS + 1;
+    const castleoffset = castleclearance / Math.sqrt(2);
+
     const spawnPoints: Spawn[] = castleZones.map((c) => ({
         playerSlot: c.playerSlot,
-        pos: { x: c.x, y: c.y }
+        pos: { x: c.x + castleoffset, y: c.y + castleoffset }
     }));
 
     return { spawnPoints, castleZones };

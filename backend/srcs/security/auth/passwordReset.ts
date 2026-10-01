@@ -23,7 +23,7 @@ export async function passwordResetRequest(email: string) {
         .update(password_verification_token)
         .digest('hex');
 
-    const user = await insertUserPasswordVerification(
+    await insertUserPasswordVerification(
         email,
         password_verification_token_hash
     );

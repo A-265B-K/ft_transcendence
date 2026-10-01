@@ -28,7 +28,7 @@ export class axe extends Weapon {
         if (!this.attacking) return;
 
         this.attacktime += deltaSeconds;
-        let progress = Math.min(this.attacktime / 0.6, 1);
+        const progress = Math.min(this.attacktime / 0.6, 1);
         this.sprite.rotation = Math.sin(progress * Math.PI) * this.attackangle;
 
         if (progress === 1) {

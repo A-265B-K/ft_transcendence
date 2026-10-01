@@ -140,8 +140,10 @@ export class Player {
                   ? 'up'
                   : 'down';
 
-        this.direction = newDirection;
-        this.setWalkAnimation();
+        if (newDirection !== this.direction || !this.sprite.playing) {
+            this.direction = newDirection;
+            this.setWalkAnimation();
+        }
     }
 
     private setWalkAnimation() {
