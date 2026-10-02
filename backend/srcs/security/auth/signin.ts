@@ -78,13 +78,13 @@ export async function SignInUser(
                 message: 'Invalid email or password'
             };
         }
-        // if (!user.email_verified) {
-        //     return {
-        //         ok: false,
-        //         statusCode: 401,
-        //         message: 'Please verify your email address'
-        //     };
-        // }
+        if (!user.email_verified) {
+            return {
+                ok: false,
+                statusCode: 401,
+                message: 'Please verify your email address'
+            };
+        }
         if (user.enabled_2fa) {
             await deleteTemporary2FAByUserId(user.id);
             const temporary_auth = randomBytes(32).toString('hex');
