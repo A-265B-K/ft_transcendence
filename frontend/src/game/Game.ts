@@ -40,7 +40,9 @@ export class Game {
     equipWeapon(weapon: WeaponType) {
         this.scene?.player.equipWeapon(weapon);
     }
-
+    equipremoteweapon(socketId: string, weapon: WeaponType) {
+        this.scene?.remotePlayers.get(socketId)?.equipWeapon(weapon);
+    }
     addRemotePlayer(player: JoinedPayload['players'][number]) {
         this.scene?.addRemotePlayer(player);
     }
