@@ -111,10 +111,6 @@ services:
         - grafana:/app/grafana
         - postgres_data:/app/postgress
         - ./backups/backups:/app/backups
-      environment:
-        POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is not set}
-        PGPASSWORD: ${POSTGRES_PASSWORD:-}
-        POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is not set}
       depends_on:
         prometheus:
           condition: service_healthy

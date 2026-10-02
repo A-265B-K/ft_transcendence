@@ -25,6 +25,9 @@ POSTGRES_EXPORTER_VAULT_POLICY="transcendence-postgres_exporter"
 GRAFANA_VAULT_TOKEN_FILE="$VAULT_TOKEN_DIR/.grafana_vault_token"
 GRAFANA_VAULT_POLICY="transcendence-grafana"
 
+BACKUPS_VAULT_TOKEN_FILE="$VAULT_TOKEN_DIR/.backups_vault_token"
+BACKUPS_VAULT_POLICY="transcendence-backups"
+
 COMPOSE_FILE="docker-compose-dev.yaml"
 BOOTSTRAP_COMPOSE_FILE="docker-compose-bootstrap.yaml"
 
@@ -177,8 +180,6 @@ vault_ensure_postgres_exporter_token() {
 		die "Vault root token is missing."
 	fi
 
-	# Reuse the existing backend token if it is still valid
-	# and can read the backend's allowed secret.
 	if [[ -s "$POSTGRES_EXPORTER_VAULT_TOKEN_FILE" ]]; then
 		chmod 600 "$POSTGRES_EXPORTER_VAULT_TOKEN_FILE"
 
@@ -353,6 +354,104 @@ vault_ensure_grafana_token() {
 	unset vault_root_token
 
 	log "Grafana Vault token created and saved to $GRAFANA_VAULT_TOKEN_FILE."
+}
+
+# ------------------------------------------------------------
+# Vault backups token creation
+# ------------------------------------------------------------
+
+vault_ensure_backups_token() {
+	local vault_root_token
+	local backups_token
+
+	if [[ ! -f "$VAULT_SECRETS_FILE" ]]; then
+		die "Vault credentials file '$VAULT_SECRETS_FILE' not found."
+	fi
+
+	if [[ "$(stat -c '%a' "$VAULT_SECRETS_FILE")" != "600" ]]; then
+		die "$VAULT_SECRETS_FILE must have permissions 600."
+	fi
+
+	vault_root_token="$(
+		sed -n 's/^VAULT_ROOT_TOKEN=//p' "$VAULT_SECRETS_FILE"
+	)"
+
+	if [[ -z "$vault_root_token" ]]; then
+		die "Vault root token is missing."
+	fi
+
+	if [[ -s "$BACKUPS_VAULT_TOKEN_FILE" ]]; then
+		chmod 600 "$BACKUPS_VAULT_TOKEN_FILE"
+
+		if docker exec \
+			-e VAULT_TOKEN="$(cat "$BACKUPS_VAULT_TOKEN_FILE")" \
+			"$VAULT_CONTAINER" \
+			vault kv get \
+				-field=username \
+				app/backups \
+				>/dev/null 2>&1
+		then
+			unset vault_root_token
+			log "Existing backups Vault token is valid; reusing it."
+			return 0
+		fi
+
+		log "Existing backups Vault token is invalid; creating a new one."
+	else
+		log "Postgres backups Vault token not found; creating one."
+	fi
+
+	log "Ensuring backups Vault policy..."
+
+	if ! printf '%s\n' \
+		'path "app/data/backups" {' \
+        '  capabilities = ["read"]' \
+        '}' |
+		docker exec -i \
+			-e VAULT_TOKEN="$vault_root_token" \
+			"$VAULT_CONTAINER" \
+			vault policy write \
+				"$BACKUPS_VAULT_POLICY" \
+				- \
+				>/dev/null
+	then
+		unset vault_root_token
+		die "Failed to create/update backups Vault policy."
+	fi
+
+	log "Creating scoped backups Vault token..."
+
+	backups_token="$(
+		docker exec \
+			-e VAULT_TOKEN="$vault_root_token" \
+			"$VAULT_CONTAINER" \
+			vault token create \
+				-policy="$BACKUPS_VAULT_POLICY" \
+				-ttl=8760h \
+				-renewable=true \
+				-field=token
+	)" || {
+		unset vault_root_token
+		die "Failed to create backups Vault token."
+	}
+
+	if [[ -z "$backups_token" ]]; then
+		unset vault_root_token
+		die "Vault returned an empty backups token."
+	fi
+
+	# remove all permissions and write token in token file
+	(
+		umask 077
+		printf '%s\n' "$backups_token" > "$BACKUPS_VAULT_TOKEN_FILE"
+	)
+
+	chmod 600 "$BACKUPS_VAULT_TOKEN_FILE"
+
+	unset backups_token
+	unset vault_root_token
+
+	log "Backups Vault token created and saved to $BACKUPS_VAULT_TOKEN_FILE."
 }
 
 # ------------------------------------------------------------
@@ -1215,5 +1314,6 @@ fi
 vault_ensure_backend_token
 vault_ensure_postgres_exporter_token
 vault_ensure_grafana_token
+vault_ensure_backups_token
 
 log "PostgreSQL bootstrap stage completed."
