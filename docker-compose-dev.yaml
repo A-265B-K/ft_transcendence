@@ -20,6 +20,9 @@ services:
         - ./backend:/workspace/app
       environment:
         HOSTNAME: ${HOSTNAME:?HOSTNAME is not set}
+      depends_on:
+        vault:
+          condition: service_healthy
       healthcheck:
         test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3000/api/ping"]
         interval: 1s
@@ -27,7 +30,7 @@ services:
         retries: 10
         start_period: 10s
       secrets:
-       - backend_vault_token
+        - backend_vault_token
 
     nginx_dev:
       build: 
@@ -56,9 +59,15 @@ services:
         interval: 5s
         timeout: 3s
         retries: 10
+        start_period: 15s
 
     postgresexporter:
       build: ./postgres/exporter
+      depends_on:
+        vault:
+          condition: service_healthy
+        postgres:
+          condition: service_healthy
       secrets:
         - exporter_vault_token
 
@@ -106,15 +115,18 @@ services:
 
     backups:
       build: ./backups
+      restart: unless-stopped
+      environment:
+        VAULT_ADDR: http://vault:8200
+        BACKUPS_VAULT_TOKEN_FILE: /run/secrets/backups_vault_token
+      secrets:
+        - backups_vault_token
       volumes:
-        - prometheus:/app/prometheus
-        - grafana:/app/grafana
-        - postgres_data:/app/postgress
         - ./backups/backups:/app/backups
       depends_on:
-        prometheus:
-          condition: service_healthy
         postgres:
+          condition: service_healthy
+        vault:
           condition: service_healthy
 
     vault-init:
@@ -166,8 +178,10 @@ secrets:
   backend_vault_token:
     file: ./tokens/.backend_vault_token
   exporter_vault_token:
-    file: ./tokens/.postgres_exporter_token
+    file: ./tokens/.exporter_vault_token
   grafana_admin_user:
     file: ./tokens/grafana/admin_user
   grafana_admin_password:
     file: ./tokens/grafana/admin_password
+  backups_vault_token:
+    file: ./tokens/.backups_vault_token

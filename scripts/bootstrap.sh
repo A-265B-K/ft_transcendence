@@ -19,7 +19,7 @@ VAULT_SECRETS_FILE=".vault_secrets"
 BACKEND_VAULT_TOKEN_FILE="$VAULT_TOKEN_DIR/.backend_vault_token"
 BACKEND_VAULT_POLICY="transcendence-backend"
 
-POSTGRES_EXPORTER_VAULT_TOKEN_FILE="$VAULT_TOKEN_DIR/.postgres_exporter_token"
+POSTGRES_EXPORTER_VAULT_TOKEN_FILE="$VAULT_TOKEN_DIR/.exporter_vault_token"
 POSTGRES_EXPORTER_VAULT_POLICY="transcendence-postgres_exporter"
 
 GRAFANA_VAULT_TOKEN_FILE="$VAULT_TOKEN_DIR/.grafana_vault_token"
@@ -35,6 +35,8 @@ BOOTSTRAP_COMPOSE_FILE="docker-compose-bootstrap.yaml"
 POSTGRES_VOLUME="${POSTGRES_VOLUME_NAME:-ft_transcendence_postgres_data}"
 
 POSTGRES_APP_PASSWORD=""
+POSTGRES_EXPORTER_PASSWORD=""
+POSTGRES_BACKUPS_PASSWORD=""
 
 # ------------------------------------------------------------
 # Helper functions
@@ -160,9 +162,9 @@ vault_ensure_backend_token() {
 # Vault postgres exporter token creation
 # ------------------------------------------------------------
 
-vault_ensure_postgres_exporter_token() {
+vault_ensure_exporter_vault_token() {
 	local vault_root_token
-	local postgres_exporter_token
+	local exporter_vault_token
 
 	if [[ ! -f "$VAULT_SECRETS_FILE" ]]; then
 		die "Vault credentials file '$VAULT_SECRETS_FILE' not found."
@@ -223,7 +225,7 @@ vault_ensure_postgres_exporter_token() {
 	log "Creating scoped postgres exporter Vault token..."
 
 	# backend vault token creation with 1 year validation time
-	postgres_exporter_token="$(
+	exporter_vault_token="$(
 		docker exec \
 			-e VAULT_TOKEN="$vault_root_token" \
 			"$VAULT_CONTAINER" \
@@ -237,7 +239,7 @@ vault_ensure_postgres_exporter_token() {
 		die "Failed to create postgres exporter Vault token."
 	}
 
-	if [[ -z "$postgres_exporter_token" ]]; then
+	if [[ -z "$exporter_vault_token" ]]; then
 		unset vault_root_token
 		die "Vault returned an empty postgres exporter token."
 	fi
@@ -245,12 +247,12 @@ vault_ensure_postgres_exporter_token() {
 	# remove all permissions and write token in token file
 	(
 		umask 077
-		printf '%s\n' "$postgres_exporter_token" > "$POSTGRES_EXPORTER_VAULT_TOKEN_FILE"
+		printf '%s\n' "$exporter_vault_token" > "$POSTGRES_EXPORTER_VAULT_TOKEN_FILE"
 	)
 
 	chmod 600 "$POSTGRES_EXPORTER_VAULT_TOKEN_FILE"
 
-	unset postgres_exporter_token
+	unset exporter_vault_token
 	unset vault_root_token
 
 	log "Postgres exporter Vault token created and saved to $POSTGRES_EXPORTER_VAULT_TOKEN_FILE."
@@ -953,6 +955,206 @@ vault_store_grafana_credentials() {
 }
 
 # ------------------------------------------------------------
+# Grafana fix secret permission
+# ------------------------------------------------------------
+
+grafana_write_secret_files() {
+	local grafana_dir="$VAULT_TOKEN_DIR/grafana"
+	local grafana_user_file="$grafana_dir/admin_user"
+	local grafana_password_file="$grafana_dir/admin_password"
+
+	if [[ -z "${GRAFANA_ADMIN_USER:-}" ]]; then
+		die "Grafana admin username is not available."
+	fi
+
+	if [[ -z "${GRAFANA_ADMIN_PASSWORD:-}" ]]; then
+		die "Grafana admin password is not available."
+	fi
+
+	log "Writing Grafana secret files..."
+
+	mkdir -p "$grafana_dir" \
+		|| die "Failed to create Grafana secrets directory."
+
+	printf '%s' "$GRAFANA_ADMIN_USER" > "$grafana_user_file" \
+		|| die "Failed to write Grafana admin user secret."
+
+	printf '%s' "$GRAFANA_ADMIN_PASSWORD" > "$grafana_password_file" \
+		|| die "Failed to write Grafana admin password secret."
+
+	# Grafana runs as UID 472, while these files are created by the
+	# host user. Docker Compose file secrets preserve these permissions.
+	chmod 644 \
+		"$grafana_user_file" \
+		"$grafana_password_file" \
+		|| die "Failed to set Grafana secret file permissions."
+
+	log "Grafana secret files written."
+}
+
+# ------------------------------------------------------------
+# Vault store exporter credentials
+# ------------------------------------------------------------
+
+vault_store_postgres_exporter_credentials() {
+	local vault_root_token
+
+	if [[ -z "${POSTGRES_EXPORTER_PASSWORD:-}" ]]; then
+		die "PostgreSQL exporter password is not available."
+	fi
+
+	if [[ ! -f "$VAULT_SECRETS_FILE" ]]; then
+		die "Vault credentials file '$VAULT_SECRETS_FILE' not found."
+	fi
+
+	vault_root_token="$(
+		sed -n 's/^VAULT_ROOT_TOKEN=//p' "$VAULT_SECRETS_FILE"
+	)"
+
+	if [[ -z "$vault_root_token" ]]; then
+		die "Vault root token is missing."
+	fi
+
+	log "Storing PostgreSQL exporter credentials in Vault..."
+
+	if ! docker exec \
+		-e VAULT_TOKEN="$vault_root_token" \
+		-e POSTGRES_EXPORTER_USERNAME="postgres_exporter" \
+		-e POSTGRES_EXPORTER_PASSWORD="$POSTGRES_EXPORTER_PASSWORD" \
+		-e POSTGRES_DATABASE="$POSTGRES_DB" \
+		"$VAULT_CONTAINER" \
+		sh -c '
+			vault kv put app/postgres_exporter \
+				username="$POSTGRES_EXPORTER_USERNAME" \
+				password="$POSTGRES_EXPORTER_PASSWORD" \
+				database="$POSTGRES_DATABASE"
+		' >/dev/null
+	then
+		unset vault_root_token
+		die "Failed to store PostgreSQL exporter credentials in Vault."
+	fi
+
+	unset vault_root_token
+
+	log "PostgreSQL exporter credentials stored in Vault."
+}
+
+# ------------------------------------------------------------
+# Vault store exporter credentials
+# ------------------------------------------------------------
+
+vault_store_postgres_backups_credentials() {
+	local vault_root_token
+
+	if [[ -z "${POSTGRES_BACKUPS_PASSWORD:-}" ]]; then
+		die "PostgreSQL backups password is not available."
+	fi
+
+	if [[ ! -f "$VAULT_SECRETS_FILE" ]]; then
+		die "Vault credentials file '$VAULT_SECRETS_FILE' not found."
+	fi
+
+	vault_root_token="$(
+		sed -n 's/^VAULT_ROOT_TOKEN=//p' "$VAULT_SECRETS_FILE"
+	)"
+
+	if [[ -z "$vault_root_token" ]]; then
+		die "Vault root token is missing."
+	fi
+
+	log "Storing PostgreSQL backups credentials in Vault..."
+
+	if ! docker exec \
+		-e VAULT_TOKEN="$vault_root_token" \
+		-e POSTGRES_BACKUPS_USERNAME="postgres_backups" \
+		-e POSTGRES_BACKUPS_PASSWORD="$POSTGRES_BACKUPS_PASSWORD" \
+		-e POSTGRES_DATABASE="$POSTGRES_DB" \
+		"$VAULT_CONTAINER" \
+		sh -c '
+			vault kv put app/backups \
+				username="$POSTGRES_BACKUPS_USERNAME" \
+				password="$POSTGRES_BACKUPS_PASSWORD" \
+				database="$POSTGRES_DATABASE"
+		' >/dev/null
+	then
+		unset vault_root_token
+		die "Failed to store PostgreSQL backups credentials in Vault."
+	fi
+
+	unset vault_root_token
+
+	log "PostgreSQL backups credentials stored in Vault."
+}
+
+# ------------------------------------------------------------
+# PostgreSQL exporter role
+# ------------------------------------------------------------
+
+postgres_ensure_exporter_role() {
+	if [[ -z "${POSTGRES_ADMIN_PASSWORD:-}" ]]; then
+		die "PostgreSQL admin password is not available."
+	fi
+
+	if [[ -z "${POSTGRES_EXPORTER_PASSWORD:-}" ]]; then
+		die "PostgreSQL exporter password is not available."
+	fi
+
+	log "Provisioning PostgreSQL exporter role..."
+
+	local sql_file
+
+	sql_file="$(mktemp)"
+	chmod 600 "$sql_file"
+	trap 'rm -f "$sql_file"' RETURN
+
+	cat > "$sql_file" <<SQL
+DO \$\$
+BEGIN
+	IF NOT EXISTS (
+		SELECT FROM pg_roles
+		WHERE rolname = 'postgres_exporter'
+	) THEN
+		CREATE ROLE postgres_exporter LOGIN;
+	END IF;
+END
+\$\$;
+
+ALTER ROLE postgres_exporter PASSWORD '$POSTGRES_EXPORTER_PASSWORD';
+
+GRANT CONNECT ON DATABASE "$POSTGRES_DB"
+	TO postgres_exporter;
+
+GRANT USAGE ON SCHEMA public
+	TO postgres_exporter;
+
+GRANT pg_monitor
+	TO postgres_exporter;
+
+GRANT SELECT ON TABLE users
+	TO postgres_exporter;
+SQL
+
+	if ! docker compose \
+		"${POSTGRES_COMPOSE[@]}" \
+		exec -T postgres \
+		env PGPASSWORD="$POSTGRES_ADMIN_PASSWORD" \
+		psql \
+			-h 127.0.0.1 \
+			-U "$POSTGRES_USER" \
+			-d "$POSTGRES_DB" \
+			< "$sql_file" \
+			>/dev/null
+	then
+		rm -f "$sql_file"
+		die "Failed to provision PostgreSQL exporter role."
+	fi
+
+	rm -f "$sql_file"
+
+	log "PostgreSQL exporter role provisioned."
+}
+
+# ------------------------------------------------------------
 # PostgreSQL creation of app role (limits access to user)
 # ------------------------------------------------------------
 
@@ -1024,6 +1226,90 @@ SQL
 }
 
 # ------------------------------------------------------------
+# Vault load postgres exporter password
+# ------------------------------------------------------------
+
+vault_load_postgres_exporter_password() {
+	local vault_root_token
+
+	if [[ ! -f "$VAULT_SECRETS_FILE" ]]; then
+		die "Vault credentials file '$VAULT_SECRETS_FILE' not found."
+	fi
+
+	vault_root_token="$(
+		sed -n 's/^VAULT_ROOT_TOKEN=//p' "$VAULT_SECRETS_FILE"
+	)"
+
+	if [[ -z "$vault_root_token" ]]; then
+		die "Vault root token is missing."
+	fi
+
+	log "Loading PostgreSQL exporter password from Vault..."
+
+	POSTGRES_EXPORTER_PASSWORD="$(
+		docker exec \
+			-e VAULT_TOKEN="$vault_root_token" \
+			"$VAULT_CONTAINER" \
+			vault kv get \
+				-field=password \
+				app/postgres_exporter
+	)" || {
+		unset vault_root_token
+		die "Failed to retrieve PostgreSQL exporter password from Vault."
+	}
+
+	unset vault_root_token
+
+	if [[ -z "$POSTGRES_EXPORTER_PASSWORD" ]]; then
+		die "PostgreSQL exporter password retrieved from Vault is empty."
+	fi
+
+	log "PostgreSQL exporter password loaded from Vault."
+}
+
+# ------------------------------------------------------------
+# Vault load backups password
+# ------------------------------------------------------------
+
+vault_load_postgres_backups_password() {
+	local vault_root_token
+
+	if [[ ! -f "$VAULT_SECRETS_FILE" ]]; then
+		die "Vault credentials file '$VAULT_SECRETS_FILE' not found."
+	fi
+
+	vault_root_token="$(
+		sed -n 's/^VAULT_ROOT_TOKEN=//p' "$VAULT_SECRETS_FILE"
+	)"
+
+	if [[ -z "$vault_root_token" ]]; then
+		die "Vault root token is missing."
+	fi
+
+	log "Loading PostgreSQL backups password from Vault..."
+
+	POSTGRES_BACKUPS_PASSWORD="$(
+		docker exec \
+			-e VAULT_TOKEN="$vault_root_token" \
+			"$VAULT_CONTAINER" \
+			vault kv get \
+				-field=password \
+				app/backups
+	)" || {
+		unset vault_root_token
+		die "Failed to retrieve PostgreSQL backups password from Vault."
+	}
+
+	unset vault_root_token
+
+	if [[ -z "$POSTGRES_BACKUPS_PASSWORD" ]]; then
+		die "PostgreSQL backups password retrieved from Vault is empty."
+	fi
+
+	log "PostgreSQL backups password loaded from Vault."
+}
+
+# ------------------------------------------------------------
 # PostgreSQL state detection
 # ------------------------------------------------------------
 
@@ -1032,6 +1318,76 @@ postgres_is_initialized() {
 		-v "${POSTGRES_VOLUME}:/var/lib/postgresql" \
 		postgres:18.4 \
 		sh -c 'test -s "$PGDATA/PG_VERSION"'
+}
+
+# ------------------------------------------------------------
+# PostgreSQL creation of app role (limits access to backups)
+# ------------------------------------------------------------
+
+postgres_ensure_backups_role() {
+	if [[ -z "${POSTGRES_ADMIN_PASSWORD:-}" ]]; then
+		die "PostgreSQL admin password is not available."
+	fi
+
+	if [[ -z "${POSTGRES_BACKUPS_PASSWORD:-}" ]]; then
+		die "PostgreSQL backups password is not available."
+	fi
+
+	log "Provisioning PostgreSQL backups role..."
+
+	local sql_file
+
+	sql_file="$(mktemp)"
+	chmod 600 "$sql_file"
+	trap 'rm -f "$sql_file"' RETURN
+
+	cat > "$sql_file" <<SQL
+DO \$\$
+BEGIN
+	IF NOT EXISTS (
+		SELECT FROM pg_roles
+		WHERE rolname = 'postgres_backups'
+	) THEN
+		CREATE ROLE postgres_backups LOGIN;
+	END IF;
+END
+\$\$;
+
+ALTER ROLE postgres_backups PASSWORD '$POSTGRES_BACKUPS_PASSWORD';
+
+GRANT CONNECT ON DATABASE "$POSTGRES_DB"
+	TO postgres_backups;
+
+GRANT USAGE ON SCHEMA public
+	TO postgres_backups;
+
+GRANT SELECT
+	ON ALL TABLES IN SCHEMA public
+	TO postgres_backups;
+
+GRANT SELECT
+	ON ALL SEQUENCES IN SCHEMA public
+	TO postgres_backups;
+SQL
+
+	if ! docker compose \
+		"${POSTGRES_COMPOSE[@]}" \
+		exec -T postgres \
+		env PGPASSWORD="$POSTGRES_ADMIN_PASSWORD" \
+		psql \
+			-h 127.0.0.1 \
+			-U "$POSTGRES_USER" \
+			-d "$POSTGRES_DB" \
+			< "$sql_file" \
+			>/dev/null
+	then
+		rm -f "$sql_file"
+		die "Failed to provision PostgreSQL backups role."
+	fi
+
+	rm -f "$sql_file"
+
+	log "PostgreSQL backups role provisioned."
 }
 
 # ------------------------------------------------------------
@@ -1167,6 +1523,7 @@ fi
 vault_ensure_app_kv
 vault_store_email_credentials
 vault_store_grafana_credentials
+grafana_write_secret_files
 
 # ------------------------------------------------------------
 # PostgreSQL state check
@@ -1298,6 +1655,7 @@ fi
 
 if [[ "$POSTGRES_INITIALIZED" == "false" ]]; then
 	log "Generating PostgreSQL application password..."
+
 	POSTGRES_APP_PASSWORD="$(openssl rand -hex 32)"
 
 	if [[ -z "$POSTGRES_APP_PASSWORD" ]]; then
@@ -1311,8 +1669,55 @@ else
 	postgres_ensure_app_role
 fi
 
+
+# ------------------------------------------------------------
+# PostgreSQL exporter role
+# ------------------------------------------------------------
+
+if [[ "$POSTGRES_INITIALIZED" == "false" ]]; then
+	log "Generating PostgreSQL exporter password..."
+
+	POSTGRES_EXPORTER_PASSWORD="$(openssl rand -hex 32)"
+
+	if [[ -z "$POSTGRES_EXPORTER_PASSWORD" ]]; then
+		die "Failed to generate PostgreSQL exporter password."
+	fi
+
+	postgres_ensure_exporter_role
+	vault_store_postgres_exporter_credentials
+else
+	vault_load_postgres_exporter_password
+	postgres_ensure_exporter_role
+fi
+
+
+# ------------------------------------------------------------
+# PostgreSQL backups role
+# ------------------------------------------------------------
+
+if [[ "$POSTGRES_INITIALIZED" == "false" ]]; then
+	log "Generating PostgreSQL backups password..."
+
+	POSTGRES_BACKUPS_PASSWORD="$(openssl rand -hex 32)"
+
+	if [[ -z "$POSTGRES_BACKUPS_PASSWORD" ]]; then
+		die "Failed to generate PostgreSQL backups password."
+	fi
+
+	postgres_ensure_backups_role
+	vault_store_postgres_backups_credentials
+else
+	vault_load_postgres_backups_password
+	postgres_ensure_backups_role
+fi
+
+
+# ------------------------------------------------------------
+# Scoped Vault tokens
+# ------------------------------------------------------------
+
 vault_ensure_backend_token
-vault_ensure_postgres_exporter_token
+vault_ensure_exporter_vault_token
 vault_ensure_grafana_token
 vault_ensure_backups_token
 

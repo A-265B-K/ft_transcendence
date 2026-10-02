@@ -19,14 +19,29 @@ docker compose version >/dev/null 2>&1 ||
 
 source ./scripts/load-env.sh
 
-log "Removing application volumes..."
+log "Removing development stack..."
 
 docker compose \
     -f docker-compose-dev.yaml \
-    down --volumes --remove-orphans
+    down \
+    --volumes \
+    --rmi all \
+    --remove-orphans
+
+log "Removing production stack..."
 
 docker compose \
     -f docker-compose.yaml \
-    down --volumes --remove-orphans
+    down \
+    --volumes \
+    --rmi all \
+    --remove-orphans
 
-log "Application volumes removed."
+log "Removing generated secrets and backups..."
+
+rm -rf \
+    .vault_secrets \
+    tokens/ \
+    backups/backups
+
+log "Full cleanup complete."

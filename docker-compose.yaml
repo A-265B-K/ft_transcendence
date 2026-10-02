@@ -6,12 +6,16 @@ services:
       volumes:
         - ./backend:/workspace/app
       environment:
-        POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is not set}
-        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is not set}
-        POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is not set}
-        EMAIL_USER: ${EMAIL_USER:?EMAIL_USER is not set}
-        EMAIL_PASSWORD: ${EMAIL_PASSWORD:?EMAIL_PASSWORD is not set}
         HOSTNAME: ${HOSTNAME:?HOSTNAME is not set}
+        VAULT_ADDR: http://vault:8200
+        BACKEND_VAULT_TOKEN_FILE: /run/secrets/backend_vault_token
+      secrets:
+        - backend_vault_token
+      depends_on:
+        vault:
+          condition: service_healthy
+        postgres:
+          condition: service_healthy
       healthcheck:
         test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3000/api/ping"]
         interval: 1s
@@ -30,6 +34,7 @@ services:
           condition: service_healthy
       ports:
         - "8443:443"
+  
     postgres:
       image: postgres:18.4
       volumes:
@@ -37,7 +42,6 @@ services:
         - ./postgres/init:/docker-entrypoint-initdb.d:ro
       environment:
         POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is not set}
-        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is not set}
         POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is not set}
       healthcheck:
         test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
@@ -47,10 +51,17 @@ services:
 
     postgresexporter:
       build: ./postgres/exporter
+      restart: unless-stopped
       environment:
-        POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is not set}
-        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is not set}
-        POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is not set}
+        VAULT_ADDR: http://vault:8200
+        EXPORTER_VAULT_TOKEN_FILE: /run/secrets/exporter_vault_token
+      secrets:
+        - exporter_vault_token
+      depends_on:
+        vault:
+          condition: service_healthy
+        postgres:
+          condition: service_healthy
 
     nginx_exporter:
       image: nginx/nginx-prometheus-exporter:1.5.1
@@ -75,11 +86,14 @@ services:
     grafana:
       image: grafana/grafana:13.0-slim
       environment:
-        GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:?GRAFANA_ADMIN_USER is not set}
-        GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD is not set}
+        GF_SECURITY_ADMIN_USER__FILE: /run/secrets/grafana_admin_user
+        GF_SECURITY_ADMIN_PASSWORD__FILE: /run/secrets/grafana_admin_password
         GF_LOG_LEVEL: warn
         GF_SERVER_SERVE_FROM_SUB_PATH: "true"
         GF_SERVER_ROOT_URL: "https://monitoring.localhost:8443/"
+      secrets:
+        - grafana_admin_user
+        - grafana_admin_password
       volumes:
         - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
         - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
@@ -93,22 +107,76 @@ services:
 
     backups:
       build: ./backups
+      environment:
+        VAULT_ADDR: http://vault:8200
+        BACKUPS_VAULT_TOKEN_FILE: /run/secrets/backups_vault_token
+      secrets:
+        - backups_vault_token
       volumes:
         - prometheus:/app/prometheus
         - grafana:/app/grafana
         - postgres_data:/app/postgress
         - ./backups/backups:/app/backups
-      environment:
-        POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is not set}
-        PGPASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is not set}
-        POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is not set}
       depends_on:
-        prometheus:
+        vault:
           condition: service_healthy
         postgres:
           condition: service_healthy
+
+    vault-init:
+      image: hashicorp/vault:1.20.4
+      user: "0:0"
+      volumes:
+        - vault_data:/vault/data
+      command:
+        - sh
+        - -c
+        - |
+          chown -R 100:1000 /vault/data
+
+    vault:
+      image: hashicorp/vault:1.20.4
+      container_name: vault
+      restart: unless-stopped
+      depends_on:
+        vault-init:
+          condition: service_completed_successfully
+      cap_add:
+        - IPC_LOCK
+      ports:
+        - "127.0.0.1:8200:8200"
+      environment:
+        VAULT_ADDR: http://127.0.0.1:8200
+      volumes:
+        - vault_data:/vault/data
+        - ./vault/config/vault.hcl:/vault/config/vault.hcl:ro
+      healthcheck:
+        test:
+          [
+            "CMD-SHELL",
+            "wget -q -O /dev/null 'http://127.0.0.1:8200/v1/sys/health'"
+          ]
+        interval: 5s
+        timeout: 3s
+        retries: 10
+        start_period: 10s
+      command: vault server -config=/vault/config/vault.hcl
 
 volumes:
   prometheus:
   grafana:
   postgres_data:
+    name: ${POSTGRES_VOLUME_NAME:-ft_transcendence_postgres_data}
+  vault_data:
+
+secrets:
+  backend_vault_token:
+    file: ./tokens/.backend_vault_token
+  exporter_vault_token:
+    file: ./tokens/.exporter_vault_token
+  backups_vault_token:
+    file: ./tokens/.backups_vault_token
+  grafana_admin_user:
+    file: ./tokens/grafana/admin_user
+  grafana_admin_password:
+    file: ./tokens/grafana/admin_password

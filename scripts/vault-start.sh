@@ -66,8 +66,8 @@ done
 log "Checking Vault state..."
 
 if ! vault_is_initialized; then
-    die "Vault is not initialized, stopping Vault. Run 'make init' first."
 	docker compose -f "$COMPOSE_FILE" stop vault >/dev/null 2>&1 || true
+    die "Vault is not initialized, stopping Vault. Run 'make init' first."
 fi
 
 if ! vault_is_sealed; then

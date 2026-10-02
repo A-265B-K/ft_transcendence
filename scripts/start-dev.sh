@@ -39,6 +39,7 @@ log "Starting development stack..."
 
 docker compose \
     -f "$COMPOSE_FILE" \
-    up -d
+    up -d \
+    --no-recreate
 
 log "Development stack started."

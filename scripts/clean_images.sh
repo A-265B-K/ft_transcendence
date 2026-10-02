@@ -2,8 +2,6 @@
 
 set -Eeuo pipefail
 
-COMPOSE_FILE="docker-compose.yaml"
-
 log() {
     printf '\n==> %s\n' "$*"
 }
@@ -13,17 +11,22 @@ die() {
     exit 1
 }
 
-log "Loading application configuration..."
+command -v docker >/dev/null 2>&1 ||
+    die "Docker is not installed."
 
-[[ -f "$COMPOSE_FILE" ]] ||
-    die "$COMPOSE_FILE is missing."
+docker compose version >/dev/null 2>&1 ||
+    die "Docker Compose is not available."
 
 source ./scripts/load-env.sh
 
-log "Application configuration loaded."
+log "Removing application containers and images..."
 
 docker compose \
-	-f "$COMPOSE_FILE" \
-	down --rmi all
+    -f docker-compose-dev.yaml \
+    down --rmi all --remove-orphans
 
-log "Application removed."
+docker compose \
+    -f docker-compose.yaml \
+    down --rmi all --remove-orphans
+
+log "Application images removed."
