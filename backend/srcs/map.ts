@@ -134,7 +134,7 @@ export class GameMap {
             attempts++;
             const pos = randomPos();
 
-            if (!this.isValidPosition(pos, 5, 4)) continue;
+            if (!this.isValidPosition(pos, 5, 4, obstacles)) continue;
 
             if (types.length === 0) {
                 throw new Error('types must not be empty');
@@ -155,7 +155,8 @@ export class GameMap {
     private isValidPosition(
         pos: { x: number; y: number },
         minDistFromCastle: number,
-        minDistFromOthers: number
+        minDistFromOthers: number,
+        obstacles: Vec2[]
     ) {
         for (const castle of this.castleZones) {
             if (getDistance(pos, castle) < castle.radius + minDistFromCastle) {
@@ -163,7 +164,7 @@ export class GameMap {
             }
         }
 
-        for (const obj of this.obstacles) {
+        for (const obj of obstacles) {
             if (getDistance(pos, obj) < minDistFromOthers) {
                 return false;
             }
@@ -200,7 +201,7 @@ export class GameMap {
             attempts++;
             const pos = randomPos();
 
-            if (!this.isValidPosition(pos, 6, 5)) continue;
+            if (!this.isValidPosition(pos, 6, 5, obstacles)) continue;
 
             if (types.length === 0) {
                 throw new Error('types must not be empty');
