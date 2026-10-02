@@ -68,6 +68,15 @@ const onConnection = async (socket: Socket, roomManager: RoomManager) => {
                 reply({ success: false });
                 return;
             }
+            player.inventory.wood -= cost.wood;
+            player.inventory.iron -= cost.iron;
+            player.equippedweapon = weapon;
+            if (currentRoomId) {
+                socket.to(currentRoomId).emit('player_weapon_equipped', {
+                    socketId: player.socketId,
+                    weapon
+                });
+            }
             reply({
                 success: true,
                 weapon: res.weapon,
