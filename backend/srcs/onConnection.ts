@@ -1,215 +1,21 @@
-import { createRoom } from './rooms/gameRoom.js';
-import { rooms, players, type Room, type Player } from './state/gameState.js';
-import onMove from './events/onMove.js';
-import {
-    PLAYER_DEFAULT_HP,
-    ROOM_MAX_SIZE,
-    PLAYER_DEFAULT_WOOD,
-    PLAYER_DEFAULT_IRON,
-    PLAYER_DEFAULT_CASTLE_LEVEL
-} from './constants.js';
-import type { Spawn, Socket, SocketUser } from './types.js';
-import { handleattack } from './combat/onAttack.js';
+import type { Socket, SocketUser } from './types.js';
+import { RoomManager } from './roomManager.js';
 
-const createPlayer = (
+const onDisconnection = (
     socket: Socket,
     user: SocketUser,
-    slot: number,
-    spawn: Spawn
-): Player => {
-    return {
-        userId: user.id,
-        socketId: socket.id,
-        username: user.username,
-        slot,
-        hp: PLAYER_DEFAULT_HP,
-        isDead: false,
-        x: spawn.pos.x,
-        y: spawn.pos.y,
-        inventory: {
-            iron: PLAYER_DEFAULT_IRON,
-            wood: PLAYER_DEFAULT_WOOD,
-            castleLevel: PLAYER_DEFAULT_CASTLE_LEVEL
-        },
-        lastMoveAt: Date.now(),
-        nextattack: 0
-    };
-};
-
-const findAvailableSlot = (room: Room, maxSize: number) => {
-    const usedSlots = new Set(room.players.map((p) => p.slot));
-
-    for (let slot = 1; slot <= maxSize; slot++) {
-        if (!usedSlots.has(slot)) return slot;
-    }
-
-    return null;
-};
-
-const removeExistingPlayer = (userId: string, socket: Socket) => {
-    const existingPlayer = players[userId];
-
-    if (!existingPlayer) {
-        return;
-    }
-
-    if (existingPlayer.socketId === socket.id) {
-        return;
-    }
-
-    const oldSocketId = existingPlayer.socketId;
-
-    for (const room of Object.values(rooms)) {
-        const playerInRoom = room.players.find(
-            (player) => player.socketId === oldSocketId
-        );
-
-        if (!playerInRoom) {
-            continue;
-        }
-
-        room.players = room.players.filter(
-            (player) => player.socketId !== oldSocketId
-        );
-
-        room.playerCount = room.players.length;
-
-        socket.to(room.roomId).emit('player_left', playerInRoom);
-
-        socket.to(room.roomId).emit('room_update', {
-            roomId: room.roomId,
-            playerCount: room.playerCount,
-            maxPlayers: ROOM_MAX_SIZE
-        });
-
-        break;
-    }
-
-    delete players[userId];
-
-    console.log(`Removed old session ${oldSocketId} for user ${userId}`);
-};
-
-const joinRoom = (
-    socket: Socket,
-    user: SocketUser,
-    room: Room
-): string | null => {
-    removeExistingPlayer(user.id, socket);
-
-    if (room.players.length >= ROOM_MAX_SIZE) {
-        socket.emit('join_error', {
-            message: 'Room is full'
-        });
-
-        return null;
-    }
-
-    const slot = findAvailableSlot(room, ROOM_MAX_SIZE);
-
-    if (slot === null) {
-        socket.emit('join_error', {
-            message: 'No player slot available'
-        });
-
-        return null;
-    }
-
-    const spawn = room.map.spawnPoints.find((sp) => sp.playerSlot === slot);
-
-    if (!spawn) {
-        console.error(`No spawn point found for slot ${slot}`);
-        socket.emit('join_error', { message: 'No spawn point available' });
-        return null;
-    }
-
-    const player = createPlayer(socket, user, slot, spawn);
-
-    players[user.id] = player;
-    room.players.push(player);
-    room.playerCount = room.players.length;
-
-    socket.join(room.roomId);
-    socket.to(room.roomId).emit('player_joined', player);
-
-    socket.emit('joined', {
-        roomId: room.roomId,
-        player,
-        map: room.map,
-        players: room.players,
-        room: {
-            roomId: room.roomId,
-            name: room.name,
-            code: room.code,
-            playerCount: room.playerCount,
-            maxPlayers: ROOM_MAX_SIZE
-        }
-    });
-
-    console.log(
-        `Player ${player.username} joined ` +
-            `${room.name} (${room.playerCount}/` +
-            `${ROOM_MAX_SIZE})`
-    );
-
-    return room.roomId;
-};
-
-const getRooms = () => {
-    return Object.values(rooms)
-        .filter((room) => room.players.length < ROOM_MAX_SIZE)
-        .map((room) => ({
-            roomId: room.roomId,
-            name: room.name,
-            playerCount: room.players.length,
-            maxPlayers: ROOM_MAX_SIZE
-        }));
-};
-
-const getRoomByCode = (code: string): Room | null => {
-    const normalizedCode = code.trim().toUpperCase();
-
-    return (
-        Object.values(rooms).find((room) => room.code === normalizedCode) ??
-        null
-    );
-};
-
-const onDisconnection = (socket: Socket, user: SocketUser, roomId: string) => {
-    const player = players[user.id];
-
-    if (!player) return;
-
-    if (player.socketId !== socket.id) return;
-
-    delete players[user.id];
-
-    const room = rooms[roomId];
+    roomId: string,
+    roomManager: RoomManager
+) => {
+    const room = roomManager.getRoomById(roomId);
 
     if (!room) return;
 
-    room.players = room.players.filter(
-        (currentPlayer) => currentPlayer.socketId !== socket.id
-    );
-
-    room.playerCount = room.players.length;
-
-    if (room.players.length === 0) {
-        console.log('Room deleted:', roomId);
-
-        return;
-    }
-
-    socket.to(roomId).emit('player_left', player);
-
-    socket.to(roomId).emit('room_update', {
-        roomId: room.roomId,
-        playerCount: room.playerCount,
-        maxPlayers: ROOM_MAX_SIZE
-    });
+    room.leave(socket, user.id);
+    // TODO roomManager.deleteRoom
 };
 
-const onConnection = async (socket: Socket) => {
+const onConnection = async (socket: Socket, roomManager: RoomManager) => {
     const user = socket.user;
 
     if (!user) {
@@ -223,7 +29,7 @@ const onConnection = async (socket: Socket) => {
     let currentRoomId: string | null = null;
 
     socket.on('get_rooms', () => {
-        socket.emit('rooms_list', getRooms());
+        socket.emit('rooms_list', roomManager.getRooms());
     });
 
     socket.on(
@@ -242,6 +48,7 @@ const onConnection = async (socket: Socket) => {
         ) => {
             if (
                 typeof data !== 'object' ||
+                !currentRoomId ||
                 data === null ||
                 !('weapon' in data) ||
                 (data.weapon !== 'dagger' &&
@@ -252,39 +59,23 @@ const onConnection = async (socket: Socket) => {
                 reply({ success: false });
                 return;
             }
-            const weaponRecipes = {
-                dagger: { wood: 15, iron: 15 },
-                sword: { wood: 30, iron: 20 },
-                spear: { wood: 30, iron: 20 },
-                axe: { wood: 20, iron: 30 }
-            };
+
+            const room = roomManager.getRoomById(currentRoomId);
             const weapon = data.weapon;
-            const cost = weaponRecipes[weapon];
-            const player = players[user.id];
-            if (
-                !player ||
-                player.inventory.wood < cost.wood ||
-                player?.inventory.iron < cost.iron
-            ) {
+
+            const res = room?.craftWeapon(user.id, weapon);
+            if (!res) {
                 reply({ success: false });
                 return;
             }
-            player.inventory.wood -= cost.wood;
-            player.inventory.iron -= cost.iron;
-            player.equippedweapon = weapon;
-            if (currentRoomId) {
-                socket.to(currentRoomId).emit('player_weapon_equipped', {
-                    socketId: player.socketId,
-                    weapon
-                });
-            }
+            socket.to(currentRoomId).emit('player_weapon_equipped', {
+                socketId: socket.id,
+                weapon: res.weapon
+            });
             reply({
                 success: true,
-                weapon: weapon,
-                inventory: {
-                    wood: player.inventory.wood,
-                    iron: player.inventory.iron
-                }
+                weapon: res.weapon,
+                inventory: res.inventory
             });
         }
     );
@@ -298,23 +89,15 @@ const onConnection = async (socket: Socket) => {
             return;
         }
 
-        const room = getRoomByCode(code);
+        const room = roomManager.getRoomByCode(code);
 
         if (!room) {
             socket.emit('join_error', {
                 message: 'Room not found'
             });
-
             return;
         }
-
-        socket.emit('room_info', {
-            roomId: room.roomId,
-            name: room.name,
-            code: room.code,
-            playerCount: room.players.length,
-            maxPlayers: ROOM_MAX_SIZE
-        });
+        socket.emit('room_info', room.getRoomInfo());
     });
 
     socket.on('create_room', ({ name }: { name: unknown }) => {
@@ -322,17 +105,14 @@ const onConnection = async (socket: Socket) => {
             socket.emit('join_error', {
                 message: 'Invalid room name'
             });
-
             return;
         }
-
         const trimmedName = name.trim();
 
         if (!trimmedName) {
             socket.emit('join_error', {
                 message: 'Room name is required'
             });
-
             return;
         }
 
@@ -340,17 +120,12 @@ const onConnection = async (socket: Socket) => {
             socket.emit('join_error', {
                 message: 'Room name is too long'
             });
-
             return;
         }
 
-        const [room, roomId] = createRoom(trimmedName, user.id);
+        const roomId = roomManager.createRoom(trimmedName, user.id);
 
-        currentRoomId = joinRoom(socket, user, room);
-
-        if (!currentRoomId) {
-            delete rooms[roomId];
-        }
+        currentRoomId = roomManager.joinRoomById(socket, user, roomId);
     });
 
     socket.on('join_room', ({ roomId }: { roomId: unknown }) => {
@@ -362,7 +137,7 @@ const onConnection = async (socket: Socket) => {
             return;
         }
 
-        const room = rooms[roomId];
+        const room = roomManager.getRoomById(roomId);
 
         if (!room) {
             socket.emit('join_error', {
@@ -372,7 +147,7 @@ const onConnection = async (socket: Socket) => {
             return;
         }
 
-        currentRoomId = joinRoom(socket, user, room);
+        currentRoomId = roomManager.joinRoomById(socket, user, roomId);
     });
 
     socket.on('join_room_code', ({ code }: { code: unknown }) => {
@@ -380,40 +155,39 @@ const onConnection = async (socket: Socket) => {
             socket.emit('join_error', {
                 message: 'Invalid room code'
             });
-
-            return;
+            return null;
         }
-
-        const room = getRoomByCode(code);
-
-        if (!room) {
-            socket.emit('join_error', {
-                message: 'Room not found'
-            });
-
-            return;
-        }
-
-        currentRoomId = joinRoom(socket, user, room);
+        currentRoomId = roomManager.joinRoomByCode(socket, user, code);
     });
 
     socket.on(
         'player_move',
         ({ x, y, moving }: { x: number; y: number; moving: boolean }) => {
-            onMove(socket, user, currentRoomId, { x, y }, moving);
+            if (!currentRoomId) {
+                return;
+            }
+            const room = roomManager.getRoomById(currentRoomId);
+            room?.onMove(socket, user, { x, y }, moving);
         }
     );
 
     socket.on('player_attack', (data: unknown) => {
         if (data && typeof data === 'object' && 'direction' in data) {
-            handleattack(players, user, data, currentRoomId, rooms, socket);
+            if (!currentRoomId) {
+                return;
+            }
+            const room = roomManager.getRoomById(currentRoomId);
+
+            // Ideally this is not an edge case like this
+            room?.handleAttack(user, data, socket);
         }
     });
 
     socket.on('disconnect', () => {
         console.log('Player disconnected:', user.username);
 
-        if (currentRoomId) onDisconnection(socket, user, currentRoomId);
+        if (currentRoomId)
+            onDisconnection(socket, user, currentRoomId, roomManager);
     });
 };
 
