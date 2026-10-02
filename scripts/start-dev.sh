@@ -29,6 +29,7 @@ docker compose version >/dev/null 2>&1 ||
 log "Loading development configuration..."
 
 source ./scripts/load-env.sh
+source ./scripts/grafana-secrets.sh
 
 log "Development configuration loaded."
 

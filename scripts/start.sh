@@ -29,6 +29,7 @@ docker compose version >/dev/null 2>&1 ||
 log "Loading application configuration..."
 
 source ./scripts/load-env.sh
+source ./scripts/grafana-secrets.sh
 
 log "Application configuration loaded."
 

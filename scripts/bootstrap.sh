@@ -8,6 +8,7 @@
 set -Eeuo pipefail
 
 VAULT_CONTAINER="vault"
+VAULT_TOKEN_DIR="tokens"
 
 # imported file with secrets
 SECRET_FILE=".secret"
@@ -15,8 +16,14 @@ SECRET_FILE=".secret"
 # created file with vault unseal key as well as root token
 VAULT_SECRETS_FILE=".vault_secrets"
 
-BACKEND_VAULT_TOKEN_FILE=".backend_vault_token"
+BACKEND_VAULT_TOKEN_FILE="$VAULT_TOKEN_DIR/.backend_vault_token"
 BACKEND_VAULT_POLICY="transcendence-backend"
+
+POSTGRES_EXPORTER_VAULT_TOKEN_FILE="$VAULT_TOKEN_DIR/.postgres_exporter_token"
+POSTGRES_EXPORTER_VAULT_POLICY="transcendence-postgres_exporter"
+
+GRAFANA_VAULT_TOKEN_FILE="$VAULT_TOKEN_DIR/.grafana_vault_token"
+GRAFANA_VAULT_POLICY="transcendence-grafana"
 
 COMPOSE_FILE="docker-compose-dev.yaml"
 BOOTSTRAP_COMPOSE_FILE="docker-compose-bootstrap.yaml"
@@ -144,6 +151,208 @@ vault_ensure_backend_token() {
 	unset vault_root_token
 
 	log "Backend Vault token created and saved to $BACKEND_VAULT_TOKEN_FILE."
+}
+
+# ------------------------------------------------------------
+# Vault postgres exporter token creation
+# ------------------------------------------------------------
+
+vault_ensure_postgres_exporter_token() {
+	local vault_root_token
+	local postgres_exporter_token
+
+	if [[ ! -f "$VAULT_SECRETS_FILE" ]]; then
+		die "Vault credentials file '$VAULT_SECRETS_FILE' not found."
+	fi
+
+	if [[ "$(stat -c '%a' "$VAULT_SECRETS_FILE")" != "600" ]]; then
+		die "$VAULT_SECRETS_FILE must have permissions 600."
+	fi
+
+	vault_root_token="$(
+		sed -n 's/^VAULT_ROOT_TOKEN=//p' "$VAULT_SECRETS_FILE"
+	)"
+
+	if [[ -z "$vault_root_token" ]]; then
+		die "Vault root token is missing."
+	fi
+
+	# Reuse the existing backend token if it is still valid
+	# and can read the backend's allowed secret.
+	if [[ -s "$POSTGRES_EXPORTER_VAULT_TOKEN_FILE" ]]; then
+		chmod 600 "$POSTGRES_EXPORTER_VAULT_TOKEN_FILE"
+
+		if docker exec \
+			-e VAULT_TOKEN="$(cat "$POSTGRES_EXPORTER_VAULT_TOKEN_FILE")" \
+			"$VAULT_CONTAINER" \
+			vault kv get \
+				-field=username \
+				app/postgres_exporter \
+				>/dev/null 2>&1
+		then
+			unset vault_root_token
+			log "Existing postgres exporter Vault token is valid; reusing it."
+			return 0
+		fi
+
+		log "Existing postgres exporter Vault token is invalid; creating a new one."
+	else
+		log "Postgres exporter Vault token not found; creating one."
+	fi
+
+	# Ensure the backend policy exists and has only the required read access.
+	log "Ensuring postgres exporter Vault policy..."
+
+	if ! printf '%s\n' \
+		'path "app/data/postgres_exporter" {' \
+        '  capabilities = ["read"]' \
+        '}' |
+		docker exec -i \
+			-e VAULT_TOKEN="$vault_root_token" \
+			"$VAULT_CONTAINER" \
+			vault policy write \
+				"$POSTGRES_EXPORTER_VAULT_POLICY" \
+				- \
+				>/dev/null
+	then
+		unset vault_root_token
+		die "Failed to create/update postgres exporter Vault policy."
+	fi
+
+	log "Creating scoped postgres exporter Vault token..."
+
+	# backend vault token creation with 1 year validation time
+	postgres_exporter_token="$(
+		docker exec \
+			-e VAULT_TOKEN="$vault_root_token" \
+			"$VAULT_CONTAINER" \
+			vault token create \
+				-policy="$POSTGRES_EXPORTER_VAULT_POLICY" \
+				-ttl=8760h \
+				-renewable=true \
+				-field=token
+	)" || {
+		unset vault_root_token
+		die "Failed to create postgres exporter Vault token."
+	}
+
+	if [[ -z "$postgres_exporter_token" ]]; then
+		unset vault_root_token
+		die "Vault returned an empty postgres exporter token."
+	fi
+
+	# remove all permissions and write token in token file
+	(
+		umask 077
+		printf '%s\n' "$postgres_exporter_token" > "$POSTGRES_EXPORTER_VAULT_TOKEN_FILE"
+	)
+
+	chmod 600 "$POSTGRES_EXPORTER_VAULT_TOKEN_FILE"
+
+	unset postgres_exporter_token
+	unset vault_root_token
+
+	log "Postgres exporter Vault token created and saved to $POSTGRES_EXPORTER_VAULT_TOKEN_FILE."
+}
+
+# ------------------------------------------------------------
+# Vault grafana token creation
+# ------------------------------------------------------------
+
+vault_ensure_grafana_token() {
+	local vault_root_token
+	local grafana_token
+
+	if [[ ! -f "$VAULT_SECRETS_FILE" ]]; then
+		die "Vault credentials file '$VAULT_SECRETS_FILE' not found."
+	fi
+
+	if [[ "$(stat -c '%a' "$VAULT_SECRETS_FILE")" != "600" ]]; then
+		die "$VAULT_SECRETS_FILE must have permissions 600."
+	fi
+
+	vault_root_token="$(
+		sed -n 's/^VAULT_ROOT_TOKEN=//p' "$VAULT_SECRETS_FILE"
+	)"
+
+	if [[ -z "$vault_root_token" ]]; then
+		die "Vault root token is missing."
+	fi
+
+	if [[ -s "$GRAFANA_VAULT_TOKEN_FILE" ]]; then
+		chmod 600 "$GRAFANA_VAULT_TOKEN_FILE"
+
+		if docker exec \
+			-e VAULT_TOKEN="$(cat "$GRAFANA_VAULT_TOKEN_FILE")" \
+			"$VAULT_CONTAINER" \
+			vault kv get \
+				-field=username \
+				app/grafana \
+				>/dev/null 2>&1
+		then
+			unset vault_root_token
+			log "Existing grafana Vault token is valid; reusing it."
+			return 0
+		fi
+
+		log "Existing grafana Vault token is invalid; creating a new one."
+	else
+		log "Grafana Vault token not found; creating one."
+	fi
+
+	# Ensure the backend policy exists and has only the required read access.
+	log "Ensuring grafana Vault policy..."
+
+	if ! printf '%s\n' \
+		'path "app/data/grafana" {' \
+		'  capabilities = ["read"]' \
+		'}' \
+		| docker exec -i \
+			-e VAULT_TOKEN="$vault_root_token" \
+			"$VAULT_CONTAINER" \
+			vault policy write \
+				"$GRAFANA_VAULT_POLICY" \
+				- \
+				>/dev/null
+	then
+		unset vault_root_token
+		die "Failed to create/update grafana Vault policy."
+	fi
+
+	log "Creating scoped grafana Vault token..."
+
+	# backend vault token creation with 1 year validation time
+	grafana_token="$(
+		docker exec \
+			-e VAULT_TOKEN="$vault_root_token" \
+			"$VAULT_CONTAINER" \
+			vault token create \
+				-policy="$GRAFANA_VAULT_POLICY" \
+				-ttl=8760h \
+				-renewable=true \
+				-field=token
+	)" || {
+		unset vault_root_token
+		die "Failed to create grafana Vault token."
+	}
+
+	if [[ -z "$grafana_token" ]]; then
+		unset vault_root_token
+		die "Vault returned an empty grafana token."
+	fi
+
+	# remove all permissions and write token in token file
+	(
+		umask 077
+		printf '%s\n' "$grafana_token" > "$GRAFANA_VAULT_TOKEN_FILE"
+	)
+
+	chmod 600 "$GRAFANA_VAULT_TOKEN_FILE"
+
+	unset grafana_token
+	unset vault_root_token
+
+	log "Grafana Vault token created and saved to $GRAFANA_VAULT_TOKEN_FILE."
 }
 
 # ------------------------------------------------------------
@@ -600,6 +809,51 @@ vault_store_email_credentials() {
 }
 
 # ------------------------------------------------------------
+# Vault store Grafana credentials
+# ------------------------------------------------------------
+
+vault_store_grafana_credentials() {
+	local vault_root_token
+
+	if [[ -z "${GRAFANA_ADMIN_USER:-}" ]]; then
+		die "Grafana admin username is not set."
+	fi
+
+	if [[ -z "${GRAFANA_ADMIN_PASSWORD:-}" ]]; then
+		die "Grafana admin password is not set."
+	fi
+
+	vault_root_token="$(
+		sed -n 's/^VAULT_ROOT_TOKEN=//p' "$VAULT_SECRETS_FILE"
+	)"
+
+	if [[ -z "$vault_root_token" ]]; then
+		die "Vault root token is missing."
+	fi
+
+	log "Storing Grafana credentials in Vault..."
+
+	if ! docker exec \
+		-e VAULT_TOKEN="$vault_root_token" \
+		-e GRAFANA_ADMIN_USER="$GRAFANA_ADMIN_USER" \
+		-e GRAFANA_ADMIN_PASSWORD="$GRAFANA_ADMIN_PASSWORD" \
+		"$VAULT_CONTAINER" \
+		sh -c '
+			vault kv put app/grafana \
+				username="$GRAFANA_ADMIN_USER" \
+				password="$GRAFANA_ADMIN_PASSWORD"
+		' >/dev/null
+	then
+		unset vault_root_token
+		die "Failed to store Grafana credentials in Vault."
+	fi
+
+	unset vault_root_token
+
+	log "Grafana credentials stored in Vault."
+}
+
+# ------------------------------------------------------------
 # PostgreSQL creation of app role (limits access to user)
 # ------------------------------------------------------------
 
@@ -719,6 +973,14 @@ if ! command -v openssl >/dev/null 2>&1; then
 	die "OpenSSL is not installed."
 fi
 
+if ! mkdir -p "$VAULT_TOKEN_DIR"; then
+    die "Failed to create Vault token directory."
+fi
+
+if ! chmod 700 "$VAULT_TOKEN_DIR"; then
+    die "Failed to secure Vault token directory."
+fi
+
 # ------------------------------------------------------------
 # Pre-Check: load required configuration
 # ------------------------------------------------------------
@@ -805,6 +1067,7 @@ fi
 
 vault_ensure_app_kv
 vault_store_email_credentials
+vault_store_grafana_credentials
 
 # ------------------------------------------------------------
 # PostgreSQL state check
@@ -950,5 +1213,7 @@ else
 fi
 
 vault_ensure_backend_token
+vault_ensure_postgres_exporter_token
+vault_ensure_grafana_token
 
 log "PostgreSQL bootstrap stage completed."

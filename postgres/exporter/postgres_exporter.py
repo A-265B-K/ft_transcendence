@@ -2,21 +2,67 @@ import socket
 import psycopg
 import os
 import signal
+import requests
+from pathlib import Path
 
 def shutdown(signum, frame):
     exit(0)
 
+VAULT_ADDR = os.getenv("VAULT_ADDR", "http://vault:8200")
+VAULT_TOKEN_FILE = os.getenv(
+    "VAULT_TOKEN_FILE",
+    "/run/secrets/exporter_vault_token",
+)
+
+def get_postgres_credentials():
+    try:
+        vault_token = Path(VAULT_TOKEN_FILE).read_text().strip()
+    except OSError as error:
+        raise RuntimeError(
+            f"Unable to read Vault token file: {VAULT_TOKEN_FILE}"
+        ) from error
+
+    response = requests.get(
+        f"{VAULT_ADDR}/v1/app/data/postgres-app",
+        headers={
+            "X-Vault-Token": vault_token,
+        },
+        timeout=5,
+    )
+
+    if not response.ok:
+        raise RuntimeError(
+            f"Vault request failed: "
+            f"{response.status_code} {response.reason}"
+        )
+
+    body = response.json()
+
+    credentials = body.get("data", {}).get("data")
+
+    if not credentials:
+        raise RuntimeError("Vault returned no PostgreSQL credentials")
+
+    username = credentials.get("username")
+    password = credentials.get("password")
+    database = credentials.get("database")
+
+    if not username or not password or not database:
+        raise RuntimeError(
+            "Vault PostgreSQL credentials are incomplete"
+        )
+
+    return username, password, database
+
+
 def connect_database():
-    host = "postgres"
-    port = 5432
-    dbname = os.getenv("POSTGRES_DB")
-    user = os.getenv("POSTGRES_USER")
-    password = os.getenv("POSTGRES_PASSWORD")
+    username, password, database = get_postgres_credentials()
+
     return psycopg.connect(
-        host=host,
-        port=port,
-        dbname=dbname,
-        user=user,
+        host="postgres",
+        port=5432,
+        dbname=database,
+        user=username,
         password=password,
     )
 
