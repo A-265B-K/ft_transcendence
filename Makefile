@@ -5,6 +5,10 @@ prod:
 	./scripts/start.sh
 	@echo Game reachable at https://localhost:8443/
 
+init:
+	@mkdir -p ./backups/backups
+	./scripts/bootstrap.sh
+
 dev:
 	@mkdir -p ./backups/backups
 	./scripts/start-dev.sh
@@ -17,15 +21,16 @@ restart:
 	@echo Game reachable at https://localhost:8443/
 
 cleanimages: 
-	@docker compose down --rmi all
+	./scripts/clean_images.sh
 
 cleanvolumes:
-	@docker compose down --volumes
+	./scripts/clean_volumes.sh
 
 cleanbackups:
 	@rm -rf backups/backups
 
 fclean: cleanbackups
-	@docker compose down --rmi all --volumes
+	./scripts/clean_images.sh
+	./scripts/clean_volumes.sh
 
 re: fclean all

@@ -1,13 +1,16 @@
 import bcrypt from "bcrypt";
 import { insertUser } from "../repository/userRepository.js";
 import { randomBytes, createHash } from "node:crypto";
+import { getEmailCredentials } from "../vault/client.js";
 import nodemailer from "nodemailer";
+
+const emailCredentials = await getEmailCredentials();
 
 export const emailTransporter = nodemailer.createTransport({
 	service: "gmail",
 	auth: {
-		user: process.env.EMAIL_USER,
-		pass: process.env.EMAIL_PASSWORD,
+		user: emailCredentials.username,
+		pass: emailCredentials.password,
 	},
 });
 
@@ -78,7 +81,7 @@ export async function registerUser(payload: registerPayload) {
     		console.log("SMTP server is ready");
 
 			await emailTransporter.sendMail({
-				from: process.env.EMAIL_USER,
+				from: emailCredentials.username,
 				to: user.email,
 				subject: "Verify your email",
 

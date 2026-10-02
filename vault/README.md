@@ -48,3 +48,9 @@ docker exec \
   && echo "backend token -> app/postgres-app: ALLOWED"
 
 unset BACKEND_TOKEN
+
+
+### temporary source for removing everything
+source ./scripts/load-env.sh
+docker compose -f docker-compose-dev.yaml down -v --remove-orphans
+rm -rf .vault_secrets .backend_vault_token

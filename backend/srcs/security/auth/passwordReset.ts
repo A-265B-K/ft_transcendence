@@ -1,12 +1,15 @@
 import { insertUserPasswordVerification } from "../repository/userRepository.js";
 import { randomBytes, createHash } from "node:crypto";
+import { getEmailCredentials } from "../vault/client.js";
 import nodemailer from "nodemailer";
+
+const emailCredentials = await getEmailCredentials();
 
 export const emailTransporter = nodemailer.createTransport({
 	service: "gmail",
 	auth: {
-		user: process.env.EMAIL_USER,
-		pass: process.env.EMAIL_PASSWORD,
+		user: emailCredentials.username,
+		pass: emailCredentials.password,
 	},
 });
 
@@ -35,7 +38,7 @@ export async function passwordResetRequest(email: string) {
 	try {
 		await emailTransporter.verify();
 		await emailTransporter.sendMail({
-			from: process.env.EMAIL_USER,
+			from: emailCredentials.username,
 			to: email,
 			subject: "Reset your password",
 

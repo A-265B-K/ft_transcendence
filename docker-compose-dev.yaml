@@ -19,8 +19,6 @@ services:
       volumes:
         - ./backend:/workspace/app
       environment:
-        EMAIL_USER: ${EMAIL_USER:?EMAIL_USER is not set}
-        EMAIL_PASSWORD: ${EMAIL_PASSWORD:?EMAIL_PASSWORD is not set}
         HOSTNAME: ${HOSTNAME:?HOSTNAME is not set}
       healthcheck:
         test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3000/api/ping"]

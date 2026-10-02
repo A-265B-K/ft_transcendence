@@ -21,12 +21,9 @@ BACKEND_VAULT_POLICY="transcendence-backend"
 COMPOSE_FILE="docker-compose-dev.yaml"
 BOOTSTRAP_COMPOSE_FILE="docker-compose-bootstrap.yaml"
 
+# maybe change later to just <POSTGRES_VOLUME="ft_transcendence_postgres_data"> if we don't want custume volume name
 POSTGRES_VOLUME="${POSTGRES_VOLUME_NAME:-ft_transcendence_postgres_data}"
 
-POSTGRES_USER=""
-POSTGRES_DB=""
-POSTGRES_ADMIN_PASSWORD=""
-POSTGRES_APP_USERNAME=""
 POSTGRES_APP_PASSWORD=""
 
 # ------------------------------------------------------------
@@ -45,103 +42,108 @@ die() {
 }
 
 # ------------------------------------------------------------
-# Vault backend token
+# Vault backend token creation
 # ------------------------------------------------------------
 
 vault_ensure_backend_token() {
-    local vault_root_token
-    local backend_token
+	local vault_root_token
+	local backend_token
 
-    if [[ ! -f "$VAULT_SECRETS_FILE" ]]; then
-        die "Vault credentials file '$VAULT_SECRETS_FILE' not found."
-    fi
+	if [[ ! -f "$VAULT_SECRETS_FILE" ]]; then
+		die "Vault credentials file '$VAULT_SECRETS_FILE' not found."
+	fi
 
-    if [[ "$(stat -c '%a' "$VAULT_SECRETS_FILE")" != "600" ]]; then
-        die "$VAULT_SECRETS_FILE must have permissions 600."
-    fi
+	if [[ "$(stat -c '%a' "$VAULT_SECRETS_FILE")" != "600" ]]; then
+		die "$VAULT_SECRETS_FILE must have permissions 600."
+	fi
 
-    vault_root_token="$(
-        sed -n 's/^VAULT_ROOT_TOKEN=//p' "$VAULT_SECRETS_FILE"
-    )"
+	vault_root_token="$(
+		sed -n 's/^VAULT_ROOT_TOKEN=//p' "$VAULT_SECRETS_FILE"
+	)"
 
-    if [[ -z "$vault_root_token" ]]; then
-        die "Vault root token is missing."
-    fi
+	if [[ -z "$vault_root_token" ]]; then
+		die "Vault root token is missing."
+	fi
 
-    # Reuse the existing backend token if it is still valid
-    # and can read the backend's allowed secret.
-    if [[ -s "$BACKEND_VAULT_TOKEN_FILE" ]]; then
-        chmod 600 "$BACKEND_VAULT_TOKEN_FILE"
+	# Reuse the existing backend token if it is still valid
+	# and can read the backend's allowed secret.
+	if [[ -s "$BACKEND_VAULT_TOKEN_FILE" ]]; then
+		chmod 600 "$BACKEND_VAULT_TOKEN_FILE"
 
-        if docker exec \
-            -e VAULT_TOKEN="$(cat "$BACKEND_VAULT_TOKEN_FILE")" \
-            "$VAULT_CONTAINER" \
-            vault kv get \
-                -field=username \
-                app/postgres-app \
-                >/dev/null 2>&1
-        then
-            unset vault_root_token
-            log "Existing backend Vault token is valid; reusing it."
-            return 0
-        fi
+		if docker exec \
+			-e VAULT_TOKEN="$(cat "$BACKEND_VAULT_TOKEN_FILE")" \
+			"$VAULT_CONTAINER" \
+			vault kv get \
+				-field=username \
+				app/postgres-app \
+				>/dev/null 2>&1
+		then
+			unset vault_root_token
+			log "Existing backend Vault token is valid; reusing it."
+			return 0
+		fi
 
-        log "Existing backend Vault token is invalid; creating a new one."
-    else
-        log "Backend Vault token not found; creating one."
-    fi
+		log "Existing backend Vault token is invalid; creating a new one."
+	else
+		log "Backend Vault token not found; creating one."
+	fi
 
-    # Ensure the backend policy exists and has only the required read access.
-    log "Ensuring backend Vault policy..."
+	# Ensure the backend policy exists and has only the required read access.
+	log "Ensuring backend Vault policy..."
 
-    if ! printf '%s\n' \
-        'path "app/data/postgres-app" {' \
+	if ! printf '%s\n' \
+		'path "app/data/postgres-app" {' \
+		'  capabilities = ["read"]' \
+		'}' \
+		'path "app/data/email" {' \
         '  capabilities = ["read"]' \
         '}' |
-        docker exec -i \
-            -e VAULT_TOKEN="$vault_root_token" \
-            "$VAULT_CONTAINER" \
-            vault policy write \
-                "$BACKEND_VAULT_POLICY" \
-                - \
-                >/dev/null
-    then
-        unset vault_root_token
-        die "Failed to create/update backend Vault policy."
-    fi
+		docker exec -i \
+			-e VAULT_TOKEN="$vault_root_token" \
+			"$VAULT_CONTAINER" \
+			vault policy write \
+				"$BACKEND_VAULT_POLICY" \
+				- \
+				>/dev/null
+	then
+		unset vault_root_token
+		die "Failed to create/update backend Vault policy."
+	fi
 
-    log "Creating scoped backend Vault token..."
+	log "Creating scoped backend Vault token..."
 
-    backend_token="$(
-        docker exec \
-            -e VAULT_TOKEN="$vault_root_token" \
-            "$VAULT_CONTAINER" \
-            vault token create \
-                -policy="$BACKEND_VAULT_POLICY" \
-                -ttl=24h \
-                -renewable=true \
-                -field=token
-    )" || {
-        unset vault_root_token
-        die "Failed to create backend Vault token."
-    }
+	# backend vault token creation with 1 year validation time
+	backend_token="$(
+		docker exec \
+			-e VAULT_TOKEN="$vault_root_token" \
+			"$VAULT_CONTAINER" \
+			vault token create \
+				-policy="$BACKEND_VAULT_POLICY" \
+				-ttl=8760h \
+				-renewable=true \
+				-field=token
+	)" || {
+		unset vault_root_token
+		die "Failed to create backend Vault token."
+	}
 
-    if [[ -z "$backend_token" ]]; then
-        unset vault_root_token
-        die "Vault returned an empty backend token."
-    fi
+	if [[ -z "$backend_token" ]]; then
+		unset vault_root_token
+		die "Vault returned an empty backend token."
+	fi
 
-    (
-        umask 077
-        printf '%s\n' "$backend_token" > "$BACKEND_VAULT_TOKEN_FILE"
-    )
+	# remove all permissions and write token in token file
+	(
+		umask 077
+		printf '%s\n' "$backend_token" > "$BACKEND_VAULT_TOKEN_FILE"
+	)
 
-    chmod 600 "$BACKEND_VAULT_TOKEN_FILE"
+	chmod 600 "$BACKEND_VAULT_TOKEN_FILE"
 
-    unset backend_token
-    unset vault_root_token
+	unset backend_token
+	unset vault_root_token
 
-    log "Backend Vault token created and saved to $BACKEND_VAULT_TOKEN_FILE."
+	log "Backend Vault token created and saved to $BACKEND_VAULT_TOKEN_FILE."
 }
 
 # ------------------------------------------------------------
@@ -430,39 +432,39 @@ vault_store_postgres_credentials() {
 # ------------------------------------------------------------
 
 vault_load_postgres_admin_password() {
-    local vault_root_token
+	local vault_root_token
 
-    if [[ ! -f "$VAULT_SECRETS_FILE" ]]; then
-        die "Vault credentials file '$VAULT_SECRETS_FILE' not found."
-    fi
+	if [[ ! -f "$VAULT_SECRETS_FILE" ]]; then
+		die "Vault credentials file '$VAULT_SECRETS_FILE' not found."
+	fi
 
-    vault_root_token="$(
-        sed -n 's/^VAULT_ROOT_TOKEN=//p' "$VAULT_SECRETS_FILE"
-    )"
+	vault_root_token="$(
+		sed -n 's/^VAULT_ROOT_TOKEN=//p' "$VAULT_SECRETS_FILE"
+	)"
 
-    if [[ -z "$vault_root_token" ]]; then
-        die "Vault root token is missing."
-    fi
+	if [[ -z "$vault_root_token" ]]; then
+		die "Vault root token is missing."
+	fi
 
-    log "Loading PostgreSQL admin password from Vault..."
+	log "Loading PostgreSQL admin password from Vault..."
 
-    POSTGRES_ADMIN_PASSWORD="$(
-        docker exec \
-            -e VAULT_TOKEN="$vault_root_token" \
-            "$VAULT_CONTAINER" \
-            vault kv get \
-                -field=password \
-                app/postgres
-    )" || {
-        unset vault_root_token
-        die "Failed to retrieve PostgreSQL admin password from Vault."
-    }
+	POSTGRES_ADMIN_PASSWORD="$(
+		docker exec \
+			-e VAULT_TOKEN="$vault_root_token" \
+			"$VAULT_CONTAINER" \
+			vault kv get \
+				-field=password \
+				app/postgres
+	)" || {
+		unset vault_root_token
+		die "Failed to retrieve PostgreSQL admin password from Vault."
+	}
 
-    unset vault_root_token
+	unset vault_root_token
 
-    if [[ -z "$POSTGRES_ADMIN_PASSWORD" ]]; then
-        die "PostgreSQL admin password retrieved from Vault is empty."
-    fi
+	if [[ -z "$POSTGRES_ADMIN_PASSWORD" ]]; then
+		die "PostgreSQL admin password retrieved from Vault is empty."
+	fi
 }
 
 # ------------------------------------------------------------
@@ -517,43 +519,88 @@ vault_store_postgres_app_credentials() {
 # ------------------------------------------------------------
 
 vault_load_postgres_app_password() {
-    local vault_root_token
+	local vault_root_token
 
-    if [[ ! -f "$VAULT_SECRETS_FILE" ]]; then
-        die "Vault credentials file '$VAULT_SECRETS_FILE' not found."
-    fi
+	if [[ ! -f "$VAULT_SECRETS_FILE" ]]; then
+		die "Vault credentials file '$VAULT_SECRETS_FILE' not found."
+	fi
 
-    vault_root_token="$(
-        sed -n 's/^VAULT_ROOT_TOKEN=//p' "$VAULT_SECRETS_FILE"
-    )"
+	vault_root_token="$(
+		sed -n 's/^VAULT_ROOT_TOKEN=//p' "$VAULT_SECRETS_FILE"
+	)"
 
-    if [[ -z "$vault_root_token" ]]; then
-        die "Vault root token is missing."
-    fi
+	if [[ -z "$vault_root_token" ]]; then
+		die "Vault root token is missing."
+	fi
 
-    log "Loading PostgreSQL application password from Vault..."
+	log "Loading PostgreSQL application password from Vault..."
 
-    POSTGRES_APP_PASSWORD="$(
-        docker exec \
-            -e VAULT_TOKEN="$vault_root_token" \
-            "$VAULT_CONTAINER" \
-            vault kv get \
-                -field=password \
-                app/postgres-app
-    )" || {
-        unset vault_root_token
-        die "Failed to retrieve PostgreSQL application password from Vault."
-    }
+	POSTGRES_APP_PASSWORD="$(
+		docker exec \
+			-e VAULT_TOKEN="$vault_root_token" \
+			"$VAULT_CONTAINER" \
+			vault kv get \
+				-field=password \
+				app/postgres-app
+	)" || {
+		unset vault_root_token
+		die "Failed to retrieve PostgreSQL application password from Vault."
+	}
 
-    unset vault_root_token
+	unset vault_root_token
 
-    if [[ -z "$POSTGRES_APP_PASSWORD" ]]; then
-        die "PostgreSQL application password retrieved from Vault is empty."
-    fi
+	if [[ -z "$POSTGRES_APP_PASSWORD" ]]; then
+		die "PostgreSQL application password retrieved from Vault is empty."
+	fi
 }
 
 # ------------------------------------------------------------
-# PostgreSQL creation of app role
+# Vault store email credentials
+# ------------------------------------------------------------
+
+vault_store_email_credentials() {
+	local vault_root_token
+
+	if [[ -z "${EMAIL_USER:-}" ]]; then
+		die "Email address is not set."
+	fi
+
+	if [[ -z "${EMAIL_PASSWORD:-}" ]]; then
+		die "Email password is not set."
+	fi
+
+	vault_root_token="$(
+		sed -n 's/^VAULT_ROOT_TOKEN=//p' "$VAULT_SECRETS_FILE"
+	)"
+
+	if [[ -z "$vault_root_token" ]]; then
+		die "Vault root token is missing."
+	fi
+
+	log "Storing email credentials in Vault..."
+
+	if ! docker exec \
+		-e VAULT_TOKEN="$vault_root_token" \
+		-e EMAIL_USER="$EMAIL_USER" \
+		-e EMAIL_PASSWORD="$EMAIL_PASSWORD" \
+		"$VAULT_CONTAINER" \
+		sh -c '
+			vault kv put app/email \
+				username="$EMAIL_USER" \
+				password="$EMAIL_PASSWORD"
+		' >/dev/null
+	then
+		unset vault_root_token
+		die "Failed to store email credentials in Vault."
+	fi
+
+	unset vault_root_token
+
+	log "Email credentials stored in Vault."
+}
+
+# ------------------------------------------------------------
+# PostgreSQL creation of app role (limits access to user)
 # ------------------------------------------------------------
 
 postgres_ensure_app_role() {
@@ -680,11 +727,6 @@ log "Loading bootstrap configuration..."
 
 source ./scripts/load-env.sh
 
-unset POSTGRES_PASSWORD
-unset DATA_SOURCE_PASS
-unset EMAIL_PASSWORD
-unset GRAFANA_ADMIN_PASSWORD
-
 log "Bootstrap configuration loaded."
 
 log "Checking Docker Compose configuration..."
@@ -762,6 +804,7 @@ else
 fi
 
 vault_ensure_app_kv
+vault_store_email_credentials
 
 # ------------------------------------------------------------
 # PostgreSQL state check
@@ -784,33 +827,33 @@ fi
 POSTGRES_ADMIN_PASSWORD=""
 
 if [[ "$POSTGRES_INITIALIZED" == "false" ]]; then
-    log "Generating PostgreSQL admin password..."
+	log "Generating PostgreSQL admin password..."
 
-    POSTGRES_ADMIN_PASSWORD="$(openssl rand -hex 32)"
+	POSTGRES_ADMIN_PASSWORD="$(openssl rand -hex 32)"
 
-    if [[ -z "$POSTGRES_ADMIN_PASSWORD" ]]; then
-        die "Failed to generate PostgreSQL admin password."
-    fi
+	if [[ -z "$POSTGRES_ADMIN_PASSWORD" ]]; then
+		die "Failed to generate PostgreSQL admin password."
+	fi
 
-    BOOTSTRAP_POSTGRES_PASSWORD_FILE="$(mktemp)"
+	BOOTSTRAP_POSTGRES_PASSWORD_FILE="$(mktemp)"
 
-    chmod 600 "$BOOTSTRAP_POSTGRES_PASSWORD_FILE"
+	chmod 600 "$BOOTSTRAP_POSTGRES_PASSWORD_FILE"
 
-    printf '%s' "$POSTGRES_ADMIN_PASSWORD" \
-        > "$BOOTSTRAP_POSTGRES_PASSWORD_FILE"
+	printf '%s' "$POSTGRES_ADMIN_PASSWORD" \
+		> "$BOOTSTRAP_POSTGRES_PASSWORD_FILE"
 
-    export BOOTSTRAP_POSTGRES_PASSWORD_FILE
+	export BOOTSTRAP_POSTGRES_PASSWORD_FILE
 
-    cleanup() {
-        rm -f "$BOOTSTRAP_POSTGRES_PASSWORD_FILE"
-    }
+	cleanup() {
+		rm -f "$BOOTSTRAP_POSTGRES_PASSWORD_FILE"
+	}
 
-    trap cleanup EXIT
+	trap cleanup EXIT
 
-    log "Temporary PostgreSQL credential created."
+	log "Temporary PostgreSQL credential created."
 else
-    log "Loading existing PostgreSQL admin credentials from Vault..."
-    vault_load_postgres_admin_password
+	log "Loading existing PostgreSQL admin credentials from Vault..."
+	vault_load_postgres_admin_password
 fi
 
 # ------------------------------------------------------------
@@ -837,25 +880,25 @@ fi
 log "Waiting for PostgreSQL..."
 
 if [[ "$POSTGRES_INITIALIZED" == "false" ]]; then
-    POSTGRES_COMPOSE=(
-        -f "$COMPOSE_FILE"
-        -f "$BOOTSTRAP_COMPOSE_FILE"
-    )
+	POSTGRES_COMPOSE=(
+		-f "$COMPOSE_FILE"
+		-f "$BOOTSTRAP_COMPOSE_FILE"
+	)
 else
-    POSTGRES_COMPOSE=(
-        -f "$COMPOSE_FILE"
-    )
+	POSTGRES_COMPOSE=(
+		-f "$COMPOSE_FILE"
+	)
 fi
 
 until docker compose \
-    "${POSTGRES_COMPOSE[@]}" \
-    exec -T postgres \
-    pg_isready \
-        -U "$POSTGRES_USER" \
-        -d "$POSTGRES_DB" \
-        >/dev/null 2>&1
+	"${POSTGRES_COMPOSE[@]}" \
+	exec -T postgres \
+	pg_isready \
+		-U "$POSTGRES_USER" \
+		-d "$POSTGRES_DB" \
+		>/dev/null 2>&1
 do
-    sleep 1
+	sleep 1
 done
 
 log "PostgreSQL is ready."
@@ -892,18 +935,18 @@ fi
 # ------------------------------------------------------------
 
 if [[ "$POSTGRES_INITIALIZED" == "false" ]]; then
-    log "Generating PostgreSQL application password..."
-    POSTGRES_APP_PASSWORD="$(openssl rand -hex 32)"
+	log "Generating PostgreSQL application password..."
+	POSTGRES_APP_PASSWORD="$(openssl rand -hex 32)"
 
-    if [[ -z "$POSTGRES_APP_PASSWORD" ]]; then
-        die "Failed to generate PostgreSQL application password."
-    fi
+	if [[ -z "$POSTGRES_APP_PASSWORD" ]]; then
+		die "Failed to generate PostgreSQL application password."
+	fi
 
-    postgres_ensure_app_role
-    vault_store_postgres_app_credentials
+	postgres_ensure_app_role
+	vault_store_postgres_app_credentials
 else
-    vault_load_postgres_app_password
-    postgres_ensure_app_role
+	vault_load_postgres_app_password
+	postgres_ensure_app_role
 fi
 
 vault_ensure_backend_token
