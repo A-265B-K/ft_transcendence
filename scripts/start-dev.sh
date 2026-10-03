@@ -1,30 +1,10 @@
 #!/usr/bin/env bash
-
-set -Eeuo pipefail
+source ./scripts/common.sh
 
 COMPOSE_FILE="docker-compose-dev.yaml"
 
-log() {
-    printf '\n==> %s\n' "$*"
-}
-
-die() {
-    printf '\nERROR: %s\n' "$*" >&2
-    exit 1
-}
-
-# ------------------------------------------------------------
-# Pre-Checks
-# ------------------------------------------------------------
-
 [[ -f "$COMPOSE_FILE" ]] ||
     die "$COMPOSE_FILE is missing."
-
-command -v docker >/dev/null 2>&1 ||
-    die "Docker is not installed."
-
-docker compose version >/dev/null 2>&1 ||
-    die "Docker Compose is not available."
 
 log "Loading development configuration..."
 
@@ -33,6 +13,7 @@ source ./scripts/grafana-secrets.sh
 
 log "Development configuration loaded."
 
+# start vault script with COMPOSE_FILE in its env
 COMPOSE_FILE="$COMPOSE_FILE" ./scripts/vault-start.sh
 
 log "Starting development stack..."

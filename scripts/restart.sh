@@ -1,10 +1,5 @@
 #!/usr/bin/env bash
-
-set -Eeuo pipefail
-
-log() {
-    printf '\n==> %s\n' "$*"
-}
+source ./scripts/common.sh
 
 log "Restarting application stack..."
 

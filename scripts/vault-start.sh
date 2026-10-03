@@ -1,19 +1,9 @@
 #!/usr/bin/env bash
-
-set -Eeuo pipefail
+source ./scripts/common.sh
 
 VAULT_CONTAINER="vault"
 VAULT_SECRETS_FILE=".vault_secrets"
 COMPOSE_FILE="${COMPOSE_FILE:-docker-compose-dev.yaml}"
-
-log() {
-    printf '\n==> %s\n' "$*"
-}
-
-die() {
-    printf '\nERROR: %s\n' "$*" >&2
-    exit 1
-}
 
 vault_is_initialized() {
     local status

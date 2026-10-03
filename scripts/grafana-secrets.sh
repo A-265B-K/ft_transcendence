@@ -1,6 +1,5 @@
 #!/bin/bash
-
-set -euo pipefail
+source ./scripts/common.sh
 
 VAULT_CONTAINER="vault"
 VAULT_TOKEN_DIR="tokens"

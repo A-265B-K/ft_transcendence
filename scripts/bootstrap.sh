@@ -1,11 +1,5 @@
 #!/usr/bin/env bash
-
-# ------------------------------------------------------------
-# Variables
-# ------------------------------------------------------------
-
-# make sure the script stops as soon as something goes wrong
-set -Eeuo pipefail
+source ./scripts/common.sh
 
 VAULT_CONTAINER="vault"
 VAULT_TOKEN_DIR="tokens"
@@ -37,21 +31,6 @@ POSTGRES_VOLUME="${POSTGRES_VOLUME_NAME:-ft_transcendence_postgres_data}"
 POSTGRES_APP_PASSWORD=""
 POSTGRES_EXPORTER_PASSWORD=""
 POSTGRES_BACKUPS_PASSWORD=""
-
-# ------------------------------------------------------------
-# Helper functions
-# ------------------------------------------------------------
-
-log() {
-	echo
-	echo "==> $*"
-}
-
-die() {
-	echo
-	echo "ERROR: $*" >&2
-	exit 1
-}
 
 # ------------------------------------------------------------
 # Vault backend token creation
