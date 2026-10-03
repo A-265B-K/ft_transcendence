@@ -10,8 +10,8 @@ import JoinRoom from './pages/JoinRoom';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import { useEffect, useState } from 'react';
-import { type JoinedPayload, type LobbyRoom} from './types/game';
-import { connectSocket, disconnectSocket} from './socket';
+import { type JoinedPayload, type LobbyRoom } from './types/game';
+import { connectSocket, disconnectSocket } from './socket';
 import {
     BrowserRouter,
     useNavigate,
@@ -52,7 +52,7 @@ function AppContent() {
         async function checkSession() {
             try {
                 const response = await fetch('/api/auth/me', {
-                        credentials: 'include'
+                    credentials: 'include'
                 });
 
                 if (response.ok) {
@@ -72,10 +72,7 @@ function AppContent() {
     }, []);
 
     useEffect(() => {
-        if (!user ||
-            location.pathname !== '/game' ||
-            joinedData
-        ) {
+        if (!user || location.pathname !== '/game' || joinedData) {
             return;
         }
 
@@ -117,11 +114,7 @@ function AppContent() {
             socket.off('join_error', handleJoinError);
             socket.off('connect', joinRoom);
         };
-    }, [
-        user,
-        location.pathname,
-        joinedData
-    ]);
+    }, [user, location.pathname, joinedData]);
 
     useEffect(() => {
         if (!user) {
@@ -136,14 +129,14 @@ function AppContent() {
 
             // Allow requests up to 2 seconds
             const timeout = window.setTimeout(() => {
-                    controller.abort();
-                }, 2000);
+                controller.abort();
+            }, 2000);
 
             try {
                 const response = await fetch('/api/ping', {
-                            method: 'GET',
-                            cache: 'no-store',
-                            signal: controller.signal
+                    method: 'GET',
+                    cache: 'no-store',
+                    signal: controller.signal
                 });
 
                 if (!response.ok) {
@@ -159,10 +152,7 @@ function AppContent() {
                     error
                 );
 
-                if (
-                    failedChecks >= 3 &&
-                    !stopped
-                ) {
+                if (failedChecks >= 3 && !stopped) {
                     setUser(null);
                     setCreatedRoom(null);
                     setSelectedRoom(null);
@@ -189,8 +179,8 @@ function AppContent() {
 
     async function logout() {
         await fetch('/api/auth/logout', {
-                method: 'POST',
-                credentials: 'include'
+            method: 'POST',
+            credentials: 'include'
         });
         setUser(null);
         setCreatedRoom(null);
@@ -333,13 +323,11 @@ function AppContent() {
                             createdRoom={createdRoom}
                             selectedRoom={selectedRoom}
                             joinedData={joinedData}
-                            onStartGame={(
-                                data
-                            ) => {
+                            onStartGame={(data) => {
                                 setCreatedRoom(null);
                                 setSelectedRoom(null);
                                 setJoinedData(data);
-                                localStorage.setItem('gameRoomId',data.roomId);
+                                localStorage.setItem('gameRoomId', data.roomId);
                                 navigate('/game');
                             }}
                         />
@@ -353,39 +341,18 @@ function AppContent() {
                 path="/game"
                 element={
                     user && joinedData ? (
-                        <GameCanvas
-                            joinedData={
-                                joinedData
-                            }
-                        />
-                    ) : localStorage.getItem(
-                          'gameRoomId'
-                      ) ? (
-                        <div>
-                            Reconnecting to game...
-                        </div>
+                        <GameCanvas joinedData={joinedData} />
+                    ) : localStorage.getItem('gameRoomId') ? (
+                        <div>Reconnecting to game...</div>
                     ) : (
                         <Navigate to="/game-menu" />
                     )
                 }
             />
 
-            <Route
-                path="/disconnected"
-                element={
-                    <Disconnected />
-                }
-            />
+            <Route path="/disconnected" element={<Disconnected />} />
 
-            <Route
-                path="*"
-                element={
-                    <Navigate
-                        to="/"
-                        replace
-                    />
-                }
-            />
+            <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
     );
 }

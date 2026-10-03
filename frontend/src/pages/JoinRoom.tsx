@@ -8,7 +8,7 @@ type JoinRoomProps = {
     onJoined: (room: LobbyRoom) => void;
 };
 
-export default function JoinRoom({ onBack,onJoined }: JoinRoomProps) {
+export default function JoinRoom({ onBack, onJoined }: JoinRoomProps) {
     const { t } = useTranslation();
     const [loading, setLoading] = useState(false);
     const [roomCode, setRoomCode] = useState('');
@@ -22,13 +22,11 @@ export default function JoinRoom({ onBack,onJoined }: JoinRoomProps) {
         const socket = connectSocket();
 
         socket.once('rooms_list', (roomList: LobbyRoom[]) => {
-                setRooms(roomList);
-            }
-        );
+            setRooms(roomList);
+        });
         socket.once('join_error', ({ message }: { message: string }) => {
-                setError(message);
-            }
-        );
+            setError(message);
+        });
         socket.emit('get_rooms');
     }
 
@@ -55,10 +53,7 @@ export default function JoinRoom({ onBack,onJoined }: JoinRoomProps) {
             return;
         }
 
-        const room = rooms.find(
-            (currentRoom) =>
-                currentRoom.roomId === roomId
-        );
+        const room = rooms.find((currentRoom) => currentRoom.roomId === roomId);
 
         if (!room) {
             setError('roomNotFound');
@@ -84,30 +79,24 @@ export default function JoinRoom({ onBack,onJoined }: JoinRoomProps) {
         socket.once('room_info', (room: LobbyRoom) => {
             console.log('Room found:', room);
 
-                setLoading(false);
-                setRooms([room]);
-            }
-        );
+            setLoading(false);
+            setRooms([room]);
+        });
 
-        socket.once('join_error',({ message }: { message: string }) => {
-                setError(message);
-                setLoading(false);
-            }
-        );
+        socket.once('join_error', ({ message }: { message: string }) => {
+            setError(message);
+            setLoading(false);
+        });
 
-        socket.emit('get_room_by_code',{ code });
+        socket.emit('get_room_by_code', { code });
     }
 
     return (
         <div className="grid min-h-screen place-items-center bg-linear-to-b from-[#10212a] to-[#081016] text-[#f4f7fb]">
             <div className="w-full max-w-md rounded-3xl border border-white/10 bg-[#081016]/80 p-8 text-center shadow-2xl backdrop-blur-md">
-                <h2 className="mb-2 text-2xl font-bold">
-                    {t('joinRoom')}
-                </h2>
+                <h2 className="mb-2 text-2xl font-bold">{t('joinRoom')}</h2>
 
-                <p className="mb-6 text-white/60">
-                    {t('gameLobby')}
-                </p>
+                <p className="mb-6 text-white/60">{t('gameLobby')}</p>
 
                 {error && (
                     <div className="mb-4 rounded-xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm text-red-300">
@@ -155,10 +144,8 @@ export default function JoinRoom({ onBack,onJoined }: JoinRoomProps) {
 
                                         <p className="text-sm text-white/50">
                                             {room.playerCount} /{' '}
-                                            {room.maxPlayers}{' '}
-                                            {t('players')}
+                                            {room.maxPlayers} {t('players')}
                                         </p>
-
                                     </div>
 
                                     <button

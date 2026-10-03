@@ -157,10 +157,7 @@ const joinRoom = (
 
 const getRooms = () => {
     return Object.values(rooms)
-        .filter(
-            (room) =>
-                room.players.length < ROOM_MAX_SIZE
-        )
+        .filter((room) => room.players.length < ROOM_MAX_SIZE)
         .map((room) => ({
             roomId: room.roomId,
             name: room.name,
@@ -342,10 +339,7 @@ const onConnection = async (socket: Socket) => {
             return;
         }
 
-        const [room, roomId] = createRoom(
-            trimmedName,
-            user.id
-        );
+        const [room, roomId] = createRoom(trimmedName, user.id);
 
         socket.emit('room_created', {
             roomId,
@@ -381,36 +375,33 @@ const onConnection = async (socket: Socket) => {
         currentRoomId = joinRoom(socket, user, room);
     });
 
-    socket.on(
-        'get_room_by_id',
-        ({ roomId }: { roomId: unknown }) => {
-            if (typeof roomId !== 'string') {
-                socket.emit('join_error', {
-                    message: 'Invalid room ID'
-                });
-
-                return;
-            }
-
-            const room = rooms[roomId];
-
-            if (!room) {
-                socket.emit('join_error', {
-                    message: 'Room not found'
-                });
-
-                return;
-            }
-
-            socket.emit('room_info', {
-                roomId: room.roomId,
-                name: room.name,
-                code: room.code,
-                playerCount: room.players.length,
-                maxPlayers: ROOM_MAX_SIZE
+    socket.on('get_room_by_id', ({ roomId }: { roomId: unknown }) => {
+        if (typeof roomId !== 'string') {
+            socket.emit('join_error', {
+                message: 'Invalid room ID'
             });
+
+            return;
         }
-    );
+
+        const room = rooms[roomId];
+
+        if (!room) {
+            socket.emit('join_error', {
+                message: 'Room not found'
+            });
+
+            return;
+        }
+
+        socket.emit('room_info', {
+            roomId: room.roomId,
+            name: room.name,
+            code: room.code,
+            playerCount: room.players.length,
+            maxPlayers: ROOM_MAX_SIZE
+        });
+    });
     socket.on('join_room_code', ({ code }: { code: unknown }) => {
         if (typeof code !== 'string') {
             socket.emit('join_error', {

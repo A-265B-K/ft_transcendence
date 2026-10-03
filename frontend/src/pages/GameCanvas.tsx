@@ -57,11 +57,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
                 return;
             }
 
-            await game.start(
-                gameContainer.current,
-                joinedData,
-                socket
-            );
+            await game.start(gameContainer.current, joinedData, socket);
 
             if (cancelled) {
                 game.destroy();

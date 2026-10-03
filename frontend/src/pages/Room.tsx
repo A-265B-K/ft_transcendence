@@ -1,10 +1,7 @@
 import { connectSocket } from '../socket';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import type {
-    JoinedPayload,
-    LobbyRoom
-} from '../types/game';
+import type { JoinedPayload, LobbyRoom } from '../types/game';
 import { useTranslation } from 'react-i18next';
 
 type CreatedRoom = {
@@ -50,89 +47,44 @@ export default function Room({
         const isSelectedRoom = selectedRoom?.roomId === roomId;
 
         const isJoinedRoom = joinedData?.roomId === roomId;
-        if (
-            !createdRoom &&
-            !selectedRoom &&
-            !joinedData
-        ) {
+        if (!createdRoom && !selectedRoom && !joinedData) {
             return;
         }
 
-        if (
-            !isCreatedRoom &&
-            !isSelectedRoom &&
-            !isJoinedRoom
-        ) {
+        if (!isCreatedRoom && !isSelectedRoom && !isJoinedRoom) {
             navigate('/game-menu');
         }
-    }, [
-        roomId,
-        createdRoom,
-        selectedRoom,
-        joinedData,
-        navigate
-    ]);
+    }, [roomId, createdRoom, selectedRoom, joinedData, navigate]);
 
     useEffect(() => {
-        if (
-            !roomId ||
-            createdRoom ||
-            selectedRoom ||
-            joinedData
-        ) {
+        if (!roomId || createdRoom || selectedRoom || joinedData) {
             return;
         }
 
         const socket = connectSocket();
 
-        const handleRoomInfo = (
-            roomInfo: LobbyRoom
-        ) => {
+        const handleRoomInfo = (roomInfo: LobbyRoom) => {
             setLoadedRoom(roomInfo);
         };
 
-        const handleJoinError = ({
-            message
-        }: {
-            message: string;
-        }) => {
+        const handleJoinError = ({ message }: { message: string }) => {
             setError(message);
         };
 
-        socket.once(
-            'room_info',
-            handleRoomInfo
-        );
+        socket.once('room_info', handleRoomInfo);
 
-        socket.once(
-            'join_error',
-            handleJoinError
-        );
+        socket.once('join_error', handleJoinError);
 
-        socket.emit(
-            'get_room_by_id',
-            {
-                roomId
-            }
-        );
+        socket.emit('get_room_by_id', {
+            roomId
+        });
 
         return () => {
-            socket.off(
-                'room_info',
-                handleRoomInfo
-            );
+            socket.off('room_info', handleRoomInfo);
 
-            socket.off(
-                'join_error',
-                handleJoinError
-            );
+            socket.off('join_error', handleJoinError);
         };
-    }, [
-        roomId,
-        createdRoom,
-        selectedRoom,
-        joinedData
-    ]);
+    }, [roomId, createdRoom, selectedRoom, joinedData]);
 
     async function copyRoomCode() {
         if (!room?.code) return;
@@ -156,10 +108,7 @@ export default function Room({
         }
         setError('');
         if (joinedData) {
-            localStorage.setItem(
-                'gameRoomId',
-                joinedData.roomId
-            );
+            localStorage.setItem('gameRoomId', joinedData.roomId);
 
             onStartGame(joinedData);
             return;
@@ -169,22 +118,16 @@ export default function Room({
         }
         setJoining(true);
         const socket = connectSocket();
-        const handleJoined = (
-            data: JoinedPayload
-        ) => {
+        const handleJoined = (data: JoinedPayload) => {
             if (data.roomId !== roomId) {
                 return;
             }
 
-            localStorage.setItem('gameRoomId',data.roomId);
+            localStorage.setItem('gameRoomId', data.roomId);
             onStartGame(data);
         };
 
-        const handleJoinError = ({
-            message
-        }: {
-            message: string;
-        }) => {
+        const handleJoinError = ({ message }: { message: string }) => {
             setError(message);
             setJoining(false);
             socket.off('joined', handleJoined);
@@ -192,7 +135,7 @@ export default function Room({
         };
         socket.once('joined', handleJoined);
         socket.once('join_error', handleJoinError);
-        socket.emit('join_room', {roomId} );
+        socket.emit('join_room', { roomId });
     }
 
     function leaveRoom() {
@@ -204,9 +147,7 @@ export default function Room({
         return (
             <div className="grid min-h-screen place-items-center bg-linear-to-b from-[#10212a] to-[#081016] text-[#f4f7fb]">
                 <div className="w-full max-w-md rounded-3xl border border-white/10 bg-[#081016]/80 p-8 text-center shadow-2xl backdrop-blur-md">
-                    <p className="text-white/60">
-                        Loading room...
-                    </p>
+                    <p className="text-white/60">Loading room...</p>
                 </div>
             </div>
         );
@@ -215,13 +156,9 @@ export default function Room({
     return (
         <div className="grid min-h-screen place-items-center bg-linear-to-b from-[#10212a] to-[#081016] text-[#f4f7fb]">
             <div className="w-full max-w-md rounded-3xl border border-white/10 bg-[#081016]/80 p-8 text-center shadow-2xl backdrop-blur-md">
-                <h2 className="mb-2 text-2xl font-bold">
-                    {t('roomCreated')}
-                </h2>
+                <h2 className="mb-2 text-2xl font-bold">{t('roomCreated')}</h2>
 
-                <p className="mb-6 text-white/50">
-                    {t('shareCode')}
-                </p>
+                <p className="mb-6 text-white/50">{t('shareCode')}</p>
 
                 {error && (
                     <div className="mb-4 rounded-xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm text-red-300">
@@ -230,17 +167,11 @@ export default function Room({
                 )}
 
                 <div className="rounded-2xl border border-[#ffcf5c]/30 bg-[#ffcf5c]/10 p-5">
-                    <p className="text-sm text-white/50">
-                        {t('roomName')}
-                    </p>
+                    <p className="text-sm text-white/50">{t('roomName')}</p>
 
-                    <p className="mb-5 text-xl font-bold">
-                        {room.name}
-                    </p>
+                    <p className="mb-5 text-xl font-bold">{room.name}</p>
 
-                    <p className="text-sm text-white/50">
-                        {t('roomCode')}
-                    </p>
+                    <p className="text-sm text-white/50">{t('roomCode')}</p>
 
                     <p className="my-2 text-4xl font-bold tracking-[0.25em] text-[#ffcf5c]">
                         {room.code}
@@ -251,20 +182,15 @@ export default function Room({
                         onClick={copyRoomCode}
                         className="mt-2 rounded-lg border border-white/15 px-4 py-2 text-sm transition hover:bg-white/10"
                     >
-                        {copied
-                            ? t('copied')
-                            : t('copyCode')}
+                        {copied ? t('copied') : t('copyCode')}
                     </button>
 
                     <div className="mt-5 border-t border-white/10 pt-4">
                         <p className="text-lg font-bold">
-                            {room.playerCount} /{' '}
-                            {room.maxPlayers}
+                            {room.playerCount} / {room.maxPlayers}
                         </p>
 
-                        <p className="text-sm text-white/50">
-                            {t('players')}
-                        </p>
+                        <p className="text-sm text-white/50">{t('players')}</p>
                     </div>
                 </div>
 
@@ -279,9 +205,7 @@ export default function Room({
                         disabled={joining}
                         className="rounded-xl bg-linear-to-r from-[#ffcf5c] to-[#ff9f43] px-4 py-3 font-bold text-[#10212a] transition hover:brightness-110 disabled:opacity-50"
                     >
-                        {joining
-                            ? t('joining')
-                            : t('startGame')}
+                        {joining ? t('joining') : t('startGame')}
                     </button>
 
                     <button
