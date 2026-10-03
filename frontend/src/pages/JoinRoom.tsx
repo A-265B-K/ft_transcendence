@@ -1,22 +1,15 @@
 import { connectSocket } from '../socket';
 import { useEffect, useState } from 'react';
-import type { JoinedPayload } from '../types/game';
-import { t } from 'i18next';
-
-type LobbyRoom = {
-    roomId: string;
-    name: string;
-    code?: string;
-    playerCount: number;
-    maxPlayers: number;
-};
+import type { LobbyRoom } from '../types/game';
+import { useTranslation } from 'react-i18next';
 
 type JoinRoomProps = {
     onBack: () => void;
-    onJoined: (data: JoinedPayload) => void;
+    onJoined: (room: LobbyRoom) => void;
 };
 
-export default function JoinRoom({ onBack, onJoined }: JoinRoomProps) {
+export default function JoinRoom({ onBack,onJoined }: JoinRoomProps) {
+    const { t } = useTranslation();
     const [loading, setLoading] = useState(false);
     const [roomCode, setRoomCode] = useState('');
     const [error, setError] = useState('');
@@ -26,109 +19,95 @@ export default function JoinRoom({ onBack, onJoined }: JoinRoomProps) {
         if (loading) return;
 
         setError('');
-
         const socket = connectSocket();
 
         socket.once('rooms_list', (roomList: LobbyRoom[]) => {
-            setRooms(roomList);
-        });
-
+                setRooms(roomList);
+            }
+        );
         socket.once('join_error', ({ message }: { message: string }) => {
-            setError(message);
-        });
-
+                setError(message);
+            }
+        );
         socket.emit('get_rooms');
     }
 
     useEffect(() => {
         const socket = connectSocket();
-
         const handleRoomsList = (roomList: LobbyRoom[]) => {
             console.log('Available rooms:', roomList);
-
             setRooms(roomList);
         };
-
         const handleJoinError = ({ message }: { message: string }) => {
             setError(message);
         };
-
         socket.on('rooms_list', handleRoomsList);
-
         socket.on('join_error', handleJoinError);
-
         socket.emit('get_rooms');
-
         return () => {
             socket.off('rooms_list', handleRoomsList);
-
             socket.off('join_error', handleJoinError);
         };
     }, []);
 
     function joinSelectedRoom(roomId: string) {
-        if (loading) return;
+        if (loading) {
+            return;
+        }
 
-        setLoading(true);
+        const room = rooms.find(
+            (currentRoom) =>
+                currentRoom.roomId === roomId
+        );
+
+        if (!room) {
+            setError('roomNotFound');
+            return;
+        }
+
         setError('');
-
-        const socket = connectSocket();
-
-        socket.once('joined', (data: JoinedPayload) => {
-            console.log('Joined room:', data);
-
-            setLoading(false);
-            onJoined(data);
-        });
-
-        socket.once('join_error', ({ message }: { message: string }) => {
-            setError(message);
-            setLoading(false);
-        });
-
-        socket.emit('join_room', {
-            roomId
-        });
+        onJoined(room);
     }
 
     function joinWithCode() {
         if (loading) return;
 
         const code = roomCode.trim().toUpperCase();
-
         if (!code) {
             setError('enterRoomCode');
             return;
         }
-
         setLoading(true);
         setError('');
-
         const socket = connectSocket();
 
         socket.once('room_info', (room: LobbyRoom) => {
             console.log('Room found:', room);
 
-            setLoading(false);
-            setRooms([room]);
-        });
+                setLoading(false);
+                setRooms([room]);
+            }
+        );
 
-        socket.once('join_error', ({ message }: { message: string }) => {
-            setError(message);
-            setLoading(false);
-        });
+        socket.once('join_error',({ message }: { message: string }) => {
+                setError(message);
+                setLoading(false);
+            }
+        );
 
-        socket.emit('get_room_by_code', {
-            code
-        });
+        socket.emit('get_room_by_code',{ code });
     }
 
     return (
         <div className="grid min-h-screen place-items-center bg-linear-to-b from-[#10212a] to-[#081016] text-[#f4f7fb]">
             <div className="w-full max-w-md rounded-3xl border border-white/10 bg-[#081016]/80 p-8 text-center shadow-2xl backdrop-blur-md">
-                <h2 className="mb-2 text-2xl font-bold">{t('joinRoom')}</h2>
+                <h2 className="mb-2 text-2xl font-bold">
+                    {t('joinRoom')}
+                </h2>
 
-                <p className="mb-6 text-white/60">{t('gameLobby')}</p>
+                <p className="mb-6 text-white/60">
+                    {t('gameLobby')}
+                </p>
 
                 {error && (
                     <div className="mb-4 rounded-xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm text-red-300">
@@ -176,14 +155,10 @@ export default function JoinRoom({ onBack, onJoined }: JoinRoomProps) {
 
                                         <p className="text-sm text-white/50">
                                             {room.playerCount} /{' '}
-                                            {room.maxPlayers} {t('players')}
+                                            {room.maxPlayers}{' '}
+                                            {t('players')}
                                         </p>
 
-                                        {room.code && (
-                                            <p className="mt-1 text-xs text-white/30">
-                                                {t('code')}: {room.code}
-                                            </p>
-                                        )}
                                     </div>
 
                                     <button
