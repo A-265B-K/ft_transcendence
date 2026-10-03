@@ -1,22 +1,15 @@
 import { connectSocket } from '../socket';
 import { useEffect, useState } from 'react';
-import type { JoinedPayload } from '../types/game';
-import { t } from 'i18next';
-
-type LobbyRoom = {
-    roomId: string;
-    name: string;
-    code?: string;
-    playerCount: number;
-    maxPlayers: number;
-};
+import type { LobbyRoom } from '../types/game';
+import { useTranslation } from 'react-i18next';
 
 type JoinRoomProps = {
     onBack: () => void;
-    onJoined: (data: JoinedPayload) => void;
+    onJoined: (room: LobbyRoom) => void;
 };
 
 export default function JoinRoom({ onBack, onJoined }: JoinRoomProps) {
+    const { t } = useTranslation();
     const [loading, setLoading] = useState(false);
     const [roomCode, setRoomCode] = useState('');
     const [error, setError] = useState('');
@@ -26,84 +19,61 @@ export default function JoinRoom({ onBack, onJoined }: JoinRoomProps) {
         if (loading) return;
 
         setError('');
-
         const socket = connectSocket();
 
         socket.once('rooms_list', (roomList: LobbyRoom[]) => {
             setRooms(roomList);
         });
-
         socket.once('join_error', ({ message }: { message: string }) => {
             setError(message);
         });
-
         socket.emit('get_rooms');
     }
 
     useEffect(() => {
         const socket = connectSocket();
-
         const handleRoomsList = (roomList: LobbyRoom[]) => {
             console.log('Available rooms:', roomList);
-
             setRooms(roomList);
         };
-
         const handleJoinError = ({ message }: { message: string }) => {
             setError(message);
         };
-
         socket.on('rooms_list', handleRoomsList);
-
         socket.on('join_error', handleJoinError);
-
         socket.emit('get_rooms');
-
         return () => {
             socket.off('rooms_list', handleRoomsList);
-
             socket.off('join_error', handleJoinError);
         };
     }, []);
 
     function joinSelectedRoom(roomId: string) {
-        if (loading) return;
+        if (loading) {
+            return;
+        }
 
-        setLoading(true);
+        const room = rooms.find((currentRoom) => currentRoom.roomId === roomId);
+
+        if (!room) {
+            setError('roomNotFound');
+            return;
+        }
+
         setError('');
-
-        const socket = connectSocket();
-
-        socket.once('joined', (data: JoinedPayload) => {
-            console.log('Joined room:', data);
-
-            setLoading(false);
-            onJoined(data);
-        });
-
-        socket.once('join_error', ({ message }: { message: string }) => {
-            setError(message);
-            setLoading(false);
-        });
-
-        socket.emit('join_room', {
-            roomId
-        });
+        onJoined(room);
     }
 
     function joinWithCode() {
         if (loading) return;
 
         const code = roomCode.trim().toUpperCase();
-
         if (!code) {
             setError('enterRoomCode');
             return;
         }
-
         setLoading(true);
         setError('');
-
         const socket = connectSocket();
 
         socket.once('room_info', (room: LobbyRoom) => {
@@ -118,9 +88,7 @@ export default function JoinRoom({ onBack, onJoined }: JoinRoomProps) {
             setLoading(false);
         });
 
-        socket.emit('get_room_by_code', {
-            code
-        });
+        socket.emit('get_room_by_code', { code });
     }
 
     return (
@@ -178,12 +146,6 @@ export default function JoinRoom({ onBack, onJoined }: JoinRoomProps) {
                                             {room.playerCount} /{' '}
                                             {room.maxPlayers} {t('players')}
                                         </p>
-
-                                        {room.code && (
-                                            <p className="mt-1 text-xs text-white/30">
-                                                {t('code')}: {room.code}
-                                            </p>
-                                        )}
                                     </div>
 
                                     <button

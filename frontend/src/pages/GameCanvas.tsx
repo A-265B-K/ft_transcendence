@@ -50,7 +50,25 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
 
         gameRef.current = game;
 
-        void game.start(gameContainer.current, joinedData, socket);
+        let cancelled = false;
+        let started = false;
+
+        async function startGame() {
+            if (!gameContainer.current) {
+                return;
+            }
+
+            await game.start(gameContainer.current, joinedData, socket);
+
+            if (cancelled) {
+                game.destroy();
+                return;
+            }
+
+            started = true;
+        }
+
+        void startGame();
 
         function handlePlayerJoined(player: JoinedPayload['players'][number]) {
             console.log('Player joined:', player);
@@ -203,6 +221,8 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         }, 32);
 
         return () => {
+            cancelled = true;
+
             socket.off('player_joined', handlePlayerJoined);
             socket.off('player_move', handlePlayerMove);
             socket.off('player_left', handlePlayerLeft);
@@ -217,7 +237,10 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             window.clearInterval(intervalId);
 
             gameRef.current = null;
-            game.destroy();
+
+            if (started) {
+                game.destroy();
+            }
         };
     }, [joinedData]);
 

@@ -9,27 +9,42 @@ const onDisconnection = (
 ) => {
     const room = roomManager.getRoomById(roomId);
 
-    if (!room) return;
+    if (!room) {
+        return;
+    }
 
     room.leave(socket, user.id);
-    // TODO roomManager.deleteRoom
+
+    // TODO: roomManager.deleteRoom
 };
 
-const onConnection = async (socket: Socket, roomManager: RoomManager) => {
+const onConnection = async (
+    socket: Socket,
+    roomManager: RoomManager
+) => {
     const user = socket.user;
 
     if (!user) {
-        console.error('Socket connected without a user, disconnecting');
+        console.error(
+            'Socket connected without a user, disconnecting'
+        );
+
         socket.disconnect(true);
         return;
     }
 
-    console.log('Player connected:', user.username);
+    console.log(
+        'Player connected:',
+        user.username
+    );
 
     let currentRoomId: string | null = null;
 
     socket.on('get_rooms', () => {
-        socket.emit('rooms_list', roomManager.getRooms());
+        socket.emit(
+            'rooms_list',
+            roomManager.getRooms()
+        );
     });
 
     socket.on(
@@ -41,7 +56,10 @@ const onConnection = async (socket: Socket, roomManager: RoomManager) => {
                     | {
                           success: true;
                           weapon: string;
-                          inventory: { wood: number; iron: number };
+                          inventory: {
+                              wood: number;
+                              iron: number;
+                          };
                       }
                     | { success: false }
             ) => void
@@ -60,134 +78,284 @@ const onConnection = async (socket: Socket, roomManager: RoomManager) => {
                 return;
             }
 
-            const room = roomManager.getRoomById(currentRoomId);
+            const room =
+                roomManager.getRoomById(
+                    currentRoomId
+                );
+
             const weapon = data.weapon;
 
-            const res = room?.craftWeapon(user.id, weapon);
-            if (!res) {
+            const result =
+                room?.craftWeapon(
+                    user.id,
+                    weapon
+                );
+
+            if (!result) {
                 reply({ success: false });
                 return;
             }
-            socket.to(currentRoomId).emit('player_weapon_equipped', {
-                socketId: socket.id,
-                weapon: res.weapon
-            });
+
+            socket
+                .to(currentRoomId)
+                .emit(
+                    'player_weapon_equipped',
+                    {
+                        socketId: socket.id,
+                        weapon: result.weapon
+                    }
+                );
+
             reply({
                 success: true,
-                weapon: res.weapon,
-                inventory: res.inventory
+                weapon: result.weapon,
+                inventory:
+                    result.inventory
             });
         }
     );
 
-    socket.on('get_room_by_code', ({ code }: { code: unknown }) => {
-        if (typeof code !== 'string') {
-            socket.emit('join_error', {
-                message: 'Invalid room code'
-            });
+    socket.on(
+        'get_room_by_code',
+        ({ code }: { code: unknown }) => {
+            if (typeof code !== 'string') {
+                socket.emit('join_error', {
+                    message: 'Invalid room code'
+                });
 
-            return;
+                return;
+            }
+
+            const room =
+                roomManager.getRoomByCode(code);
+
+            if (!room) {
+                socket.emit('join_error', {
+                    message: 'Room not found'
+                });
+
+                return;
+            }
+
+            socket.emit(
+                'room_info',
+                room.getRoomInfo()
+            );
         }
+    );
 
-        const room = roomManager.getRoomByCode(code);
+    socket.on(
+        'create_room',
+        ({ name }: { name: unknown }) => {
+            if (typeof name !== 'string') {
+                socket.emit('join_error', {
+                    message: 'Invalid room name'
+                });
 
-        if (!room) {
-            socket.emit('join_error', {
-                message: 'Room not found'
+                return;
+            }
+
+            const trimmedName =
+                name.trim();
+
+            if (!trimmedName) {
+                socket.emit('join_error', {
+                    message:
+                        'Room name is required'
+                });
+
+                return;
+            }
+
+            if (trimmedName.length > 30) {
+                socket.emit('join_error', {
+                    message:
+                        'Room name is too long'
+                });
+
+                return;
+            }
+
+            const roomId =
+                roomManager.createRoom(
+                    trimmedName,
+                    user.id
+                );
+
+            const room =
+                roomManager.getRoomById(
+                    roomId
+                );
+
+            if (!room) {
+                socket.emit('join_error', {
+                    message:
+                        'Room could not be created'
+                });
+
+                return;
+            }
+
+            socket.emit('room_created', {
+                roomId,
+                room: room.getRoomInfo()
             });
-            return;
         }
-        socket.emit('room_info', room.getRoomInfo());
-    });
+    );
 
-    socket.on('create_room', ({ name }: { name: unknown }) => {
-        if (typeof name !== 'string') {
-            socket.emit('join_error', {
-                message: 'Invalid room name'
-            });
-            return;
+    socket.on(
+        'join_room',
+        ({ roomId }: { roomId: unknown }) => {
+            if (typeof roomId !== 'string') {
+                socket.emit('join_error', {
+                    message: 'Invalid room'
+                });
+
+                return;
+            }
+
+            const room =
+                roomManager.getRoomById(
+                    roomId
+                );
+
+            if (!room) {
+                socket.emit('join_error', {
+                    message: 'Room not found'
+                });
+
+                return;
+            }
+
+            currentRoomId =
+                roomManager.joinRoomById(
+                    socket,
+                    user,
+                    roomId
+                );
         }
-        const trimmedName = name.trim();
+    );
 
-        if (!trimmedName) {
-            socket.emit('join_error', {
-                message: 'Room name is required'
-            });
-            return;
+    socket.on(
+        'get_room_by_id',
+        ({ roomId }: { roomId: unknown }) => {
+            if (typeof roomId !== 'string') {
+                socket.emit('join_error', {
+                    message: 'Invalid room ID'
+                });
+
+                return;
+            }
+
+            const room =
+                roomManager.getRoomById(
+                    roomId
+                );
+
+            if (!room) {
+                socket.emit('join_error', {
+                    message: 'Room not found'
+                });
+
+                return;
+            }
+
+            socket.emit(
+                'room_info',
+                room.getRoomInfo()
+            );
         }
+    );
 
-        if (trimmedName.length > 30) {
-            socket.emit('join_error', {
-                message: 'Room name is too long'
-            });
-            return;
+    socket.on(
+        'join_room_code',
+        ({ code }: { code: unknown }) => {
+            if (typeof code !== 'string') {
+                socket.emit('join_error', {
+                    message: 'Invalid room code'
+                });
+
+                return;
+            }
+
+            currentRoomId =
+                roomManager.joinRoomByCode(
+                    socket,
+                    user,
+                    code
+                );
         }
-
-        const roomId = roomManager.createRoom(trimmedName, user.id);
-
-        currentRoomId = roomManager.joinRoomById(socket, user, roomId);
-    });
-
-    socket.on('join_room', ({ roomId }: { roomId: unknown }) => {
-        if (typeof roomId !== 'string') {
-            socket.emit('join_error', {
-                message: 'Invalid room'
-            });
-
-            return;
-        }
-
-        const room = roomManager.getRoomById(roomId);
-
-        if (!room) {
-            socket.emit('join_error', {
-                message: 'Room not found'
-            });
-
-            return;
-        }
-
-        currentRoomId = roomManager.joinRoomById(socket, user, roomId);
-    });
-
-    socket.on('join_room_code', ({ code }: { code: unknown }) => {
-        if (typeof code !== 'string') {
-            socket.emit('join_error', {
-                message: 'Invalid room code'
-            });
-            return null;
-        }
-        currentRoomId = roomManager.joinRoomByCode(socket, user, code);
-    });
+    );
 
     socket.on(
         'player_move',
-        ({ x, y, moving }: { x: number; y: number; moving: boolean }) => {
+        ({
+            x,
+            y,
+            moving
+        }: {
+            x: number;
+            y: number;
+            moving: boolean;
+        }) => {
             if (!currentRoomId) {
                 return;
             }
-            const room = roomManager.getRoomById(currentRoomId);
-            room?.onMove(socket, user, { x, y }, moving);
+
+            const room =
+                roomManager.getRoomById(
+                    currentRoomId
+                );
+
+            room?.onMove(
+                socket,
+                user,
+                { x, y },
+                moving
+            );
         }
     );
 
-    socket.on('player_attack', (data: unknown) => {
-        if (data && typeof data === 'object' && 'direction' in data) {
-            if (!currentRoomId) {
-                return;
-            }
-            const room = roomManager.getRoomById(currentRoomId);
+    socket.on(
+        'player_attack',
+        (data: unknown) => {
+            if (
+                data &&
+                typeof data === 'object' &&
+                'direction' in data
+            ) {
+                if (!currentRoomId) {
+                    return;
+                }
 
-            // Ideally this is not an edge case like this
-            room?.handleAttack(user, data, socket);
+                const room =
+                    roomManager.getRoomById(
+                        currentRoomId
+                    );
+
+                room?.handleAttack(
+                    user,
+                    data,
+                    socket
+                );
+            }
         }
-    });
+    );
 
     socket.on('disconnect', () => {
-        console.log('Player disconnected:', user.username);
+        console.log(
+            'Player disconnected:',
+            user.username
+        );
 
-        if (currentRoomId)
-            onDisconnection(socket, user, currentRoomId, roomManager);
+        if (currentRoomId) {
+            onDisconnection(
+                socket,
+                user,
+                currentRoomId,
+                roomManager
+            );
+        }
     });
 };
 
