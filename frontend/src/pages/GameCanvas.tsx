@@ -8,6 +8,7 @@ import type { JoinedPayload } from '../types/game';
 import { connectSocket, disconnectSocket } from '../socket';
 import type { GameCanvasProps } from './gameCanvasProps';
 import { useTranslation } from 'react-i18next';
+import type { WeaponType } from '../game/entities/weapons/weapon';
 
 export default function GameCanvas({ joinedData }: GameCanvasProps) {
     const { t } = useTranslation();
@@ -81,6 +82,15 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
 
             game.removeRemotePlayer(player);
             game.removeRemoteCastle(player);
+        }
+        function handlePlayerWeaponEquipped({
+            socketId,
+            weapon
+        }: {
+            socketId: string;
+            weapon: WeaponType;
+        }) {
+            game.equipremoteweapon(socketId, weapon);
         }
 
         function handlePlayerHP({
@@ -197,6 +207,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         socket.on('resource_spawned', handleResourceSpawned);
         socket.on('castle_update', handleCastleUpgrade);
         socket.on('player_died', handlePlayerDied);
+        socket.on('player_weapon_equipped', handlePlayerWeaponEquipped);
 
         const intervalId = window.setInterval(() => {
             const snapshot = game.getInventorySnapshot();
@@ -222,6 +233,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             socket.off('resource_spawned', handleResourceSpawned);
             socket.off('join_error', handleJoinError);
             socket.off('castle_update', handleCastleUpgrade);
+            socket.off('player_weapon_equipped', handlePlayerWeaponEquipped);
             window.clearInterval(intervalId);
 
             gameRef.current = null;

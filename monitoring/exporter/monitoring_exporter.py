@@ -30,7 +30,7 @@ def fromDatabase(connection):
 
 
 def toPrometheus(connection, playercount, backenddata):
-    activerooms = int(backenddata["activerooms"])
+    activerooms = int(backenddata["activeRooms"])
 
     body = (
         f"registered_players {playercount}\n"
