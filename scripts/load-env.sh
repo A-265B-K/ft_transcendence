@@ -30,3 +30,13 @@ if [[ -z "${EMAIL_PASSWORD:-}" ]]; then
 	printf '\nERROR: EMAIL_PASSWORD is missing from %s.\n' "$SECRET_FILE" >&2
 	return 1 2>/dev/null || exit 1
 fi
+
+if [[ -z "${GRAFANA_ADMIN_USER:-}" ]]; then
+	printf '\nERROR: GRAFANA_ADMIN_USER is missing from %s.\n' "$SECRET_FILE" >&2
+	return 1 2>/dev/null || exit 1
+fi
+
+if [[ -z "${GRAFANA_ADMIN_PASSWORD:-}" ]]; then
+	printf '\nERROR: GRAFANA_ADMIN_PASSWORD is missing from %s.\n' "$SECRET_FILE" >&2
+	return 1 2>/dev/null || exit 1
+fi

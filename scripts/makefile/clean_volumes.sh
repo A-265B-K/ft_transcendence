@@ -2,16 +2,16 @@
 source ./scripts/common.sh
 source ./scripts/load-env.sh
 
-log "Stopping development stack..."
+require_docker
+
+log "Removing application volumes..."
 
 docker compose \
     -f docker-compose-dev.yaml \
-    down --remove-orphans
-
-log "Stopping production stack..."
+    down --volumes --remove-orphans
 
 docker compose \
     -f docker-compose.yaml \
-    down --remove-orphans
+    down --volumes --remove-orphans
 
-log "Application stopped."
+log "Application volumes removed."

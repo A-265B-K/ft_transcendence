@@ -2,14 +2,16 @@
 source ./scripts/common.sh
 source ./scripts/load-env.sh
 
-log "Removing application volumes..."
+require_docker
+
+log "Removing application containers and images..."
 
 docker compose \
     -f docker-compose-dev.yaml \
-    down --volumes --remove-orphans
+    down --rmi all --remove-orphans
 
 docker compose \
     -f docker-compose.yaml \
-    down --volumes --remove-orphans
+    down --rmi all --remove-orphans
 
-log "Application volumes removed."
+log "Application images removed."

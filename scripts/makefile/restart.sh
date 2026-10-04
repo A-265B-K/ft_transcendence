@@ -3,7 +3,7 @@ source ./scripts/common.sh
 
 log "Restarting application stack..."
 
-./scripts/stop.sh
-./scripts/start.sh
+./scripts/makefile/stop.sh
+./scripts/makefile/start.sh
 
 log "Application stack restarted."

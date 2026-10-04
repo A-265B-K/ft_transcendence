@@ -2,14 +2,18 @@
 source ./scripts/common.sh
 source ./scripts/load-env.sh
 
-log "Removing application containers and images..."
+require_docker
+
+log "Stopping development stack..."
 
 docker compose \
     -f docker-compose-dev.yaml \
-    down --rmi all --remove-orphans
+    down --remove-orphans
+
+log "Stopping production stack..."
 
 docker compose \
     -f docker-compose.yaml \
-    down --rmi all --remove-orphans
+    down --remove-orphans
 
-log "Application images removed."
+log "Application stopped."

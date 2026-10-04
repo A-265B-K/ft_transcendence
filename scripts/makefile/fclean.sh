@@ -2,6 +2,8 @@
 source ./scripts/common.sh
 source ./scripts/load-env.sh
 
+require_docker
+
 log "Removing development stack..."
 
 docker compose \

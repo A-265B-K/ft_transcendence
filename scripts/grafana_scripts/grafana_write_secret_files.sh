@@ -1,18 +1,14 @@
 #!/bin/bash
 source ./scripts/common.sh
+source ./scripts/config.sh
 
-VAULT_CONTAINER="vault"
-VAULT_TOKEN_DIR="tokens"
-
-GRAFANA_VAULT_TOKEN_FILE="$VAULT_TOKEN_DIR/.grafana_vault_token"
-GRAFANA_SECRETS_DIR="$VAULT_TOKEN_DIR/grafana"
+require_docker
 
 mkdir -p "$GRAFANA_SECRETS_DIR"
 chmod 700 "$GRAFANA_SECRETS_DIR"
 
 if [[ ! -s "$GRAFANA_VAULT_TOKEN_FILE" ]]; then
-    echo "Grafana Vault token not found." >&2
-    exit 1
+    die "Grafana Vault token not found."
 fi
 
 grafana_token="$(cat "$GRAFANA_VAULT_TOKEN_FILE")"

@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+source ./scripts/common.sh
+
+require_docker
+
+COMPOSE_FILE_PROD="docker-compose.yaml"
+
+[[ -f "$COMPOSE_FILE_PROD" ]] ||
+    die "$COMPOSE_FILE_PROD is missing."
+
+log "Loading application configuration..."
+
+source ./scripts/load-env.sh
+
+log "Application configuration loaded."
+
+COMPOSE_FILE="$COMPOSE_FILE_PROD" ./scripts/vault_scripts/vault-start.sh
+./scripts/grafana_scripts/grafana_write_secret_files.sh
+
+log "Starting application stack..."
+
+docker compose \
+    -f "$COMPOSE_FILE_PROD" \
+    up -d
+
+log "Application stack started."

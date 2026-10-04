@@ -12,8 +12,10 @@ die() {
     exit 1
 }
 
-command -v docker >/dev/null 2>&1 ||
-    die "Docker is not installed."
+require_docker() {
+	command -v docker >/dev/null 2>&1 ||
+    	die "Docker is not installed."
 
-docker compose version >/dev/null 2>&1 ||
-    die "Docker Compose is not available."
+	docker compose version >/dev/null 2>&1 ||
+	    die "Docker Compose is not available."
+}

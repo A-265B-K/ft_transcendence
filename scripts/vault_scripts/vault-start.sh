@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 source ./scripts/common.sh
+source ./scripts/config.sh
 
-VAULT_CONTAINER="vault"
-VAULT_SECRETS_FILE=".vault_secrets"
-COMPOSE_FILE="${COMPOSE_FILE:-docker-compose-dev.yaml}"
+require_docker
 
 vault_is_initialized() {
     local status
