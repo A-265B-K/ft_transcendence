@@ -154,12 +154,11 @@ services:
         test:
           [
             "CMD-SHELL",
-            "wget -q -O /dev/null 'http://127.0.0.1:8200/v1/sys/health'"
+            "wget -q -O /dev/null 'http://127.0.0.1:8200/v1/sys/health?sealedcode=200&uninitcode=200'"
           ]
         interval: 5s
         timeout: 3s
         retries: 10
-        start_period: 10s
       command: vault server -config=/vault/config/vault.hcl
 
 volumes:

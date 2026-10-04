@@ -2,7 +2,7 @@ all: prod
 
 prod:
 	@mkdir -p ./backups/backups
-	@./scripts/start.sh
+	@./scripts/makefile/start.sh
 	@echo Game reachable at https://localhost:8443/
 
 init:
@@ -11,25 +11,25 @@ init:
 
 dev:
 	@mkdir -p ./backups/backups
-	@./scripts/start-dev.sh
+	@./scripts/makefile/start-dev.sh
 
 down:
-	@./scripts/stop.sh
+	@./scripts/makefile/stop.sh
 
 restart:
-	@./scripts/restart.sh
+	@./scripts/makefile/restart.sh
 	@echo Game reachable at https://localhost:8443/
 
 cleanimages: 
-	@./scripts/clean_images.sh
+	@./scripts/makefile/clean_images.sh
 
 cleanvolumes:
-	@./scripts/clean_volumes.sh
+	@./scripts/makefile/clean_volumes.sh
 
 cleanbackups:
 	@rm -rf backups/backups
 
 fclean:
-	@./scripts/fclean.sh
+	@./scripts/makefile/fclean.sh
 
 re: fclean all
