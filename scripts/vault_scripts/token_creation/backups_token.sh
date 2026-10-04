@@ -29,8 +29,8 @@ vault_ensure_backups_token() {
 
 	if ! printf '%s\n' \
 		'path "app/data/backups" {' \
-        '  capabilities = ["read"]' \
-        '}' |
+'  capabilities = ["read"]' \
+'}' |
 		docker exec -i \
 			-e VAULT_TOKEN="$vault_root_token" \
 			"$VAULT_CONTAINER" \

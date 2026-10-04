@@ -35,8 +35,8 @@ vault_ensure_backend_token() {
 		'  capabilities = ["read"]' \
 		'}' \
 		'path "app/data/email" {' \
-        '  capabilities = ["read"]' \
-        '}' |
+		'  capabilities = ["read"]' \
+		'}' |
 		docker exec -i \
 			-e VAULT_TOKEN="$vault_root_token" \
 			"$VAULT_CONTAINER" \

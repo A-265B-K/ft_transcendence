@@ -2,100 +2,102 @@
 source ./scripts/common.sh
 source ./scripts/config.sh
 
+set -Eeuo pipefail
+
 require_docker
 
 vault_is_initialized() {
-    local status
+	local status
 
-    status="$(
-        docker exec "$VAULT_CONTAINER" \
-            vault status -format=json 2>/dev/null || true
-    )"
+	status="$(
+		docker exec "$VAULT_CONTAINER" \
+			vault status -format=json 2>/dev/null || true
+	)"
 
-    grep -Eq '"initialized"[[:space:]]*:[[:space:]]*true' <<< "$status"
+	grep -Eq '"initialized"[[:space:]]*:[[:space:]]*true' <<< "$status"
 }
 
 vault_is_sealed() {
-    local status
+	local status
 
-    status="$(
-        docker exec "$VAULT_CONTAINER" \
-            vault status -format=json 2>/dev/null || true
-    )"
+	status="$(
+		docker exec "$VAULT_CONTAINER" \
+			vault status -format=json 2>/dev/null || true
+	)"
 
-    grep -Eq '"sealed"[[:space:]]*:[[:space:]]*true' <<< "$status"
+	grep -Eq '"sealed"[[:space:]]*:[[:space:]]*true' <<< "$status"
 }
 
 log "Starting Vault..."
 
 docker compose \
-    -f "$COMPOSE_FILE" \
-    up -d vault-init vault
+	-f "$COMPOSE_FILE" \
+	up -d vault-init vault
 
 log "Waiting for Vault..."
 
 VAULT_READY="false"
 
 for _ in $(seq 1 30); do
-    if docker exec "$VAULT_CONTAINER" \
-        wget -q -O /dev/null \
-        "http://127.0.0.1:8200/v1/sys/health?sealedcode=200&uninitcode=200" \
-        2>/dev/null
-    then
-        VAULT_READY="true"
-        break
-    fi
+	if docker exec "$VAULT_CONTAINER" \
+		wget -q -O /dev/null \
+		"http://127.0.0.1:8200/v1/sys/health?sealedcode=200&uninitcode=200" \
+		2>/dev/null
+	then
+		VAULT_READY="true"
+		break
+	fi
 
-    sleep 1
+	sleep 1
 done
 
 [[ "$VAULT_READY" == "true" ]] ||
-    die "Vault did not become available."
+	die "Vault did not become available."
 
 log "Checking Vault state..."
 
 if ! vault_is_initialized; then
 	docker compose -f "$COMPOSE_FILE" stop vault >/dev/null 2>&1 || true
-    die "Vault is not initialized, stopping Vault. Run 'make init' first."
+	die "Vault is not initialized, stopping Vault. Run 'make init' first."
 fi
 
 if ! vault_is_sealed; then
-    log "Vault is already unsealed."
-    log "Vault is ready."
-    exit 0
+	log "Vault is already unsealed."
+	log "Vault is ready."
+	exit 0
 fi
 
 log "Vault is sealed."
 
 [[ -f "$VAULT_SECRETS_FILE" ]] ||
-    die "Vault is sealed but $VAULT_SECRETS_FILE is missing."
+	die "Vault is sealed but $VAULT_SECRETS_FILE is missing."
 
 PERMISSIONS="$(stat -c '%a' "$VAULT_SECRETS_FILE")"
 
 [[ "$PERMISSIONS" == "600" ]] ||
-    die "$VAULT_SECRETS_FILE must have permissions 600 (currently $PERMISSIONS)."
+	die "$VAULT_SECRETS_FILE must have permissions 600 (currently $PERMISSIONS)."
 
 source "$VAULT_SECRETS_FILE"
 
 [[ -n "${VAULT_UNSEAL_KEY_1:-}" ]] ||
-    die "VAULT_UNSEAL_KEY_1 is missing."
+	die "VAULT_UNSEAL_KEY_1 is missing."
 
 [[ -n "${VAULT_UNSEAL_KEY_2:-}" ]] ||
-    die "VAULT_UNSEAL_KEY_2 is missing."
+	die "VAULT_UNSEAL_KEY_2 is missing."
 
 [[ -n "${VAULT_UNSEAL_KEY_3:-}" ]] ||
-    die "VAULT_UNSEAL_KEY_3 is missing."
+	die "VAULT_UNSEAL_KEY_3 is missing."
 
 log "Unsealing Vault..."
 
 docker exec "$VAULT_CONTAINER" \
-    vault operator unseal "$VAULT_UNSEAL_KEY_1" >/dev/null
+	vault operator unseal "$VAULT_UNSEAL_KEY_1" >/dev/null
 
 docker exec "$VAULT_CONTAINER" \
-    vault operator unseal "$VAULT_UNSEAL_KEY_2" >/dev/null
+	vault operator unseal "$VAULT_UNSEAL_KEY_2" >/dev/null
 
 docker exec "$VAULT_CONTAINER" \
-    vault operator unseal "$VAULT_UNSEAL_KEY_3" >/dev/null
+	vault operator unseal "$VAULT_UNSEAL_KEY_3" >/dev/null
 
 unset VAULT_UNSEAL_KEY_1
 unset VAULT_UNSEAL_KEY_2
@@ -105,7 +107,7 @@ unset VAULT_UNSEAL_KEY_5
 unset VAULT_ROOT_TOKEN
 
 if vault_is_sealed; then
-    die "Vault is still sealed after applying the unseal keys."
+	die "Vault is still sealed after applying the unseal keys."
 fi
 
 log "Vault is unsealed."

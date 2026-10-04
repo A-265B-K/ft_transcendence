@@ -15,13 +15,13 @@ source ./scripts/vault_scripts/vault_load_root_token.sh
 source ./scripts/vault_scripts/vault_state_detection.sh
 source ./scripts/vault_scripts/vault_unseal.sh
 for script in ./scripts/vault_scripts/token_creation/*.sh; do
-    source "$script"
+source "$script"
 done
 for script in ./scripts/vault_scripts/credentials_loading/*.sh; do
-    source "$script"
+source "$script"
 done
 for script in ./scripts/vault_scripts/credentials_storing/*.sh; do
-    source "$script"
+source "$script"
 done
 
 # ------------------------------------------------------------
@@ -33,8 +33,10 @@ source ./scripts/grafana_scripts/grafana_fix_permission.sh
 # PostgreSQL libraries
 # ------------------------------------------------------------
 for script in ./scripts/postgres_scripts/*.sh; do
-    source "$script"
+source "$script"
 done
+
+set -Eeuo pipefail
 
 # ------------------------------------------------------------
 # Variables
@@ -77,25 +79,39 @@ if ! command -v openssl >/dev/null 2>&1; then
 fi
 
 if ! mkdir -p "$VAULT_TOKEN_DIR"; then
-    die "Failed to create Vault token directory."
+die "Failed to create Vault token directory."
 fi
 
 if ! chmod 700 "$VAULT_TOKEN_DIR"; then
-    die "Failed to secure Vault token directory."
+die "Failed to secure Vault token directory."
 fi
 
 log "Loading bootstrap configuration..."
 source ./scripts/load-env.sh
 log "Bootstrap configuration loaded."
 
+require_var POSTGRES_USER
+require_var POSTGRES_DB
+
 log "Checking Docker Compose configuration..."
-if ! docker compose \
+
+docker compose \
 	-f "$COMPOSE_FILE_DEV" \
-	config >/dev/null
-then
-	die "Docker Compose configuration is invalid."
-fi
-log "Bootstrap pre-checks passed."
+	config >/dev/null ||
+	die "Development Docker Compose configuration is invalid."
+
+docker compose \
+	-f "$COMPOSE_FILE_DEV" \
+	-f "$BOOTSTRAP_COMPOSE_FILE_DEV" \
+	config >/dev/null ||
+	die "Bootstrap Docker Compose configuration is invalid."
+
+log "Docker Compose configuration is valid."
+
+require_file "$SECRET_FILE"
+require_file "$COMPOSE_FILE_DEV"
+require_file "$BOOTSTRAP_COMPOSE_FILE_DEV"
+require_file ./vault/config/vault.hcl
 
 # ------------------------------------------------------------
 # Start Vault
@@ -244,23 +260,23 @@ fi
 POSTGRES_READY=false
 
 for _ in {1..30}; do
-    if docker compose \
-        "${POSTGRES_COMPOSE[@]}" \
-        exec -T postgres \
-        pg_isready \
-            -U "$POSTGRES_USER" \
-            -d "$POSTGRES_DB" \
-            >/dev/null 2>&1
-    then
-        POSTGRES_READY=true
-        break
-    fi
+if docker compose \
+"${POSTGRES_COMPOSE[@]}" \
+exec -T postgres \
+pg_isready \
+-U "$POSTGRES_USER" \
+-d "$POSTGRES_DB" \
+>/dev/null 2>&1
+then
+POSTGRES_READY=true
+break
+fi
 
-    sleep 1
+sleep 1
 done
 
 [[ "$POSTGRES_READY" == "true" ]] ||
-    die "PostgreSQL did not become ready."
+die "PostgreSQL did not become ready."
 
 log "PostgreSQL is ready."
 
@@ -332,6 +348,10 @@ else
 	postgres_ensure_exporter_role
 fi
 
+unset POSTGRES_ADMIN_PASSWORD
+unset POSTGRES_APP_PASSWORD
+unset POSTGRES_EXPORTER_PASSWORD
+unset POSTGRES_BACKUPS_PASSWORD
 
 # ------------------------------------------------------------
 # PostgreSQL backups role

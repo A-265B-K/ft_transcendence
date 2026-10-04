@@ -2,6 +2,8 @@
 source ./scripts/common.sh
 source ./scripts/config.sh
 
+set -Eeuo pipefail
+
 require_docker
 
 mkdir -p "$GRAFANA_SECRETS_DIR"
@@ -10,6 +12,9 @@ chmod 700 "$GRAFANA_SECRETS_DIR"
 if [[ ! -s "$GRAFANA_VAULT_TOKEN_FILE" ]]; then
     die "Grafana Vault token not found."
 fi
+
+[[ -s "$GRAFANA_VAULT_TOKEN_FILE" ]] ||
+	die "Grafana Vault token is missing or empty."
 
 grafana_token="$(cat "$GRAFANA_VAULT_TOKEN_FILE")"
 

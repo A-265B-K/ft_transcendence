@@ -29,8 +29,8 @@ vault_ensure_exporter_vault_token() {
 
 	if ! printf '%s\n' \
 		'path "app/data/postgres_exporter" {' \
-        '  capabilities = ["read"]' \
-        '}' |
+		'  capabilities = ["read"]' \
+		'}' |
 		docker exec -i \
 			-e VAULT_TOKEN="$vault_root_token" \
 			"$VAULT_CONTAINER" \
