@@ -134,9 +134,13 @@ function AppContent() {
                     signal: controller.signal
                 });
 
-                if (!response.ok) {
+                if (!response.ok)
                     throw new Error(`Health check failed: ${response.status}`);
-                }
+                else if (
+                    response.ok &&
+                    window.location.pathname === '/disconnected'
+                )
+                    navigate('/');
 
                 failedChecks = 0;
             } catch (error) {
