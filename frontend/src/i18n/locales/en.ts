@@ -18,7 +18,7 @@ export const en = {
 
         connectionLost: 'Connection lost',
         disconnectedSeverDown:
-            'You were disconnected because the server may have gone down or your connection latency became too high.',
+            'You were disconnected because the server may have gone down or your connection latency became too high.\nTrying to reconnect...',
         //forgot password
         forgotPassword: 'Forgot password',
         sendPasswordLink:

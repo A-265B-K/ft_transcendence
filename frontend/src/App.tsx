@@ -14,7 +14,8 @@ import {
     useNavigate,
     Routes,
     Route,
-    Navigate
+    Navigate,
+    useLocation
 } from 'react-router-dom';
 import CreateRoom from './pages/CreateRoom';
 import Room from './pages/Room';
@@ -36,6 +37,7 @@ export default function App() {
 
 function AppContent() {
     const navigate = useNavigate();
+    const path  = useLocation().pathname;
     const [loading, setLoading] = useState(true);
     const [user, setUser] = useState<User | null>(null);
     const [joinedData, setJoinedData] = useState<JoinedPayload | null>(null);
@@ -112,9 +114,8 @@ function AppContent() {
     }, [user]);
 
     useEffect(() => {
-        if (!user) {
+        if (!user && path !== '/disconnected')
             return;
-        }
 
         let stopped = false;
         let failedChecks = 0;
@@ -136,12 +137,8 @@ function AppContent() {
 
                 if (!response.ok)
                     throw new Error(`Health check failed: ${response.status}`);
-                else if (
-                    response.ok &&
-                    window.location.pathname === '/disconnected'
-                )
-                    navigate('/');
-
+                else if (response.ok && !stopped && path === '/disconnected')
+                    navigate('/', {replace: true});
                 failedChecks = 0;
             } catch (error) {
                 failedChecks += 1;
@@ -152,7 +149,7 @@ function AppContent() {
                 );
 
                 // Three failures × two seconds between checks
-                if (failedChecks >= 3 && !stopped) {
+                if (failedChecks >= 3 && !stopped && path !== '/disconnected') {
                     startTransition(() => {
                         setUser(null);
                         setJoinedData(null);
@@ -173,7 +170,7 @@ function AppContent() {
             stopped = true;
             window.clearInterval(interval);
         };
-    }, [user, navigate]);
+    }, [user, navigate, path]);
 
     async function logout() {
         await fetch('/api/auth/logout', {
