@@ -6,7 +6,6 @@ import { Player, type WeaponType } from './player.js';
 import { getDistance, isvaliddirection } from './util.js';
 import { istargethit } from './combat/Detection.js';
 import { getattackstats } from './combat/Attackstats.js';
-import { RoomManager } from './roomManager.js';
 
 export type Cost = { wood: number; iron: number };
 
@@ -64,7 +63,6 @@ export class Room {
     }
 
     join(socket: Socket, user: SocketUser): string | null {
-        // ! WHY ?
         this.removeExistingPlayer(user.id, socket);
 
         if (this.getPlayerCount() >= ROOM_MAX_SIZE) {
