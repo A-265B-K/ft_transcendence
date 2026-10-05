@@ -63,6 +63,8 @@ export class Room {
     }
 
     join(socket: Socket, user: SocketUser): string | null {
+        this.RemovePreviousSession(user.id, socket);
+
         const existingplayer = this.getPlayerByUserId(user.id);
         if (existingplayer) {
             socket.emit('join_error', {
