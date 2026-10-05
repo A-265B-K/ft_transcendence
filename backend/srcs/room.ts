@@ -63,7 +63,7 @@ export class Room {
     }
 
     join(socket: Socket, user: SocketUser): string | null {
-        this.removeExistingPlayer(user.id, socket);
+        this.RemovePreviousSession(user.id, socket);
 
         if (this.getPlayerCount() >= ROOM_MAX_SIZE) {
             socket.emit('join_error', {
@@ -317,7 +317,7 @@ export class Room {
         return { x: 0, y: 0 };
     }
 
-    removeExistingPlayer(userId: string, socket: Socket) {
+    RemovePreviousSession(userId: string, socket: Socket) {
         const existingPlayer = this.getPlayerByUserId(userId);
 
         if (!existingPlayer) {
