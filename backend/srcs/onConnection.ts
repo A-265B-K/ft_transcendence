@@ -146,8 +146,8 @@ const onConnection = async (socket: Socket, roomManager: RoomManager) => {
 
             return;
         }
-
-        currentRoomId = roomManager.joinRoomById(socket, user, roomId);
+        const check = roomManager.joinRoomById(socket, user, roomId);
+        if (check !== null) currentRoomId = check;
     });
 
     socket.on('join_room_code', ({ code }: { code: unknown }) => {
