@@ -11,8 +11,7 @@ const onDisconnection = (
 
     if (!room) return;
 
-    room.leave(socket, user.id);
-    // TODO roomManager.deleteRoom
+    if (room.leave(socket, user.id)) roomManager.deleteRoomById(roomId);
 };
 
 const onConnection = async (socket: Socket, roomManager: RoomManager) => {
@@ -158,6 +157,13 @@ const onConnection = async (socket: Socket, roomManager: RoomManager) => {
             return null;
         }
         currentRoomId = roomManager.joinRoomByCode(socket, user, code);
+    });
+    socket.on('leave_room', () => {
+        if (!currentRoomId) return;
+
+        onDisconnection(socket, user, currentRoomId, roomManager);
+        socket.leave(currentRoomId);
+        currentRoomId = null;
     });
 
     socket.on(

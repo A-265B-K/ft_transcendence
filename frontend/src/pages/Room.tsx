@@ -121,6 +121,7 @@ export default function Room({ joinedData, onStartGame }: RoomProps) {
     }
 
     function leaveCreatedRoom() {
+        connectSocket().emit('leave_room');
         localStorage.removeItem('gameRoomId');
         navigate('/game-menu');
     }
