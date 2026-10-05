@@ -4,7 +4,7 @@ import Signup from './pages/SignUp';
 import LogIn from './pages/Login';
 import GameMenu from './pages/GameMenu';
 import Disconnected from './pages/Disconnected';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, startTransition } from 'react';
 import { type JoinedPayload } from './types/game';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
@@ -149,9 +149,11 @@ function AppContent() {
 
                 // Three failures × two seconds between checks
                 if (failedChecks >= 3 && !stopped) {
-                    setUser(null);
-                    setJoinedData(null);
-                    navigate('/disconnected');
+                    startTransition(() => {
+                        setUser(null);
+                        setJoinedData(null);
+                        navigate('/disconnected');
+                    });
                     disconnectSocket();
                 }
             } finally {
