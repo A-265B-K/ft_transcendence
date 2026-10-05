@@ -37,7 +37,7 @@ export default function App() {
 
 function AppContent() {
     const navigate = useNavigate();
-    const path = useLocation().pathname;
+    const path  = useLocation().pathname;
     const [loading, setLoading] = useState(true);
     const [user, setUser] = useState<User | null>(null);
     const [joinedData, setJoinedData] = useState<JoinedPayload | null>(null);
@@ -114,7 +114,8 @@ function AppContent() {
     }, [user]);
 
     useEffect(() => {
-        if (!user && path !== '/disconnected') return;
+        if (!user && path !== '/disconnected')
+            return;
 
         let stopped = false;
         let failedChecks = 0;
@@ -137,7 +138,7 @@ function AppContent() {
                 if (!response.ok)
                     throw new Error(`Health check failed: ${response.status}`);
                 else if (response.ok && !stopped && path === '/disconnected')
-                    reconnect();
+                    navigate('/', {replace: true});
                 failedChecks = 0;
             } catch (error) {
                 failedChecks += 1;
@@ -158,19 +159,6 @@ function AppContent() {
                 }
             } finally {
                 window.clearTimeout(timeout);
-            }
-            async function reconnect() {
-                const session = await fetch('/api/auth/me', {
-                    credentials: 'include',
-                    signal: controller.signal
-                });
-                if (session.ok) {
-                    const { user } = await session.json();
-                    startTransition(() => {
-                        setUser(user);
-                        navigate('/game-menu', { replace: true });
-                    });
-                } else navigate('/game-menu', { replace: true });
             }
         }
 
