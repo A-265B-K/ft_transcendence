@@ -11,9 +11,9 @@ const onDisconnection = (
 
     if (!room) return;
 
-    room.leave(socket, user.id);
-    // TODO roomManager.deleteRoom
-};
+    if (room.leave(socket, user.id))
+        roomManager.deleteRoomById(roomId);
+}; 
 
 const onConnection = async (socket: Socket, roomManager: RoomManager) => {
     const user = socket.user;

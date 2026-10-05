@@ -6,6 +6,7 @@ import { Player, type WeaponType } from './player.js';
 import { getDistance, isvaliddirection } from './util.js';
 import { istargethit } from './combat/Detection.js';
 import { getattackstats } from './combat/Attackstats.js';
+import { RoomManager } from './roomManager.js';
 
 export type Cost = { wood: number; iron: number };
 
@@ -222,11 +223,7 @@ export class Room {
                 maxPlayers: ROOM_MAX_SIZE
             });
         }
-
-        if (this.getPlayerCount() === 0) {
-            return true;
-        }
-        return false;
+        return this.getPlayerCount() === 0
     }
 
     onMove(
