@@ -223,7 +223,7 @@ export class Room {
                 maxPlayers: ROOM_MAX_SIZE
             });
         }
-        return this.getPlayerCount() === 0
+        return this.getPlayerCount() === 0;
     }
 
     onMove(
