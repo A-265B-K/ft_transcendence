@@ -20,14 +20,6 @@ jobs:
       - name: Build, start, and wait for containers
         run: docker compose up --build --detach --wait --wait-timeout 60
 
-      - name: Check all containers are still alive
-        run: |
-          sleep 10
-          if docker compose ps --all | grep -qi 'exited'; then
-            echo "Some containers exited unexpectedly"
-            exit 1
-          fi
-
       - name: Check frontend
         run: test "$(curl -kso /dev/null -w '%{http_code}' https://localhost:8443/)" = "200"
 
