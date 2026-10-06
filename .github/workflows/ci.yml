@@ -32,7 +32,7 @@ jobs:
           cd ../
 
       - name: Create account
-        run: python scripts/signup.py
+        run: python .github/scripts/signup.py
 
   frontend-build:
     runs-on: ubuntu-latest
