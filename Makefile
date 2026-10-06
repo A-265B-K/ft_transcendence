@@ -11,12 +11,6 @@ dev:
 	@mkdir -p ./backups/backups
 	@docker compose -f docker-compose-dev.yaml up --build
 
-backend:
-	@mkdir -p ./backups/backups
-	@docker compose build --no-cache backend
-	@docker compose up -d
-	@echo Game reachable at https://localhost:8443/
-
 down:
 	@docker compose down
 
