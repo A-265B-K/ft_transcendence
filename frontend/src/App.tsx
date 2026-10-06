@@ -179,7 +179,7 @@ function AppContent() {
         disconnectSocket();
         setJoinedData(null);
         setRestoringGame(false);
-        localStorage.removeItem('gameroomId');
+        localStorage.removeItem('gameRoomId');
         setUser(null);
         navigate('/');
     }
