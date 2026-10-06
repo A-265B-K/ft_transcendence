@@ -176,6 +176,10 @@ function AppContent() {
             method: 'POST',
             credentials: 'include'
         });
+        disconnectSocket();
+        setJoinedData(null);
+        setRestoringGame(false);
+        localStorage.removeItem('gameRoomId');
         setUser(null);
         navigate('/');
     }
