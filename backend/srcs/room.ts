@@ -102,6 +102,11 @@ export class Room {
         this.players.set(user.id, player);
 
         socket.join(this.roomId);
+        socket.nsp.to(this.roomId).emit('room_update', {
+            roomId: this.roomId,
+            playerCount: this.getPlayerCount(),
+            maxPlayers: ROOM_MAX_SIZE
+        });
         socket.to(this.roomId).emit('player_joined', player);
 
         socket.emit('joined', {
