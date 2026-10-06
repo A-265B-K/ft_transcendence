@@ -16,6 +16,7 @@ export class Room {
     private code: string;
     private players: Map<string, Player>;
     private map: GameMap;
+    private started: boolean;
 
     constructor(name: string, hostId: string, code: string) {
         this.name = name;
@@ -24,7 +25,7 @@ export class Room {
         this.code = code;
         this.players = new Map<string, Player>();
         this.map = new GameMap(ROOM_MAX_SIZE);
-
+        this.started = false;
         console.log(`Room created: ${name} [${this.code}]`);
     }
 
@@ -32,6 +33,14 @@ export class Room {
 
     getCode(): string {
         return this.code;
+    }
+
+    hasStarted(): boolean {
+        return this.started;
+    }
+
+    isHost(userId: string): boolean {
+        return this.hostId == userId;
     }
 
     getRoomId(): string {
