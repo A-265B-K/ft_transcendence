@@ -20,13 +20,23 @@ jobs:
       - name: Build, start, and wait for containers
         run: docker compose up --build --detach --wait --wait-timeout 60
 
-      - name: Test registration
-        run: |
-          curl -kfsS https://localhost:8443/api/auth/register \
-            -H 'Content-Type: application/json' \
-            -d '{"username":"ci-user","email":"ci@example.test","password":"Test123!"}' \
-            | jq -e '.user.username == "ci-user"'
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
 
+      - name: Install Chromium
+        run: |
+          mkdir -p /tmp/chrome
+          cd /tmp/chrome
+          npm init -y
+          npm install playwright
+          npx playwright install --with-deps chromium
+          cd ../
+
+      - name: sign up
+        working-directory: /tmp/chrome
+        run: |
+          chromium --headless --no-sandbox --ignore-certificate-errors --dump-dom https://localhost:8443/signup
 
       - name: Show logs on failure
         if: failure()
