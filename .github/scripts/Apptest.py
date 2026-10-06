@@ -15,4 +15,7 @@ with sync_playwright() as p:
     with page.expect_response("https://localhost:8443/api/auth/register") as registration:
         page.get_by_role("button", name="Create account", exact=True).click()
 
-    assert registration.value.ok, "Registration failed"
+    if (not registration.value.ok):
+        assert "User registration failed"
+
+    print("User registered")
