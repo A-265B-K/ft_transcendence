@@ -20,9 +20,7 @@ jobs:
       - name: Build, start, and wait for containers
         run: docker compose up --build --detach --wait --wait-timeout 60
 
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 24
+      - uses: actions/setup-python@v6
 
       - name: Install Chromium
         run: |
@@ -33,15 +31,8 @@ jobs:
           npx playwright install --with-deps chromium
           cd ../
 
-      - name: sign up
-        working-directory: /tmp/chrome
-        run: |
-          chromium --headless --no-sandbox --ignore-certificate-errors --dump-dom https://localhost:8443/signup
-
-      - name: Show logs on failure
-        if: failure()
-        run: docker compose logs
-
+      - name: Create account
+        run: python script/signup.py
 
   frontend-build:
     runs-on: ubuntu-latest
