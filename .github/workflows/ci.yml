@@ -22,17 +22,13 @@ jobs:
 
       - uses: actions/setup-python@v6
 
-      - name: Install Chromium
+      - name: Install Browser
         run: |
-          mkdir -p /tmp/chrome
-          cd /tmp/chrome
-          npm init -y
-          npm install playwright
-          npx playwright install --with-deps chromium
-          cd ../
+          python -m pip install playwright
+          python -m playwright install --with-deps --only-shell chromium
 
-      - name: Create account
-        run: python .github/scripts/signup.py
+      - name: Test App
+        run: python .github/scripts/Apptest.py
 
   frontend-build:
     runs-on: ubuntu-latest
