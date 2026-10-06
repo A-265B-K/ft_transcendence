@@ -7,7 +7,7 @@ on:
 jobs:
   integration:
     runs-on: ubuntu-latest
-
+    needs: [frontend-build, backend-build, codestyle]
     steps:
       - uses: actions/checkout@v5
 
@@ -32,6 +32,13 @@ jobs:
       - name: Show logs on failure
         if: failure()
         run: docker compose logs
+
+  appcheck:
+    runs-on: ubuntu-latest
+    needs: integration
+    steps:
+      - name: Placeholder for app checks
+        run: echo "Integration passed. App checks are not configured yet."
 
   frontend-build:
     runs-on: ubuntu-latest
