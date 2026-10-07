@@ -195,6 +195,21 @@ const onConnection = async (socket: Socket, roomManager: RoomManager) => {
         if (currentRoomId)
             onDisconnection(socket, user, currentRoomId, roomManager);
     });
+    socket.on('game_start', () => {
+        if (!currentRoomId) return;
+
+        const room = roomManager.getRoomById(currentRoomId);
+        if (room?.startgame(user.id, socket)) {
+            // send everyone to the game screen
+        } else {
+            console.log(
+                "Can't starting game",
+                room?.getName(),
+                'initiated by user',
+                user.id
+            );
+        }
+    });
 };
 
 export default onConnection;
