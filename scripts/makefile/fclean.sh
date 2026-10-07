@@ -29,6 +29,7 @@ log "Removing generated secrets and backups..."
 rm -rf \
 	.vault_secrets \
 	tokens/ \
-	backups/backups
+	backups/backups \
+	.bootstrap_complete
 
 log "Full cleanup complete."

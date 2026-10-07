@@ -3,6 +3,10 @@ source ./scripts/common.sh
 
 set -Eeuo pipefail
 
+if [[ ! -f ".bootstrap_complete" ]]; then
+	die "Project is not initialized. Run 'make init' first."
+fi
+
 require_docker
 require_initialized
 

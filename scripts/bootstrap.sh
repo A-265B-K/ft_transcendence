@@ -52,6 +52,8 @@ POSTGRES_BACKUPS_PASSWORD=""
 
 require_docker
 
+rm -f .bootstrap_complete
+
 if [[ ! -f "$SECRET_FILE" ]]; then
 	die "Secret file '$SECRET_FILE' not found."
 fi
@@ -382,5 +384,8 @@ vault_ensure_exporter_vault_token
 vault_ensure_grafana_token
 vault_ensure_backups_token
 ./scripts/grafana_scripts/grafana_write_secret_files.sh
+
+touch .bootstrap_complete
+chmod 600 .bootstrap_complete
 
 log "PostgreSQL bootstrap stage completed."

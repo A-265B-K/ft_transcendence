@@ -9,6 +9,11 @@ init:
 	@mkdir -p ./backups/backups
 	@./scripts/bootstrap.sh
 
+reinit:
+	@fclean
+	@mkdir -p ./backups/backups
+	@./scripts/bootstrap.sh
+
 dev:
 	@mkdir -p ./backups/backups
 	@./scripts/makefile/start-dev.sh
