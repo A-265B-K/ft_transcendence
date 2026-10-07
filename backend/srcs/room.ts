@@ -38,11 +38,11 @@ export class Room {
     hasStarted(): boolean {
         return this.started;
     }
-    startgame(userId : string, socket : Socket): void {
-        if (!this.isHost(userId) || this.hasStarted()) return ;
+    startgame(userId: string, socket: Socket): void {
+        if (!this.isHost(userId) || this.hasStarted()) return;
         this.started = true;
         socket.nsp.to(this.roomId).emit('gamestart', {
-            roomId: this.roomId,
+            roomId: this.roomId
         });
     }
 
@@ -83,26 +83,23 @@ export class Room {
     }
 
     join(socket: Socket, user: SocketUser): string | null {
-        if (this.hasStarted())
-            return joinerror('Game has started'), null
-    
+        if (this.hasStarted()) return (joinerror('Game has started'), null);
+
         this.RemovePreviousSession(user.id, socket);
 
         const existingplayer = this.getPlayerByUserId(user.id);
-        if (existingplayer)
-            return joinerror('Player already in room'), null;
+        if (existingplayer) return (joinerror('Player already in room'), null);
 
         if (this.getPlayerCount() >= ROOM_MAX_SIZE)
-            return joinerror('Room is full'), null
+            return (joinerror('Room is full'), null);
 
         const slot = this.findAvailableSlot(ROOM_MAX_SIZE);
-        if (slot === null) 
-            return joinerror('No player slot available'), null
+        if (slot === null) return (joinerror('No player slot available'), null);
 
         const spawn = this.map.getSpawnPoint(slot);
         if (!spawn) {
             console.error(`No spawn point found for slot ${slot}`);
-            return joinerror('No spawn point available'), null
+            return (joinerror('No spawn point available'), null);
         }
 
         const player = new Player(socket, user, slot, spawn);
@@ -133,7 +130,7 @@ export class Room {
 
         return this.roomId;
 
-        function joinerror(error : string){
+        function joinerror(error: string) {
             socket.emit('join_error', {
                 message: error
             });
