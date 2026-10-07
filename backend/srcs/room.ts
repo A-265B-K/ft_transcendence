@@ -38,6 +38,13 @@ export class Room {
     hasStarted(): boolean {
         return this.started;
     }
+    startgame(userId : string, socket : Socket): void {
+        if (!this.isHost(userId) || this.hasStarted()) return ;
+        this.started = true;
+        socket.nsp.to(this.roomId).emit('gamestart', {
+            roomId: this.roomId,
+        });
+    }
 
     isHost(userId: string): boolean {
         return this.hostId == userId;
@@ -61,49 +68,41 @@ export class Room {
         code: string;
         playerCount: number;
         maxPlayers: number;
+        hostId: string;
+        started: boolean;
     } {
         return {
             roomId: this.roomId,
             name: this.name,
             code: this.code,
             playerCount: this.getPlayerCount(),
-            maxPlayers: ROOM_MAX_SIZE
+            maxPlayers: ROOM_MAX_SIZE,
+            hostId: this.hostId,
+            started: this.started
         };
     }
 
     join(socket: Socket, user: SocketUser): string | null {
+        if (this.hasStarted())
+            return joinerror('Game has started'), null
+    
         this.RemovePreviousSession(user.id, socket);
 
         const existingplayer = this.getPlayerByUserId(user.id);
-        if (existingplayer) {
-            socket.emit('join_error', {
-                message: 'Player already in room'
-            });
-            return null;
-        }
+        if (existingplayer)
+            return joinerror('Player already in room'), null;
 
-        if (this.getPlayerCount() >= ROOM_MAX_SIZE) {
-            socket.emit('join_error', {
-                message: 'Room is full'
-            });
-            return null;
-        }
+        if (this.getPlayerCount() >= ROOM_MAX_SIZE)
+            return joinerror('Room is full'), null
 
         const slot = this.findAvailableSlot(ROOM_MAX_SIZE);
-
-        if (slot === null) {
-            socket.emit('join_error', {
-                message: 'No player slot available'
-            });
-            return null;
-        }
+        if (slot === null) 
+            return joinerror('No player slot available'), null
 
         const spawn = this.map.getSpawnPoint(slot);
-
         if (!spawn) {
             console.error(`No spawn point found for slot ${slot}`);
-            socket.emit('join_error', { message: 'No spawn point available' });
-            return null;
+            return joinerror('No spawn point available'), null
         }
 
         const player = new Player(socket, user, slot, spawn);
@@ -133,6 +132,12 @@ export class Room {
         );
 
         return this.roomId;
+
+        function joinerror(error : string){
+            socket.emit('join_error', {
+                message: error
+            });
+        }
     }
 
     private findAvailableSlot(maxSize: number): number | null {
@@ -253,7 +258,7 @@ export class Room {
         moving: boolean
     ) {
         const player = this.getPlayerByUserId(user.id);
-        if (!player) {
+        if (!player || !this.hasStarted()) {
             return;
         }
 
@@ -371,7 +376,7 @@ export class Room {
 
         const player = this.getPlayerByUserId(userId);
 
-        if (!player) {
+        if (!player || this.hasStarted()) {
             return null;
         }
 
@@ -391,7 +396,7 @@ export class Room {
     ): void {
         const player = this.getPlayerByUserId(user.id);
 
-        if (!player) {
+        if (!player || this.hasStarted()) {
             return;
         }
 
