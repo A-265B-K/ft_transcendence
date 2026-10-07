@@ -40,7 +40,7 @@ export class Room {
     }
     startgame(userId: string, socket: Socket): boolean {
         if (!this.isHost(userId) || this.hasStarted()) return false;
-    
+
         this.started = true;
         socket.nsp.to(this.roomId).emit('gamestart', {
             roomId: this.roomId
