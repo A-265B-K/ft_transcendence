@@ -28,24 +28,6 @@ export default function GamePauseMenu({
 
                 <p className="mb-6 text-sm text-white/50">{t('gamePaused')}</p>
 
-                <div className="mb-5 rounded-2xl border border-[#ffcf5c]/30 bg-[#ffcf5c]/10 p-5">
-                    <p className="text-sm text-white/50">
-                        {t('invitationCode')}
-                    </p>
-
-                    <p className="my-2 text-3xl font-bold tracking-[0.2em] text-[#ffcf5c]">
-                        {roomCode}
-                    </p>
-
-                    <button
-                        type="button"
-                        onClick={() => navigator.clipboard.writeText(roomCode)}
-                        className="rounded-lg border border-white/15 px-4 py-2 text-sm transition hover:bg-white/10"
-                    >
-                        {t('copyCode')}
-                    </button>
-                </div>
-
                 <div className="grid gap-3">
                     <button
                         type="button"
