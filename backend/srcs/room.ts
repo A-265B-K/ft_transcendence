@@ -375,7 +375,7 @@ export class Room {
 
         const player = this.getPlayerByUserId(userId);
 
-        if (!player || this.hasStarted()) {
+        if (!player || !this.hasStarted()) {
             return null;
         }
 
@@ -395,7 +395,7 @@ export class Room {
     ): void {
         const player = this.getPlayerByUserId(user.id);
 
-        if (!player || this.hasStarted()) {
+        if (!player || !this.hasStarted()) {
             return;
         }
 

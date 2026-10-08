@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import type { GamePauseMenuProps } from './gamePauseMenuProps';
 
 export default function GamePauseMenu({
-    roomCode,
     onResume,
     onLeave
 }: GamePauseMenuProps) {
