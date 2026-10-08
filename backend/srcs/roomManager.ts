@@ -55,7 +55,10 @@ export class RoomManager {
 
     getRooms() {
         return Object.values(this.rooms)
-            .filter((room) => room.getPlayerCount() < ROOM_MAX_SIZE)
+            .filter(
+                (room) =>
+                    room.getPlayerCount() < ROOM_MAX_SIZE && !room.hasStarted()
+            )
             .map((room) => ({
                 roomId: room.getRoomId(),
                 name: room.getName(),
