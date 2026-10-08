@@ -52,7 +52,18 @@ export default function Room({ joinedData, onStartGame }: RoomProps) {
             setError(message);
             setLoading(false);
         };
+        const handleGameStart = (data: { roomId: string }) => {
+            if (data.roomId !== roomId || !currentJoinedData) return;
 
+                console.log('Received gamestart', {
+        receivedRoomId: data.roomId,
+        pageRoomId: roomId,
+        hasPlayerData: currentJoinedData !== null
+    });
+            localStorage.setItem('gameRoomId', data.roomId);
+                console.log('Calling onStartGame');
+            onStartGame(currentJoinedData);
+        };
         const handleRoomUpdate = (data: {
             roomId: string;
             playerCount: number;
@@ -76,6 +87,7 @@ export default function Room({ joinedData, onStartGame }: RoomProps) {
         socket.on('joined', handleJoined);
         socket.on('join_error', handleJoinError);
         socket.on('room_update', handleRoomUpdate);
+        socket.on('gamestart', handleGameStart);
 
         if (!joinedData) {
             socket.emit('join_room', {
@@ -87,8 +99,9 @@ export default function Room({ joinedData, onStartGame }: RoomProps) {
             socket.off('joined', handleJoined);
             socket.off('join_error', handleJoinError);
             socket.off('room_update', handleRoomUpdate);
+            socket.off('gamestart', handleGameStart);
         };
-    }, [roomId, joinedData, navigate]);
+    }, [roomId, joinedData, currentJoinedData, navigate, onStartGame]);
 
     async function copyRoomCode() {
         if (!room?.code) return;
@@ -109,8 +122,7 @@ export default function Room({ joinedData, onStartGame }: RoomProps) {
     function startCreatedRoom() {
         if (!currentJoinedData) return;
 
-        localStorage.setItem('gameRoomId', currentJoinedData.roomId);
-        onStartGame(currentJoinedData);
+        connectSocket().emit('game_start');
     }
 
     function leaveCreatedRoom() {
