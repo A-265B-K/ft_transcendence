@@ -63,6 +63,8 @@ export interface MapData {
 
 export interface LobbyRoom {
     roomId: string;
+    hostId: string;
+    started: boolean;
     name: string;
     code: string;
     playerCount: number;
