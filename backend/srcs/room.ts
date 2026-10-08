@@ -38,15 +38,14 @@ export class Room {
     hasStarted(): boolean {
         return this.started;
     }
-    startgame(userId: string, socket: Socket): boolean {
-        if (!this.isHost(userId) || this.hasStarted()) return false;
+    startgame(userId: string, socket: Socket) {
+        if (!this.isHost(userId) || this.hasStarted()) return;
 
         this.started = true;
         socket.nsp.to(this.roomId).emit('gamestart', {
             roomId: this.roomId,
             players: Array.from(this.players.values())
         });
-        return true;
     }
 
     isHost(userId: string): boolean {
