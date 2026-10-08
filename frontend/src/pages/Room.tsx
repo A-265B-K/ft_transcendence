@@ -52,16 +52,11 @@ export default function Room({ joinedData, onStartGame }: RoomProps) {
             setError(message);
             setLoading(false);
         };
-        const handleGameStart = (data: { roomId: string }) => {
+        const handleGameStart = (data: { roomId: string, players : JoinedPayload['players']}) => {
             if (data.roomId !== roomId || !currentJoinedData) return;
 
-                console.log('Received gamestart', {
-        receivedRoomId: data.roomId,
-        pageRoomId: roomId,
-        hasPlayerData: currentJoinedData !== null
-    });
             localStorage.setItem('gameRoomId', data.roomId);
-                console.log('Calling onStartGame');
+            currentJoinedData.players = data.players
             onStartGame(currentJoinedData);
         };
         const handleRoomUpdate = (data: {

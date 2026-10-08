@@ -43,7 +43,8 @@ export class Room {
 
         this.started = true;
         socket.nsp.to(this.roomId).emit('gamestart', {
-            roomId: this.roomId
+            roomId: this.roomId,
+            players: Array.from(this.players.values())
         });
         return true;
     }
