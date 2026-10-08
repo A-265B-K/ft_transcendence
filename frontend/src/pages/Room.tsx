@@ -207,7 +207,7 @@ export default function Room({ joinedData, onStartGame }: RoomProps) {
                 </p>
 
                 <div className="mt-5 grid gap-3">
-                    {isHost && (
+                    {isHost && room.playerCount >= 2 && (
                         <button
                             type="button"
                             onClick={startCreatedRoom}
