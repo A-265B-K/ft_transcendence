@@ -52,17 +52,21 @@ export default function Room({ joinedData, onStartGame }: RoomProps) {
             setError(message);
             setLoading(false);
         };
-        const handleGameStart = (data: { roomId: string, players : JoinedPayload['players']}) => {
+        const handleGameStart = (data: {
+            roomId: string;
+            players: JoinedPayload['players'];
+        }) => {
             if (data.roomId !== roomId || !currentJoinedData) return;
 
             localStorage.setItem('gameRoomId', data.roomId);
-            currentJoinedData.players = data.players
+            currentJoinedData.players = data.players;
             onStartGame(currentJoinedData);
         };
         const handleRoomUpdate = (data: {
             roomId: string;
             playerCount: number;
             maxPlayers: number;
+            hostId: string;
         }) => {
             if (data.roomId !== roomId) {
                 return;
@@ -74,7 +78,8 @@ export default function Room({ joinedData, onStartGame }: RoomProps) {
                 return {
                     ...current,
                     playerCount: data.playerCount,
-                    maxPlayers: data.maxPlayers
+                    maxPlayers: data.maxPlayers,
+                    hostId: data.hostId
                 };
             });
         };

@@ -113,7 +113,8 @@ export class Room {
         socket.nsp.to(this.roomId).emit('room_update', {
             roomId: this.roomId,
             playerCount: this.getPlayerCount(),
-            maxPlayers: ROOM_MAX_SIZE
+            maxPlayers: ROOM_MAX_SIZE,
+            hostId: this.hostId
         });
         socket.to(this.roomId).emit('player_joined', player);
 
@@ -241,11 +242,15 @@ export class Room {
             socket.to(this.roomId).emit('player_left', player);
 
             this.players.delete(userId);
-
+            if (this.isHost(userId) && this.getPlayerCount() > 0) {
+                const newhost = this.players.values().next().value?.getUserId();
+                if (newhost) this.hostId = newhost;
+            }
             socket.to(this.roomId).emit('room_update', {
                 roomId: this.roomId,
                 playerCount: this.getPlayerCount(),
-                maxPlayers: ROOM_MAX_SIZE
+                maxPlayers: ROOM_MAX_SIZE,
+                hostId: this.hostId
             });
         }
         return this.getPlayerCount() === 0;
