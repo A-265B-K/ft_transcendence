@@ -446,4 +446,11 @@ export class GameScene {
             }
         );
     }
+
+    setPlayerDead(): void {
+        this.player.container.visible = false;
+        if (this.castle) {
+            this.castle.container.visible = false;
+        }
+    }
 }
