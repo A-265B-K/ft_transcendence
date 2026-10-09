@@ -11,7 +11,7 @@ import type { Cost } from './room.js';
 import type { Socket, SocketUser, Spawn, Vec2 } from './types.js';
 import { getDistance } from './util.js';
 import { type Resource } from './map.js';
-import type { WeaponType } from './combat/Weapon.js';
+import { getattackstats, type WeaponType } from './combat/Weapon.js';
 
 
 export class Player {
@@ -34,8 +34,6 @@ export class Player {
     private lastMoveAt: number;
     private equippedWeapon: WeaponType;
     private nextAttack: number;
-    private bcanattack: boolean = false;
-    private attacktimer: number = 0;
 
     constructor(socket: Socket, user: SocketUser, slot: number, spawn: Spawn) {
         this.userId = user.id;
@@ -106,7 +104,16 @@ export class Player {
     getNextAttack(): number {
         return this.nextAttack;
     }
+    attackNow(weapon: WeaponType): void {
+        this.nextAttack = Date.now() + (getattackstats(weapon)?.cooldown ?? 0) * 1000;
+    }
 
+    canattack(): boolean {
+        return Date.now() >= this.nextAttack;;
+    }
+    cooldowncheck() {
+
+    }
     setPosition(x: number, y: number): void {
         this.x = x;
         this.y = y;
@@ -119,10 +126,6 @@ export class Player {
         if (this.hp === 0) {
             this.isDead = true;
         }
-    }
-
-    setNextAttack(timestamp: number): void {
-        this.nextAttack = timestamp;
     }
 
     equipWeapon(weapon: WeaponType): void {

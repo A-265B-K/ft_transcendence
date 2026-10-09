@@ -400,7 +400,7 @@ export class Room {
     ): boolean {
         const player = this.getPlayerByUserId(user.id);
 
-        if (!player || !this.hasStarted()) {
+        if (!player || !this.hasStarted() || !player.canattack()) {
             return false;
         }
 
@@ -443,7 +443,7 @@ export class Room {
 
             const isDead = target.takeDamage(attackStats.damage);
 
-            socket.nsp.to(target.getSocketId()).emit('player_hp', {
+            socket.nsp.to(this.roomId).emit('player_hp', {
                 socketId: target.getSocketId(),
                 hp: target.getHp()
             });
@@ -464,7 +464,7 @@ export class Room {
                 });
             }
         }
-
+        player.attackNow(player.getEquippedWeapon());
         return true;
     }
 }
