@@ -199,7 +199,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             if (snapshot) setInventory(snapshot);
 
             if (pointer) setCastlePointer(pointer);
-            setNearCastle(game.isPlayerNearCastle());
+            setNearCastle(game.isPlayerNearCastle(7));
         }, 32);
 
         return () => {
