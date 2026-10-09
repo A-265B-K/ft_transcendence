@@ -180,6 +180,7 @@ const onConnection = async (socket: Socket, roomManager: RoomManager) => {
     socket.on(
         'player_attack',
         (data: unknown, callback: (response: { ok: boolean }) => void) => {
+            if (typeof callback !== 'function') return;
             if (!data || typeof data !== 'object' || !('direction' in data)) {
                 callback({ ok: false });
                 return;

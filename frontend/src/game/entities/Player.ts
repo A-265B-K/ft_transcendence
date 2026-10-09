@@ -7,7 +7,6 @@ import { Sword } from './weapons/sword';
 import { dagger } from './weapons/dagger';
 import { axe } from './weapons/axe';
 import { spear } from './weapons/spear';
-import { connectSocket } from '../../socket';
 
 export type InputState = {
     up: boolean;
