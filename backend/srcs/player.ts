@@ -11,8 +11,8 @@ import type { Cost } from './room.js';
 import type { Socket, SocketUser, Spawn, Vec2 } from './types.js';
 import { getDistance } from './util.js';
 import { type Resource } from './map.js';
+import type { WeaponType } from './combat/Weapon.js';
 
-export type WeaponType = 'sword' | 'axe' | 'bow' | 'dagger' | 'spear' | 'staff';
 
 export class Player {
     private readonly userId: string;
@@ -34,6 +34,8 @@ export class Player {
     private lastMoveAt: number;
     private equippedWeapon: WeaponType;
     private nextAttack: number;
+    private bcanattack: boolean = false;
+    private attacktimer: number = 0;
 
     constructor(socket: Socket, user: SocketUser, slot: number, spawn: Spawn) {
         this.userId = user.id;

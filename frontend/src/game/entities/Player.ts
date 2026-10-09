@@ -1,4 +1,4 @@
-import { AnimatedSprite, Texture, Container } from 'pixi.js';
+import { AnimatedSprite, Texture, Container, canUseNewCanvasBlendModes } from 'pixi.js';
 import { MAP_SIZE } from '../config/constants';
 import { isoX, isoY } from '../world/iso';
 import { Inventory } from './Inventory';
@@ -7,6 +7,7 @@ import { Sword } from './weapons/sword';
 import { dagger } from './weapons/dagger';
 import { axe } from './weapons/axe';
 import { spear } from './weapons/spear';
+import { connectSocket } from '../../socket';
 
 export type InputState = {
     up: boolean;
@@ -42,6 +43,7 @@ export class Player {
     private readonly textures: PlayerTextures;
     weapon?: Weapon;
     private hittimer = 0;
+    private canattack : boolean = false;
 
     constructor(textures: PlayerTextures) {
         this.textures = textures;
@@ -94,7 +96,9 @@ export class Player {
             moveX += 0.25;
             moveY -= 0.25;
         }
-
+        if (!this.canattack){
+            connectSocket().emit('weaponcooldownupdate', deltaSeconds);
+        }
         const magnitude = Math.hypot(moveX, moveY);
         if (magnitude > 0) {
             this.updateDirection(moveX, moveY);
@@ -194,10 +198,8 @@ export class Player {
         }
     }
 
-    attackanimation(): boolean {
-        if (!this.weapon) return false;
+    attackanimation() {
         this.weapon?.attack(this.direction);
-        return true;
     }
     hitanimation() {
         this.hittimer = 0.2;

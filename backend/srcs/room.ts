@@ -2,10 +2,10 @@ import { randomUUID } from 'crypto';
 import { PLAYER_RADIUS, ROOM_MAX_SIZE } from './constants.js';
 import { GameMap } from './map.js';
 import type { Socket, SocketUser, Vec2 } from './types.js';
-import { Player, type WeaponType } from './player.js';
+import { Player } from './player.js';
 import { getDistance, isvaliddirection } from './util.js';
 import { istargethit } from './combat/Detection.js';
-import { getattackstats } from './combat/Attackstats.js';
+import { getattackstats, type WeaponType } from './combat/Weapon.js';
 
 export type Cost = { wood: number; iron: number };
 
@@ -397,68 +397,74 @@ export class Room {
         user: SocketUser,
         data: { direction: unknown },
         socket: Socket
-    ): void {
+    ): boolean {
         const player = this.getPlayerByUserId(user.id);
 
         if (!player || !this.hasStarted()) {
-            return;
+            return false;
         }
 
-        if (player.getEquippedWeapon() && player.isAlive()) {
-            const direction = data.direction;
-            const attackStats = getattackstats(player.getEquippedWeapon());
+        const weapon = player.getEquippedWeapon();
+        const direction = data.direction;
 
-            if (isvaliddirection(direction) && attackStats) {
-                socket.to(this.roomId).emit('player_attacked', {
-                    socketId: player.getSocketId(),
-                    direction: direction
+        if (!weapon || !player.isAlive() || !isvaliddirection(direction)) {
+            return false;
+        }
+
+        const attackStats = getattackstats(weapon);
+        if (!attackStats) {
+            return false;
+        }
+
+        socket.to(this.roomId).emit('player_attacked', {
+            socketId: player.getSocketId(),
+            direction
+        });
+
+        for (const target of this.players.values()) {
+            if (
+                target.getUserId() === player.getUserId() ||
+                !target.hasHp() ||
+                !target.isAlive()
+            ) {
+                continue;
+            }
+
+            if (
+                !istargethit(
+                    player.getPosition(),
+                    target.getPosition(),
+                    attackStats,
+                    direction
+                )
+            ) {
+                continue;
+            }
+
+            const isDead = target.takeDamage(attackStats.damage);
+
+            socket.nsp.to(target.getSocketId()).emit('player_hp', {
+                socketId: target.getSocketId(),
+                hp: target.getHp()
+            });
+
+            console.log(
+                player.getUsername(),
+                'hit',
+                target.getUsername(),
+                'for',
+                attackStats.damage,
+                'damage'
+            );
+
+            if (isDead) {
+                socket.nsp.to(target.getSocketId()).emit('player_died');
+                socket.nsp.to(this.roomId).emit('player_died', {
+                    player: target
                 });
-                for (const [, target] of this.players) {
-                    if (
-                        target.getUserId() !== player.getUserId() &&
-                        target.hasHp() &&
-                        target.isAlive()
-                    ) {
-                        if (
-                            istargethit(
-                                player.getPosition(),
-                                target.getPosition(),
-                                attackStats,
-                                direction
-                            )
-                        ) {
-                            const isDead = target.takeDamage(
-                                attackStats.damage
-                            );
-
-                            socket.nsp
-                                .to(target.getSocketId())
-                                .emit('player_hp', {
-                                    socketId: target.getSocketId(),
-                                    hp: target.getHp()
-                                });
-
-                            console.log(
-                                player.getUsername(),
-                                'hit',
-                                target.getUsername(),
-                                'for',
-                                attackStats.damage,
-                                'damage'
-                            );
-
-                            if (isDead) {
-                                socket.nsp
-                                    .to(target.getSocketId())
-                                    .emit('player_died');
-                                socket.nsp.to(this.roomId).emit('player_died', {
-                                    player: target
-                                });
-                            }
-                        }
-                    }
-                }
             }
         }
+
+        return true;
     }
 }

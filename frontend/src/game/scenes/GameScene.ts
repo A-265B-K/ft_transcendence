@@ -436,17 +436,14 @@ export class GameScene {
         });
     }
     requestattack(): void {
-        if (this.player.attackanimation()) {
-            this.socket.emit('player_attack', {
-                direction: this.player.direction
-            });
-        }
-    }
-    setPlayerDead(): void {
-        // this.isSpectating = true;
-        this.player.container.visible = false;
-        if (this.castle) {
-            this.castle.container.visible = false;
-        }
+        this.socket.emit(
+            'player_attack',
+            { direction: this.player.direction },
+            (response: { ok: boolean }) => {
+                if (response.ok) {
+                    this.player.attackanimation();
+                }
+            }
+        );
     }
 }
