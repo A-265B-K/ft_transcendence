@@ -388,7 +388,6 @@ export class GameScene {
     }
 
     isPlayerNearCastle(range: number): boolean {
-
         const dx = this.player.gridX - this.castle.gridX;
         const dy = this.player.gridY - this.castle.gridY;
 
