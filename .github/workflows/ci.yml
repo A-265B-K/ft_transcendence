@@ -15,16 +15,18 @@ jobs:
         uses: docker/setup-buildx-action@v4
 
       - name: Create .secret file
-        run: mv .secret.example .secret
+        run: |
+          cp .secret.example .secret
+          chmod 600 .secret
 
       - name: Create .env file
-        run: mv .env.example .env
+        run: cp .env.example .env
 
       - name: Bootstrap
-        run: /scripts/bootstrap.sh
+        run: ./scripts/bootstrap.sh
 
       - name: Build, start, and wait for containers
-        run: /scripts/start.sh
+        run: ./scripts/makefile/start.sh
 
       - uses: actions/setup-python@v6
 
