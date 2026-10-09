@@ -14,25 +14,25 @@ export const emailTransporter = nodemailer.createTransport({
 });
 
 export async function passwordResetRequest(email: string) {
-    if (!email) {
-        return {
-            ok: false,
-            statusCode: 400,
-            message: 'Missing fields'
-        };
-    }
-    const password_verification_token = randomBytes(32).toString('hex');
-    const password_verification_token_hash = createHash('sha256')
-        .update(password_verification_token)
-        .digest('hex');
+	if (!email) {
+		return {
+			ok: false,
+			statusCode: 400,
+			message: 'Missing fields'
+		};
+	}
+	const password_verification_token = randomBytes(32).toString('hex');
+	const password_verification_token_hash = createHash('sha256')
+		.update(password_verification_token)
+		.digest('hex');
 
-    await insertUserPasswordVerification(
-        email,
-        password_verification_token_hash
-    );
+	await insertUserPasswordVerification(
+		email,
+		password_verification_token_hash
+	);
 
-    const baseUrl = process.env.HOSTNAME;
-    const verificationUrl = `https://${baseUrl}:8443/reset-password?token=${password_verification_token}`;
+	const baseUrl = process.env.HOSTNAME;
+	const verificationUrl = `https://${baseUrl}:8443/reset-password?token=${password_verification_token}`;
 
 	try {
 		await emailTransporter.verify();
@@ -41,7 +41,7 @@ export async function passwordResetRequest(email: string) {
 			to: email,
 			subject: "Reset your password",
 
-            html: `
+			html: `
 			<h2>Hi!</h2>
 
 			<p>Here is a link to reset your password.</p>
@@ -52,20 +52,20 @@ export async function passwordResetRequest(email: string) {
 				</a>
 			</p>
 		`
-        });
-        console.log('Email sent successfully!');
-        return {
-            ok: true,
-            statusCode: 200,
-            message:
-                'If that email exists, a password reset link has been sent.'
-        };
-    } catch (err) {
-        console.error('Failed to send email:', err);
-        return {
-            ok: false,
-            statusCode: 500,
-            message: 'Could not send password reset email'
-        };
-    }
+		});
+		console.log('Email sent successfully!');
+		return {
+			ok: true,
+			statusCode: 200,
+			message:
+				'If that email exists, a password reset link has been sent.'
+		};
+	} catch (err) {
+		console.error('Failed to send email:', err);
+		return {
+			ok: false,
+			statusCode: 500,
+			message: 'Could not send password reset email'
+		};
+	}
 }
