@@ -1,4 +1,9 @@
-import { AnimatedSprite, Texture, Container, canUseNewCanvasBlendModes } from 'pixi.js';
+import {
+    AnimatedSprite,
+    Texture,
+    Container,
+    canUseNewCanvasBlendModes
+} from 'pixi.js';
 import { MAP_SIZE } from '../config/constants';
 import { isoX, isoY } from '../world/iso';
 import { Inventory } from './Inventory';
@@ -43,7 +48,7 @@ export class Player {
     private readonly textures: PlayerTextures;
     weapon?: Weapon;
     private hittimer = 0;
-    private canattack : boolean = false;
+    private canattack: boolean = false;
 
     constructor(textures: PlayerTextures) {
         this.textures = textures;
@@ -96,7 +101,7 @@ export class Player {
             moveX += 0.25;
             moveY -= 0.25;
         }
-        if (!this.canattack){
+        if (!this.canattack) {
             connectSocket().emit('weaponcooldownupdate', deltaSeconds);
         }
         const magnitude = Math.hypot(moveX, moveY);

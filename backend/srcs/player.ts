@@ -13,7 +13,6 @@ import { getDistance } from './util.js';
 import { type Resource } from './map.js';
 import { getattackstats, type WeaponType } from './combat/Weapon.js';
 
-
 export class Player {
     private readonly userId: string;
     private readonly socketId: string;
@@ -105,15 +104,14 @@ export class Player {
         return this.nextAttack;
     }
     attackNow(weapon: WeaponType): void {
-        this.nextAttack = Date.now() + (getattackstats(weapon)?.cooldown ?? 0) * 1000;
+        this.nextAttack =
+            Date.now() + (getattackstats(weapon)?.cooldown ?? 0) * 1000;
     }
 
     canattack(): boolean {
-        return Date.now() >= this.nextAttack;;
+        return Date.now() >= this.nextAttack;
     }
-    cooldowncheck() {
-
-    }
+    cooldowncheck() {}
     setPosition(x: number, y: number): void {
         this.x = x;
         this.y = y;
