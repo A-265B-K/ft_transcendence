@@ -1,130 +1,103 @@
-import {
-	useState,
-	type SubmitEvent,
-} from "react";
-import type { ForgotPasswordProps } from "./forgotPasswordProps";
+import { useState, type SubmitEvent } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { ForgotPasswordProps } from './forgotPasswordProps';
 
-export default function ForgotPassword({
-	onBack,
-}: ForgotPasswordProps) {
-	const [email, setEmail] = useState("");
-	const [status, setStatus] = useState("");
-	const [success, setSuccess] = useState(false);
-	const [loading, setLoading] = useState(false);
+export default function ForgotPassword({ onBack }: ForgotPasswordProps) {
+    const { t } = useTranslation();
 
-	async function handleSubmit(
-		e: SubmitEvent
-	) {
-		e.preventDefault();
+    const [email, setEmail] = useState('');
+    const [status, setStatus] = useState('');
+    const [success, setSuccess] = useState(false);
+    const [loading, setLoading] = useState(false);
 
-		if (!email.trim()) {
-			setStatus("Please enter your email.");
-			return;
-		}
+    async function handleSubmit(e: SubmitEvent) {
+        e.preventDefault();
 
-		setLoading(true);
-		setStatus("");
+        if (!email.trim()) {
+            setStatus(t('forgotPasswordEmailRequired'));
+            return;
+        }
 
-		try {
-			const response = await fetch(
-				"/api/auth/password-reset/request",
-				{
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify({
-						email: email.trim(),
-					}),
-				}
-			);
+        setLoading(true);
+        setStatus('');
 
-			const data = await response.json();
+        try {
+            const response = await fetch('/api/auth/password-reset/request', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    email: email.trim()
+                })
+            });
 
-			if (!response.ok) {
-				setStatus(
-					data.message ??
-						"Could not request password reset."
-				);
-				return;
-			}
+            const data = await response.json();
 
-			setSuccess(true);
+            if (!response.ok) {
+                setStatus(data.message ?? t('passwordResetRequestFailed'));
+                return;
+            }
 
-			setStatus(
-				data.message ??
-					"If an account exists for this email, a reset link has been sent."
-			);
-		} catch {
-			setStatus(
-				"Could not reach the backend."
-			);
-		} finally {
-			setLoading(false);
-		}
-	}
+            setSuccess(true);
 
-	return (
-		<div className="grid min-h-screen place-items-center bg-linear-to-b from-[#10212a] to-[#081016] p-6 text-[#f4f7fb]">
-			<div className="w-full max-w-[460px] rounded-3xl border border-white/10 bg-[#081016]/85 p-[30px] shadow-[0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur-[14px]">
-				<h2 className="mb-2 text-2xl font-bold">
-					Forgot password
-				</h2>
+            setStatus(data.message ?? t('passwordResetEmailSent'));
+        } catch {
+            setStatus(t('backendError'));
+        } finally {
+            setLoading(false);
+        }
+    }
 
-				<p className="mb-5 text-white/70">
-					Enter your email address and we'll
-					send you a password reset link.
-				</p>
+    return (
+        <div className="grid min-h-screen place-items-center bg-linear-to-b from-[#10212a] to-[#081016] p-6 text-[#f4f7fb]">
+            <div className="w-full max-w-[460px] rounded-3xl border border-white/10 bg-[#081016]/85 p-[30px] shadow-[0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur-[14px]">
+                <h2 className="mb-2 text-2xl font-bold">
+                    {t('forgotPassword')}
+                </h2>
 
-				{!success && (
-					<form
-						onSubmit={handleSubmit}
-						className="grid gap-3"
-					>
-						<input
-							type="email"
-							placeholder="Email"
-							value={email}
-							onChange={(e) =>
-								setEmail(e.target.value)
-							}
-							autoComplete="email"
-							disabled={loading}
-							className="rounded-xl border border-white/15 bg-white/[0.06] px-3.5 py-3 text-[#f4f7fb] outline-none placeholder:text-white/40 focus:border-[#ffcf5c] disabled:cursor-not-allowed disabled:opacity-50"
-						/>
+                <p className="mb-5 text-white/70">{t('sendPasswordLink')}</p>
 
-						<button
-							type="submit"
-							disabled={loading}
-							className="mt-1 rounded-xl bg-linear-to-br from-[#ffcf5c] to-[#ff9f43] px-3.5 py-3 font-bold text-[#10212a] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
-						>
-							{loading
-								? "Sending..."
-								: "Send reset link"}
-						</button>
-					</form>
-				)}
+                {!success && (
+                    <form onSubmit={handleSubmit} className="grid gap-3">
+                        <input
+                            type="email"
+                            placeholder={t('email')}
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            autoComplete="email"
+                            disabled={loading}
+                            className="rounded-xl border border-white/15 bg-white/[0.06] px-3.5 py-3 text-[#f4f7fb] outline-none placeholder:text-white/40 focus:border-[#ffcf5c] disabled:cursor-not-allowed disabled:opacity-50"
+                        />
 
-				{status && (
-					<p
-						className={`mt-3.5 ${
-							success
-								? "text-[#8ee6a8]"
-								: "text-[#ffcf5c]"
-						}`}
-					>
-						{status}
-					</p>
-				)}
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="mt-1 rounded-xl bg-linear-to-br from-[#ffcf5c] to-[#ff9f43] px-3.5 py-3 font-bold text-[#10212a] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            {loading ? t('sending') : t('sendResetLink')}
+                        </button>
+                    </form>
+                )}
 
-				<button
-					type="button"
-					onClick={onBack}
-					className="mt-3 w-full rounded-xl border border-white/15 bg-transparent px-3.5 py-3 text-[#f4f7fb] transition hover:bg-white/5"
-				>
-					Back to login
-				</button>
-			</div>
-		</div>
-	);
+                {status && (
+                    <p
+                        className={`mt-3.5 ${
+                            success ? 'text-[#8ee6a8]' : 'text-[#ffcf5c]'
+                        }`}
+                    >
+                        {status}
+                    </p>
+                )}
+
+                <button
+                    type="button"
+                    onClick={onBack}
+                    className="mt-3 w-full rounded-xl border border-white/15 bg-transparent px-3.5 py-3 text-[#f4f7fb] transition hover:bg-white/5"
+                >
+                    {t('backToLogin')}
+                </button>
+            </div>
+        </div>
+    );
 }

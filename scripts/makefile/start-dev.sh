@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+source ./scripts/config.sh
 source ./scripts/common.sh
 
 set -Eeuo pipefail

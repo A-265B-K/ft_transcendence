@@ -1,234 +1,360 @@
-import { Inventory } from "../components/Inventory";
-import { useEffect, useRef, useState } from "react";
-import { Game } from "../game/Game";
-import { type CastlePointer } from "./CastlePointer";
-import type { JoinedPayload } from "../types/game";
-import { connectSocket } from "../socket";
-import type { GameCanvasProps } from "./gameCanvasProps";
+import { Forgemenu } from '../components/Forgemenu';
+import { Inventory } from '../components/Inventory';
+import GamePauseMenu from './GamePauseMenu';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Game } from '../game/Game';
+import { type CastlePointer } from './CastlePointer';
+import type { JoinedPayload } from '../types/game';
+import { connectSocket, disconnectSocket } from '../socket';
+import type { GameCanvasProps } from './gameCanvasProps';
+import { useTranslation } from 'react-i18next';
+import type { WeaponType } from '../game/entities/weapons/weapon';
 
-export default function GameCanvas({
-	joinedData,
-}: GameCanvasProps) {
-	const gameContainer = useRef<HTMLDivElement>(null);
-	const gameRef = useRef<Game | null>(null);
+export default function GameCanvas({ joinedData }: GameCanvasProps) {
+    const { t } = useTranslation();
+    const gameContainer = useRef<HTMLDivElement>(null);
+    const gameRef = useRef<Game | null>(null);
 
-	const [inventory, setInventory] = useState({
-		wood: joinedData.player.inventory.wood,
-		iron: joinedData.player.inventory.iron,
-	});
+    const [inventory, setInventory] = useState({
+        wood: joinedData.player.inventory.wood,
+        iron: joinedData.player.inventory.iron
+    });
 
-	const [hp, setHp] = useState(joinedData.player.hp);
+    const [hp, setHp] = useState(joinedData.player.hp);
+    const [spectating, setSpectating] = useState(false);
+    const [castlePointer, setCastlePointer] = useState<CastlePointer | null>(
+        null
+    );
 
-	const [castlePointer, setCastlePointer] =
-		useState<CastlePointer | null>(null);
+    const [nearCastle, setNearCastle] = useState(false);
 
-	useEffect(() => {
-		if (!joinedData || !gameContainer.current)
-			return;
+    const [paused, setPaused] = useState(false);
 
-		console.log("Starting game with:", joinedData);
+    const resumeGame = useCallback(() => {
+        setPaused(false);
+        gameRef.current?.resume();
+    }, []);
 
-		const socket = connectSocket();
-		const game = new Game();
+    function pauseGame() {
+        setPaused(true);
+        gameRef.current?.pause();
+    }
 
-		gameRef.current = game;
+    useEffect(() => {
+        if (!joinedData || !gameContainer.current) return;
 
-		void game.start(
-			gameContainer.current,
-			joinedData,
-			socket,
-		);
+        console.log('Starting game with:', joinedData);
 
-		function handlePlayerJoined(
-			player: JoinedPayload["players"][number],
-		) {
-			console.log("Player joined:", player);
+        const socket = connectSocket();
+        const game = new Game();
 
-			game.addRemotePlayer(player);
-			game.addRemoteCastle(player);
-		}
+        gameRef.current = game;
 
-		function handlePlayerLeft(
-			player: JoinedPayload["players"][number],
-		) {
-			console.log("Player left:", player);
+        void game.start(gameContainer.current, joinedData, socket);
 
-			game.removeRemotePlayer(player);
-			game.removeRemoteCastle(player);
-		}
+        function handlePlayerJoined(player: JoinedPayload['players'][number]) {
+            console.log('Player joined:', player);
 
-		function handlePlayerHP({
-			socketId,
-			hp
-		}: {
-			socketId: string;
-			hp: number;
-		}) {
-				if (socketId !== joinedData.player.socketId)
-					return;
+            game.addRemotePlayer(player);
+            game.addRemoteCastle(player);
+        }
 
-				setHp(hp);
-		}
+        function handlePlayerLeft(player: JoinedPayload['players'][number]) {
+            console.log('Player left:', player);
 
-		function handleJoinError({
-			message,
-		}: {
-			message: string;
-		}) {
-			console.error("Join failed:", message);
-		}
+            game.removeRemotePlayer(player);
+            game.removeRemoteCastle(player);
+        }
+        function handlePlayerWeaponEquipped({
+            socketId,
+            weapon
+        }: {
+            socketId: string;
+            weapon: WeaponType;
+        }) {
+            game.equipremoteweapon(socketId, weapon);
+        }
 
-		function handlePlayerMove({
-			socketId,
-			x,
-			y,
-		}: {
-			socketId: string;
-			x: number;
-			y: number;
-		}) {
-			if (socketId === socket.id) {
-				game.correctLocalPlayer(x, y);
-				return;
-			}
+        function handlePlayerHP({
+            socketId,
+            hp
+        }: {
+            socketId: string;
+            hp: number;
+        }) {
+            if (socketId === joinedData.player.socketId) {
+                setHp(hp);
+                game.playerhitanimation();
+            } else {
+                game.remoteplayerhitanimation(socketId);
+            }
+        }
 
-			game.updateRemotePlayer(socketId, x, y);
-		}
+        function handleJoinError({ message }: { message: string }) {
+            console.error('Join failed:', message);
+        }
 
-		function handleResourceCollected({
-			x,
-			y,
-			playerId,
-			inventory,
-		}: {
-			x: number;
-			y: number;
-			playerId: string;
-			inventory: { wood: number; iron: number };
-		}) {
-			game.removeResourceTile(x, y);
+        function handlePlayerMove({
+            socketId,
+            x,
+            y,
+            moving
+        }: {
+            socketId: string;
+            x: number;
+            y: number;
+            moving: boolean;
+        }) {
+            if (socketId === socket.id) {
+                game.correctLocalPlayer(x, y);
+                return;
+            }
 
-			if (playerId === joinedData.player.userId) {
-				game.syncInventory(inventory.wood, inventory.iron);
-			}
-		}
+            game.updateRemotePlayer(socketId, x, y, moving);
+        }
 
-		function handleResourceSpawned({
-			x,
-			y,
-			type,
-		}: {
-			x: number;
-			y: number;
-			type: "wood" | "iron";
-		}) {
-			game.spawnResourceTile(x, y, type);
-		}
+        function handlePlayerDied(data: {
+            player: JoinedPayload['players'][number];
+        }) {
+            if (data.player.userId === joinedData.player.userId) {
+                game.setPlayerDead();
+                setSpectating(true);
+                setHp(0);
+                return;
+            }
 
-		function handleCastleUpgrade({
-			socketId,
-			level,
-		}: {
-			socketId: string;
-			level: number;
-		}) {
-			game.updateRemoteCastle(socketId, level);
-		}
+            game.removeRemotePlayer(data.player);
+            game.removeRemoteCastle(data.player);
+        }
 
-		socket.on("player_joined", handlePlayerJoined);
-		socket.on("player_move", handlePlayerMove);
-		socket.on("player_left", handlePlayerLeft);
-		socket.on("resource_collected", handleResourceCollected);
-		socket.on("join_error", handleJoinError);
-		socket.on("player_hp", handlePlayerHP);
-		socket.on("resource_spawned", handleResourceSpawned);
-		socket.on("castle_update", handleCastleUpgrade);
+        function handleResourceCollected({
+            x,
+            y,
+            playerId,
+            inventory
+        }: {
+            x: number;
+            y: number;
+            playerId: string;
+            inventory: {
+                wood: number;
+                iron: number;
+            };
+        }) {
+            game.removeResourceTile(x, y);
 
-		const intervalId = window.setInterval(() => {
-			const snapshot = game.getInventorySnapshot();
-			const pointer = game.getCastlePointerSnapshot();
+            if (playerId === joinedData.player.userId) {
+                game.syncInventory(inventory.wood, inventory.iron);
+            }
+        }
 
-			if (snapshot)
-				setInventory(snapshot);
+        function handlePlayerAttacked({
+            socketId,
+            direction
+        }: {
+            socketId: string;
+            direction: 'up' | 'down' | 'left' | 'right';
+        }) {
+            game.RemotePlayerattack(socketId, direction);
+        }
+        function handleResourceSpawned({
+            x,
+            y,
+            type
+        }: {
+            x: number;
+            y: number;
+            type: 'wood' | 'iron';
+        }) {
+            game.spawnResourceTile(x, y, type);
+        }
 
-			if (pointer)
-				setCastlePointer(pointer);
-		}, 32);
+        function handleCastleUpgrade({
+            socketId,
+            level
+        }: {
+            socketId: string;
+            level: number;
+        }) {
+            game.updateRemoteCastle(socketId, level);
+        }
 
-		return () => {
-			socket.off("player_joined", handlePlayerJoined);
-			socket.off("player_move", handlePlayerMove);
-			socket.off("player_left", handlePlayerLeft);
-			socket.off("player_hp", handlePlayerHP);
-			socket.off("resource_collected", handleResourceCollected);
-			socket.off("resource_spawned", handleResourceSpawned);
-			socket.off("join_error", handleJoinError);
-			socket.off("castle_update", handleCastleUpgrade);
-			window.clearInterval(intervalId);
+        socket.on('player_joined', handlePlayerJoined);
+        socket.on('player_move', handlePlayerMove);
+        socket.on('player_left', handlePlayerLeft);
+        socket.on('resource_collected', handleResourceCollected);
+        socket.on('join_error', handleJoinError);
+        socket.on('player_hp', handlePlayerHP);
+        socket.on('player_attacked', handlePlayerAttacked);
+        socket.on('resource_spawned', handleResourceSpawned);
+        socket.on('castle_update', handleCastleUpgrade);
+        socket.on('player_died', handlePlayerDied);
+        socket.on('player_weapon_equipped', handlePlayerWeaponEquipped);
 
-			gameRef.current = null;
-			game.destroy();
-		};
-	}, [joinedData]);
+        const intervalId = window.setInterval(() => {
+            const snapshot = game.getInventorySnapshot();
 
-	return (
-		<div className="relative h-screen w-screen overflow-hidden">
-			<div
-				ref={gameContainer}
-				className="h-full w-full"
-			/>
+            const pointer = game.getCastlePointerSnapshot();
 
-			{castlePointer && (
-				<div
-					className="pointer-events-none absolute right-[18px] top-[18px] grid min-w-[140px] justify-items-center gap-1 rounded-[18px] border border-white/15 bg-[#0a1016]/75 px-4 py-3.5 text-[#f4f7fb] shadow-[0_16px_40px_rgba(0,0,0,0.28)] backdrop-blur-xl"
-					aria-label="Castle direction"
-				>
-					<div className="text-xs font-medium uppercase tracking-[0.16em] text-white/70">
-						Castle
-					</div>
+            if (snapshot) setInventory(snapshot);
 
-					<div
-						className="origin-center text-[30px] font-black leading-none text-[#ffcf5c] drop-shadow-[0_2px_12px_rgba(255,207,92,0.5)]"
-						style={{
-							transform: `rotate(${castlePointer.rotation}rad)`,
-						}}
-					>
-						➤
-					</div>
+            if (pointer) setCastlePointer(pointer);
+            setNearCastle(game.isPlayerNearCastle());
+        }, 32);
 
-					<div className="text-[13px] font-semibold text-white/85">
-						{castlePointer.visible
-							? `${castlePointer.direction} · ${castlePointer.bearingDegrees.toFixed(0)}° · ${castlePointer.distance.toFixed(1)} tiles away`
-							: "You are here"}
-					</div>
-				</div>
-			)}
+        return () => {
+            socket.off('player_joined', handlePlayerJoined);
+            socket.off('player_move', handlePlayerMove);
+            socket.off('player_left', handlePlayerLeft);
+            socket.off('player_hp', handlePlayerHP);
+            socket.off('player_attacked', handlePlayerAttacked);
+            socket.off('player_died', handlePlayerDied);
+            socket.off('resource_collected', handleResourceCollected);
+            socket.off('resource_spawned', handleResourceSpawned);
+            socket.off('join_error', handleJoinError);
+            socket.off('castle_update', handleCastleUpgrade);
+            socket.off('player_weapon_equipped', handlePlayerWeaponEquipped);
+            window.clearInterval(intervalId);
 
-			<div className="pointer-events-none absolute left-4 top-4 z-50">
-				<div className="w-64">
-					<div className="mb-1 text-sm font-bold text-white">
-						HP {hp} / 100
-					</div>
+            gameRef.current = null;
+            game.destroy();
+        };
+    }, [joinedData]);
 
-					<div className="h-4 overflow-hidden rounded-full bg-black/50">
-						<div
-							className="h-full bg-red-500 transition-all"
-							style={{
-								width: `${Math.max(
-									0,
-									Math.min(100, hp),
-								)}%`,
-							}}
-						/>
-					</div>
-				</div>
-			</div>
+    useEffect(() => {
+        function handleEscape(event: KeyboardEvent) {
+            if (event.key !== 'Escape' || paused) return;
 
-			<div className="pointer-events-none absolute inset-0 flex items-end justify-center px-4 pb-6">
-				<div className="pointer-events-auto">
-					<Inventory counts={inventory} />
-				</div>
-			</div>
-		</div>
-	);
+            pauseGame();
+        }
+
+        window.addEventListener('keydown', handleEscape);
+
+        return () => {
+            window.removeEventListener('keydown', handleEscape);
+        };
+    }, [paused]);
+
+    function handleLeave() {
+        gameRef.current?.destroy();
+        gameRef.current = null;
+
+        localStorage.removeItem('gameRoomId');
+
+        disconnectSocket();
+
+        window.location.href = '/game-menu';
+    }
+
+    return (
+        <div className="relative h-screen w-screen overflow-hidden">
+            <div ref={gameContainer} className="h-full w-full" />
+
+            {castlePointer && (
+                <div
+                    className="pointer-events-none absolute left-1/2 top-[18px] -translate-x-1/2 grid min-w-[140px] justify-items-center gap-1 rounded-[18px] border border-white/15 bg-[#0a1016]/75 px-4 py-3.5 text-[#f4f7fb] shadow-[0_16px_40px_rgba(0,0,0,0.28)] backdrop-blur-xl"
+                    aria-label={t('castleDirection')}
+                >
+                    <div className="text-xs font-medium uppercase tracking-[0.16em] text-white/70">
+                        {t('castle')}
+                    </div>
+
+                    <div
+                        className="origin-center text-[30px] font-black leading-none text-[#ffcf5c] drop-shadow-[0_2px_12px_rgba(255,207,92,0.5)]"
+                        style={{
+                            transform: `rotate(${castlePointer.rotation}rad)`
+                        }}
+                    >
+                        ➤
+                    </div>
+
+                    <div className="text-[13px] font-semibold text-white/85">
+                        {castlePointer.visible
+                            ? `${castlePointer.direction} · ${castlePointer.bearingDegrees.toFixed(0)}° · ${castlePointer.distance.toFixed(1)} ${t('tilesAway')}`
+                            : t('youAreHere')}
+                    </div>
+                </div>
+            )}
+
+            <div className="pointer-events-none absolute left-4 top-4 z-50">
+                <div className="w-64">
+                    <div className="mb-1 text-sm font-bold text-white">
+                        HP {hp} / 100
+                    </div>
+
+                    <div className="h-4 overflow-hidden rounded-full bg-black/50">
+                        <div
+                            className="h-full bg-red-500 transition-all"
+                            style={{
+                                width: `${Math.max(0, Math.min(100, hp))}%`
+                            }}
+                        />
+                    </div>
+                </div>
+            </div>
+
+            {!spectating && (
+                <div className="absolute right-4 top-4 z-50">
+                    <button
+                        type="button"
+                        onClick={pauseGame}
+                        className="rounded-xl border border-white/15 bg-[#0a1016]/75 px-4 py-2 text-sm font-bold text-white shadow-lg backdrop-blur-xl transition hover:bg-white/10"
+                        aria-label="Open game menu"
+                    >
+                        ☰ {t('menu')}
+                    </button>
+                </div>
+            )}
+
+            <div className="pointer-events-none absolute inset-0 flex items-end justify-center px-4 pb-6">
+                <div className="pointer-events-auto">
+                    <Inventory counts={inventory} />
+                </div>
+            </div>
+
+            {nearCastle && (
+                <Forgemenu
+                    onEquip={(weapon, updatedInventory) => {
+                        gameRef.current?.equipWeapon(weapon);
+                        gameRef.current?.syncInventory(
+                            updatedInventory.wood,
+                            updatedInventory.iron
+                        );
+                        setInventory(updatedInventory);
+                    }}
+                />
+            )}
+
+            {!spectating && paused && (
+                <GamePauseMenu
+                    roomCode={joinedData.room.code}
+                    onResume={resumeGame}
+                    onLeave={handleLeave}
+                />
+            )}
+            {spectating && (
+                <div className="absolute left-1/2 top-3 z-[100] -translate-x-1/2">
+                    <div className="w-80 rounded-2xl border border-white/10 bg-[#081016]/90 p-5 text-center text-white shadow-2xl backdrop-blur-xl">
+                        <div className="mb-2 text-3xl">💀</div>
+
+                        <h2 className="mb-1 text-2xl font-bold">
+                            {t('youDied')}
+                        </h2>
+
+                        <p className="mb-4 text-sm text-white/50">
+                            {t('spectating')}
+                        </p>
+
+                        <button
+                            type="button"
+                            onClick={handleLeave}
+                            className="w-full rounded-xl bg-red-500 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-red-600"
+                        >
+                            {t('leaveGame')}
+                        </button>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
 }

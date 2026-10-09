@@ -1,12 +1,12 @@
-import { AnimatedSprite, Texture, Container} from "pixi.js";
-import { MAP_SIZE } from "../config/constants";
-import { isoX, isoY } from "../world/iso";
-import { Inventory } from "./Inventory";
-import { Weapon, type WeaponType } from "./weapons/weapon";
-import { Sword } from "./weapons/sword";
-import { dagger } from "./weapons/dagger";
-import { axe } from "./weapons/axe";
-import { spear } from "./weapons/spear";
+import { AnimatedSprite, Texture, Container } from 'pixi.js';
+import { MAP_SIZE } from '../config/constants';
+import { isoX, isoY } from '../world/iso';
+import { Inventory } from './Inventory';
+import { Weapon, type WeaponType } from './weapons/weapon';
+import { Sword } from './weapons/sword';
+import { dagger } from './weapons/dagger';
+import { axe } from './weapons/axe';
+import { spear } from './weapons/spear';
 
 export type InputState = {
     up: boolean;
@@ -27,7 +27,7 @@ export type PlayerTextures = {
     playerStand: Texture;
 };
 
-type Direction = "up" | "down" | "left" | "right";
+type Direction = 'up' | 'down' | 'left' | 'right';
 
 export class Player {
     readonly container = new Container();
@@ -38,29 +38,29 @@ export class Player {
     gridY = 0;
 
     speed = 10;
-    private direction: Direction = "down";
+    direction: Direction = 'down';
     private readonly textures: PlayerTextures;
     weapon?: Weapon;
+    private hittimer = 0;
 
     constructor(textures: PlayerTextures) {
         this.textures = textures;
 
         this.sprite = new AnimatedSprite([
             textures.playerDown1,
-            textures.playerDown2,
+            textures.playerDown2
         ]);
 
-        this.sprite.onFrameChange = (frame: number) => 
-        {
-            this.weapon?.updateweaponpos(frame, this.direction)
-        }
-  
+        this.sprite.onFrameChange = (frame: number) => {
+            this.weapon?.updateweaponpos(frame, this.direction);
+        };
+
         this.sprite.anchor.set(0.5, 1);
         this.container.scale.set(0.5);
         this.container.sortableChildren = true;
         this.sprite.zIndex = 0;
         this.container.addChild(this.sprite);
-    
+
         this.sprite.animationSpeed = 0.12;
         this.sprite.loop = true;
         this.sprite.stop();
@@ -78,11 +78,22 @@ export class Player {
         let moveX = 0;
         let moveY = 0;
 
-        if (input.up) moveY -= 1;
-        if (input.down) moveY += 1;
-        if (input.left) moveX -= 1;
-        if (input.right) moveX += 1;
-
+        if (input.up) {
+            moveX -= 1;
+            moveY -= 1;
+        }
+        if (input.down) {
+            moveX += 1;
+            moveY += 1;
+        }
+        if (input.left) {
+            moveX -= 0.25;
+            moveY += 0.25;
+        }
+        if (input.right) {
+            moveX += 0.25;
+            moveY -= 0.25;
+        }
         const magnitude = Math.hypot(moveX, moveY);
         if (magnitude > 0) {
             this.updateDirection(moveX, moveY);
@@ -90,7 +101,10 @@ export class Player {
             if (!this.sprite.playing) {
                 this.sprite.play();
             }
-            this.weapon?.updateweaponpos(this.sprite.currentFrame, this.direction);
+            this.weapon?.updateweaponpos(
+                this.sprite.currentFrame,
+                this.direction
+            );
 
             const step = this.speed * deltaSeconds;
 
@@ -99,52 +113,50 @@ export class Player {
         } else {
             this.sprite.stop();
             this.sprite.texture = this.textures.playerStand;
-            if (this.weapon && !this.weapon.isAttacking)
-            {
+            if (this.weapon && !this.weapon.isAttacking) {
                 this.weapon?.makevisible();
                 this.weapon.setPosition(-44, -84);
                 this.weapon.setframe(0);
             }
+            this.direction = 'down';
         }
 
         this.gridX = Math.max(0, Math.min(MAP_SIZE - 1, this.gridX));
         this.gridY = Math.max(0, Math.min(MAP_SIZE - 1, this.gridY));
 
         this.syncSpritePosition();
+
+        if (this.hittimer > 0) {
+            this.hittimer = Math.max(0, this.hittimer - deltaSeconds);
+        }
+        if (this.hittimer == 0) this.sprite.tint = 0xffffff;
     }
 
     private updateDirection(moveX: number, moveY: number) {
+        const tileMoveX = moveX - moveY;
+        const tileMoveY = moveY + moveX;
+
         const newDirection =
-            Math.abs(moveX) > Math.abs(moveY)
-                ? moveX < 0 ? "left" : "right"
-                : moveY < 0 ? "up" : "down";
+            Math.abs(tileMoveX) > Math.abs(tileMoveY)
+                ? tileMoveX < 0
+                    ? 'left'
+                    : 'right'
+                : tileMoveY < 0
+                  ? 'up'
+                  : 'down';
 
-        if (newDirection === this.direction) {
-            return;
+        if (newDirection !== this.direction || !this.sprite.playing) {
+            this.direction = newDirection;
+            this.setWalkAnimation();
         }
-
-        this.direction = newDirection;
-        this.setWalkAnimation();
     }
 
     private setWalkAnimation() {
         const animations = {
-            down: [
-                this.textures.playerDown1,
-                this.textures.playerDown2,
-            ],
-            up: [
-                this.textures.playerUp1,
-                this.textures.playerUp2,
-            ],
-            left: [
-                this.textures.playerLeft1,
-                this.textures.playerLeft2,
-            ],
-            right: [
-                this.textures.playerRight1,
-                this.textures.playerRight2,
-            ],
+            down: [this.textures.playerDown1, this.textures.playerDown2],
+            up: [this.textures.playerUp1, this.textures.playerUp2],
+            left: [this.textures.playerLeft1, this.textures.playerLeft2],
+            right: [this.textures.playerRight1, this.textures.playerRight2]
         };
 
         this.sprite.textures = animations[this.direction];
@@ -155,41 +167,37 @@ export class Player {
         this.container.x = isoX(this.gridX, this.gridY);
         this.container.y = isoY(this.gridX, this.gridY);
         this.container.zIndex = this.gridX + this.gridY + 1;
-
     }
-    equipWeapon(type: WeaponType)
-    {
-        if (this.weapon)
-        {
-            this.container.removeChild(this.weapon.sprite)
+    equipWeapon(type: WeaponType) {
+        if (this.weapon) {
+            this.container.removeChild(this.weapon.sprite);
             this.weapon.sprite.destroy();
         }
-        switch (type)
-        {
-            case ("sword"):
+        switch (type) {
+            case 'sword':
                 this.weapon = new Sword();
-                break ;
-            case "dagger":
+                break;
+            case 'dagger':
                 this.weapon = new dagger();
                 break;
-            case "axe":
+            case 'axe':
                 this.weapon = new axe();
                 break;
-            case "spear":
+            case 'spear':
                 this.weapon = new spear();
-                break ;
+                break;
         }
-        if (this.weapon)
-        {
-            this.weapon.setPosition(-44, -84)
-            this.container.addChild(this.weapon.sprite)
-
+        if (this.weapon) {
+            this.weapon.setPosition(-44, -84);
+            this.container.addChild(this.weapon.sprite);
         }
     }
 
-    attack(): void
-    {
-        this.weapon?.attack(this.direction)
-        // ask backend for attack
+    attackanimation() {
+        this.weapon?.attack(this.direction);
+    }
+    hitanimation() {
+        this.hittimer = 0.2;
+        this.sprite.tint = 0xff9999;
     }
 }

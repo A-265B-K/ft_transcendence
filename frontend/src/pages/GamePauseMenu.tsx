@@ -1,0 +1,54 @@
+import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { GamePauseMenuProps } from './gamePauseMenuProps';
+
+export default function GamePauseMenu({
+    onResume,
+    onLeave
+}: GamePauseMenuProps) {
+    const { t } = useTranslation();
+
+    useEffect(() => {
+        function handleKeyDown(event: KeyboardEvent) {
+            if (event.key === 'Escape') onResume();
+        }
+
+        window.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [onResume]);
+
+    return (
+        <div className="absolute inset-0 z-50 grid place-items-center bg-black/60 backdrop-blur-sm">
+            <div className="w-full max-w-sm rounded-3xl border border-white/10 bg-[#081016]/95 p-8 text-center text-[#f4f7fb] shadow-2xl">
+                <h2 className="mb-2 text-2xl font-bold">{t('gameMenu')}</h2>
+
+                <p className="mb-6 text-sm text-white/50">{t('gamePaused')}</p>
+
+                <div className="grid gap-3">
+                    <button
+                        type="button"
+                        onClick={onResume}
+                        className="rounded-xl bg-linear-to-r from-[#ffcf5c] to-[#ff9f43] px-4 py-3 font-bold text-[#10212a] transition hover:brightness-110"
+                    >
+                        {t('resumeGame')}
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={onLeave}
+                        className="rounded-xl border border-red-400/30 bg-red-400/10 px-4 py-3 font-bold text-red-300 transition hover:bg-red-400/20"
+                    >
+                        {t('leaveGame')}
+                    </button>
+                </div>
+
+                <p className="mt-5 text-xs text-white/30">
+                    {t('pressEscToResume')}
+                </p>
+            </div>
+        </div>
+    );
+}

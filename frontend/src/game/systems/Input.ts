@@ -1,11 +1,11 @@
 /**
  * Input System
- * 
+ *
  * Handles keyboard input and tracks which keys are currently pressed.
  * Provides current input state to the player for movement.
  */
 
-import type { InputState } from "../entities/Player";
+import type { InputState } from '../entities/Player';
 
 /**
  * Input class - manages keyboard input tracking
@@ -18,17 +18,16 @@ export class Input {
     /**
      * Handle keydown events - mark key as pressed
      */
-    Attack?:() => void;
+    Attack?: () => void;
 
     private readonly handleKeyDown = (e: KeyboardEvent) => {
         const key = e.key.toLowerCase();
         this.keys[key] = true;
 
-        if (key === "e") {
+        if (key === 'e') {
             this.interactQueued = true;
         }
-        if (key == "f" && !e.repeat)
-            this.Attack?.();
+        if (key == 'f' && !e.repeat) this.Attack?.();
     };
 
     /**
@@ -51,9 +50,9 @@ export class Input {
      */
     constructor() {
         // Attach event listeners to window
-        window.addEventListener("keydown", this.handleKeyDown);
-        window.addEventListener("keyup", this.handleKeyUp);
-        window.addEventListener("blur", this.handleBlur);
+        window.addEventListener('keydown', this.handleKeyDown);
+        window.addEventListener('keyup', this.handleKeyUp);
+        window.addEventListener('blur', this.handleBlur);
     }
 
     /**
@@ -61,9 +60,9 @@ export class Input {
      * Call when destroying the input system
      */
     destroy() {
-        window.removeEventListener("keydown", this.handleKeyDown);
-        window.removeEventListener("keyup", this.handleKeyUp);
-        window.removeEventListener("blur", this.handleBlur);
+        window.removeEventListener('keydown', this.handleKeyDown);
+        window.removeEventListener('keyup', this.handleKeyUp);
+        window.removeEventListener('blur', this.handleBlur);
     }
 
     /**
@@ -73,10 +72,10 @@ export class Input {
     get state(): InputState {
         // Map WASD keys to directional input
         return {
-            up: this.keys["w"] === true,    // W key
-            down: this.keys["s"] === true,  // S key
-            left: this.keys["a"] === true,  // A key
-            right: this.keys["d"] === true, // D key
+            up: this.keys['w'] === true, // W key
+            down: this.keys['s'] === true, // S key
+            left: this.keys['a'] === true, // A key
+            right: this.keys['d'] === true // D key
         };
     }
 

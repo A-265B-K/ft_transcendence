@@ -1,4 +1,5 @@
 # Security Roadmap for ft_transcendence
+
 ## 1. Establish identity and persistence
 
 <!-- Goal: stop treating a websocket `join` payload as identity. -->
@@ -46,6 +47,7 @@ Backend files likely to grow:
 Goal: move credentials out of compose and into a dedicated secret store.
 
 What to store in Vault:
+
 - database credentials
 - session or JWT signing keys
 - email provider credentials
@@ -53,6 +55,7 @@ What to store in Vault:
 - any future API keys
 
 What to do:
+
 - Add a Vault service with its own persistent volume.
 - Use Vault Agent or rendered files so the backend gets secrets at runtime.
 - Keep application code reading from environment variables or files only.
@@ -63,6 +66,7 @@ What to do:
 Goal: harden the public edge after auth exists.
 
 What to do:
+
 - Replace the plain Nginx edge with an Nginx + ModSecurity build.
 - Start in detection mode first, then switch to blocking after tuning.
 - Keep websocket upgrade paths working for `/socket.io/`.
@@ -74,6 +78,7 @@ What to do:
 Goal: reduce brute force and abuse.
 
 What to do:
+
 - Add rate limiting on register/login/2FA endpoints.
 - Add login backoff or temporary lockout after repeated failures.
 - Log auth events and suspicious websocket joins.

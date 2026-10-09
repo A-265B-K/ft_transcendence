@@ -1,3 +1,5 @@
+import { type WeaponType } from '../game/entities/weapons/weapon';
+
 export interface PlayerInventory {
     wood: number;
     iron: number;
@@ -13,7 +15,8 @@ export interface PlayerData {
     x: number;
     y: number;
     inventory: PlayerInventory;
-    lastMoveAt: number; 
+    lastMoveAt: number;
+    equippedweapon?: WeaponType;
 }
 
 export interface SpawnPoint {
@@ -38,7 +41,7 @@ export interface Obstacle {
 }
 
 export interface ResourceSpawn {
-    type: "wood" | "iron";
+    type: 'wood' | 'iron';
     x: number;
     y: number;
 }
@@ -58,9 +61,20 @@ export interface MapData {
     movement: MovementData;
 }
 
+export interface LobbyRoom {
+    roomId: string;
+    hostId: string;
+    started: boolean;
+    name: string;
+    code: string;
+    playerCount: number;
+    maxPlayers: number;
+}
+
 export interface JoinedPayload {
     roomId: string;
     player: PlayerData;
-    players: PlayerData[];
     map: MapData;
+    players: PlayerData[];
+    room: LobbyRoom;
 }

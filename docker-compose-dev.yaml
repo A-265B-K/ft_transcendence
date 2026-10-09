@@ -61,15 +61,18 @@ services:
         retries: 10
         start_period: 15s
 
-    postgresexporter:
-      build: ./postgres/exporter
+    monitoringexporter:
+      build: ./monitoring/exporter
+      environment:
+        VAULT_ADDR: http://vault:8200
+        EXPORTER_VAULT_TOKEN_FILE: /run/secrets/exporter_vault_token
+      secrets:
+        - exporter_vault_token
       depends_on:
         vault:
           condition: service_healthy
         postgres:
           condition: service_healthy
-      secrets:
-        - exporter_vault_token
 
     nginx_exporter:
       image: nginx/nginx-prometheus-exporter:1.5.1

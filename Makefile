@@ -1,3 +1,5 @@
+.PHONY: all prod backend
+
 all: prod
 
 prod:
@@ -10,7 +12,7 @@ init:
 	@./scripts/bootstrap.sh
 
 reinit:
-	@fclean
+	@$(MAKE) fclean
 	@mkdir -p ./backups/backups
 	@./scripts/bootstrap.sh
 

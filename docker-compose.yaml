@@ -49,8 +49,8 @@ services:
         timeout: 3s
         retries: 10
 
-    postgresexporter:
-      build: ./postgres/exporter
+    monitoringexporter:
+      build: ./monitoring/exporter
       restart: unless-stopped
       environment:
         VAULT_ADDR: http://vault:8200

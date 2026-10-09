@@ -52,8 +52,6 @@ POSTGRES_BACKUPS_PASSWORD=""
 
 require_docker
 
-rm -f .bootstrap_complete
-
 if [[ ! -f "$SECRET_FILE" ]]; then
 	die "Secret file '$SECRET_FILE' not found."
 fi
@@ -101,12 +99,6 @@ docker compose \
 	-f "$COMPOSE_FILE_DEV" \
 	config >/dev/null ||
 	die "Development Docker Compose configuration is invalid."
-
-docker compose \
-	-f "$COMPOSE_FILE_DEV" \
-	-f "$BOOTSTRAP_COMPOSE_FILE_DEV" \
-	config >/dev/null ||
-	die "Bootstrap Docker Compose configuration is invalid."
 
 log "Docker Compose configuration is valid."
 
@@ -225,6 +217,15 @@ if [[ "$POSTGRES_INITIALIZED" == "false" ]]; then
 else
 	log "Loading existing PostgreSQL admin credentials from Vault..."
 	vault_load_postgres_admin_password
+fi
+
+if [[ "$POSTGRES_INITIALIZED" == "false" ]]; then
+	log "Checking bootstrap Docker Compose configuration..."
+	docker compose \
+		-f "$COMPOSE_FILE_DEV" \
+		-f "$BOOTSTRAP_COMPOSE_FILE_DEV" \
+		config >/dev/null ||
+	die "Bootstrap Docker Compose configuration is invalid."
 fi
 
 # ------------------------------------------------------------
@@ -350,11 +351,6 @@ else
 	postgres_ensure_exporter_role
 fi
 
-unset POSTGRES_ADMIN_PASSWORD
-unset POSTGRES_APP_PASSWORD
-unset POSTGRES_EXPORTER_PASSWORD
-unset POSTGRES_BACKUPS_PASSWORD
-
 # ------------------------------------------------------------
 # PostgreSQL backups role
 # ------------------------------------------------------------
@@ -374,6 +370,11 @@ else
 	vault_load_postgres_backups_password
 	postgres_ensure_backups_role
 fi
+
+unset POSTGRES_ADMIN_PASSWORD
+unset POSTGRES_APP_PASSWORD
+unset POSTGRES_EXPORTER_PASSWORD
+unset POSTGRES_BACKUPS_PASSWORD
 
 # ------------------------------------------------------------
 # Scoped Vault tokens

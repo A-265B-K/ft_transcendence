@@ -1,5 +1,3 @@
-import { type JoinedPayload } from "../types/game";
-
 export type GameMenuProps = {
     user: {
         id: number;
@@ -8,5 +6,4 @@ export type GameMenuProps = {
     };
 
     onLogout: () => void;
-    onStartGame: (data: JoinedPayload) => void;
 };
