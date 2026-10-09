@@ -43,7 +43,8 @@ Backend files likely to grow:
 - websocket auth gating in `backend/backend/srcs/onConnection.js`-->
 
 ## 4. Introduce Vault for secrets
-<!-- 
+
+<!--
 Goal: move credentials out of compose and into a dedicated secret store.
 
 What to store in Vault:
@@ -93,5 +94,6 @@ What to do:
 <!--4. Add TOTP 2FA and backup codes.-->
 <!--5. Gate websocket joins on authenticated sessions.-->
 <!-- 6. Add Vault and remove secrets from compose. -->
+
 7. Add ModSecurity/WAF at the Nginx edge and tune it.
 8. Add rate limiting, lockout, and audit logging.
