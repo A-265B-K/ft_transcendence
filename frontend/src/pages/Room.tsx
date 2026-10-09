@@ -1,16 +1,8 @@
 import { connectSocket } from '../socket';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import type { JoinedPayload } from '../types/game';
+import type { LobbyRoom, JoinedPayload } from '../types/game';
 import { useTranslation } from 'react-i18next';
-
-type LobbyRoom = {
-    roomId: string;
-    name: string;
-    code?: string;
-    playerCount: number;
-    maxPlayers: number;
-};
 
 type RoomProps = {
     joinedData: JoinedPayload | null;
@@ -31,6 +23,7 @@ export default function Room({ joinedData, onStartGame }: RoomProps) {
     const [copied, setCopied] = useState(false);
     const [loading, setLoading] = useState(!joinedData);
     const [error, setError] = useState('');
+    const isHost = room?.hostId == currentJoinedData?.player.userId;
 
     useEffect(() => {
         if (!roomId) {
@@ -59,11 +52,21 @@ export default function Room({ joinedData, onStartGame }: RoomProps) {
             setError(message);
             setLoading(false);
         };
+        const handleGameStart = (data: {
+            roomId: string;
+            players: JoinedPayload['players'];
+        }) => {
+            if (data.roomId !== roomId || !currentJoinedData) return;
 
+            localStorage.setItem('gameRoomId', data.roomId);
+            currentJoinedData.players = data.players;
+            onStartGame(currentJoinedData);
+        };
         const handleRoomUpdate = (data: {
             roomId: string;
             playerCount: number;
             maxPlayers: number;
+            hostId: string;
         }) => {
             if (data.roomId !== roomId) {
                 return;
@@ -75,7 +78,8 @@ export default function Room({ joinedData, onStartGame }: RoomProps) {
                 return {
                     ...current,
                     playerCount: data.playerCount,
-                    maxPlayers: data.maxPlayers
+                    maxPlayers: data.maxPlayers,
+                    hostId: data.hostId
                 };
             });
         };
@@ -83,6 +87,7 @@ export default function Room({ joinedData, onStartGame }: RoomProps) {
         socket.on('joined', handleJoined);
         socket.on('join_error', handleJoinError);
         socket.on('room_update', handleRoomUpdate);
+        socket.on('gamestart', handleGameStart);
 
         if (!joinedData) {
             socket.emit('join_room', {
@@ -94,8 +99,9 @@ export default function Room({ joinedData, onStartGame }: RoomProps) {
             socket.off('joined', handleJoined);
             socket.off('join_error', handleJoinError);
             socket.off('room_update', handleRoomUpdate);
+            socket.off('gamestart', handleGameStart);
         };
-    }, [roomId, joinedData, navigate]);
+    }, [roomId, joinedData, currentJoinedData, navigate, onStartGame]);
 
     async function copyRoomCode() {
         if (!room?.code) return;
@@ -116,8 +122,7 @@ export default function Room({ joinedData, onStartGame }: RoomProps) {
     function startCreatedRoom() {
         if (!currentJoinedData) return;
 
-        localStorage.setItem('gameRoomId', currentJoinedData.roomId);
-        onStartGame(currentJoinedData);
+        connectSocket().emit('game_start');
     }
 
     function leaveCreatedRoom() {
@@ -202,15 +207,16 @@ export default function Room({ joinedData, onStartGame }: RoomProps) {
                 </p>
 
                 <div className="mt-5 grid gap-3">
-                    <button
-                        type="button"
-                        onClick={startCreatedRoom}
-                        disabled={!currentJoinedData}
-                        className="rounded-xl bg-linear-to-r from-[#ffcf5c] to-[#ff9f43] px-4 py-3 font-bold text-[#10212a] transition hover:brightness-110 disabled:opacity-50"
-                    >
-                        {t('startGame')}
-                    </button>
-
+                    {isHost && room.playerCount >= 2 && (
+                        <button
+                            type="button"
+                            onClick={startCreatedRoom}
+                            disabled={!currentJoinedData || room.started}
+                            className="rounded-xl bg-linear-to-r from-[#ffcf5c] to-[#ff9f43] px-4 py-3 font-bold text-[#10212a] transition hover:brightness-110 disabled:opacity-50"
+                        >
+                            {t('startGame')}
+                        </button>
+                    )}
                     <button
                         type="button"
                         onClick={leaveCreatedRoom}

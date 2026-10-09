@@ -195,6 +195,12 @@ const onConnection = async (socket: Socket, roomManager: RoomManager) => {
         if (currentRoomId)
             onDisconnection(socket, user, currentRoomId, roomManager);
     });
+    socket.on('game_start', () => {
+        if (!currentRoomId) return;
+
+        const room = roomManager.getRoomById(currentRoomId);
+        room?.startgame(user.id, socket);
+    });
 };
 
 export default onConnection;
