@@ -94,7 +94,6 @@ export class Player {
             moveX += 0.25;
             moveY -= 0.25;
         }
-
         const magnitude = Math.hypot(moveX, moveY);
         if (magnitude > 0) {
             this.updateDirection(moveX, moveY);
@@ -194,10 +193,8 @@ export class Player {
         }
     }
 
-    attackanimation(): boolean {
-        if (!this.weapon) return false;
+    attackanimation() {
         this.weapon?.attack(this.direction);
-        return true;
     }
     hitanimation() {
         this.hittimer = 0.2;
