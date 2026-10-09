@@ -11,6 +11,7 @@ import type { Cost } from './room.js';
 import type { Socket, SocketUser, Spawn, Vec2 } from './types.js';
 import { getDistance } from './util.js';
 import { type Resource } from './map.js';
+import type { castle as Castle } from './castle.js';
 
 export type WeaponType = 'sword' | 'axe' | 'bow' | 'dagger' | 'spear' | 'staff';
 
@@ -28,19 +29,27 @@ export class Player {
     private inventory: {
         iron: number;
         wood: number;
-        castleLevel: number;
     };
+    private readonly castle: Castle;
 
     private lastMoveAt: number;
     private equippedWeapon: WeaponType;
     private nextAttack: number;
 
-    constructor(socket: Socket, user: SocketUser, slot: number, spawn: Spawn) {
+    constructor(
+        socket: Socket,
+        user: SocketUser,
+        slot: number,
+        spawn: Spawn,
+        castle: Castle
+    ) {
         this.userId = user.id;
         this.socketId = socket.id;
         this.username = user.username;
 
         this.slot = slot;
+        this.castle = castle;
+        this.castle.setlevel(PLAYER_DEFAULT_CASTLE_LEVEL);
         this.hp = PLAYER_DEFAULT_HP;
         this.isDead = false;
 
@@ -49,8 +58,7 @@ export class Player {
 
         this.inventory = {
             iron: PLAYER_DEFAULT_IRON,
-            wood: PLAYER_DEFAULT_WOOD,
-            castleLevel: PLAYER_DEFAULT_CASTLE_LEVEL
+            wood: PLAYER_DEFAULT_WOOD
         };
 
         this.lastMoveAt = Date.now();
@@ -90,7 +98,24 @@ export class Player {
     }
 
     getInventory() {
-        return { ...this.inventory };
+        return { ...this.inventory, castleLevel: this.castle.getlevel() };
+    }
+
+    toJSON() {
+        return {
+            userId: this.userId,
+            socketId: this.socketId,
+            username: this.username,
+            slot: this.slot,
+            hp: this.hp,
+            isDead: this.isDead,
+            x: this.x,
+            y: this.y,
+            inventory: this.getInventory(),
+            lastMoveAt: this.lastMoveAt,
+            equippedWeapon: this.equippedWeapon,
+            nextAttack: this.nextAttack
+        };
     }
 
     getLastMoveAt(): number {

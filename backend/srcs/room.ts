@@ -99,12 +99,13 @@ export class Room {
         if (slot === null) return (joinerror('No player slot available'), null);
 
         const spawn = this.map.getSpawnPoint(slot);
-        if (!spawn) {
+        const castle = this.map.getCastle(slot);
+        if (!spawn || !castle) {
             console.error(`No spawn point found for slot ${slot}`);
             return (joinerror('No spawn point available'), null);
         }
 
-        const player = new Player(socket, user, slot, spawn);
+        const player = new Player(socket, user, slot, spawn, castle);
 
         this.players.set(user.id, player);
 
@@ -199,7 +200,8 @@ export class Room {
         for (const castle of this.map.getCastleZones()) {
             if (this.isSlotOccupied(castle.playerSlot)) {
                 const blockRadius = castle.radius / 2 + PLAYER_RADIUS;
-                if (getDistance(pos, castle) < blockRadius) return true;
+                if (getDistance(pos, castle.getposition()) < blockRadius)
+                    return true;
             }
         }
 
