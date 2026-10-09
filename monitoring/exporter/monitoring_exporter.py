@@ -1,40 +1,80 @@
-import socket
-import psycopg
 import os
 import signal
+import socket
+from pathlib import Path
+
+import psycopg
 import requests
 
+
 def shutdown(signum, frame):
-    exit(0)
+    raise SystemExit(0)
+
+
+VAULT_ADDR = os.getenv("VAULT_ADDR", "http://vault:8200")
+VAULT_TOKEN_FILE = os.getenv(
+    "EXPORTER_VAULT_TOKEN_FILE",
+    "/run/secrets/exporter_vault_token",
+)
+
+
+def get_postgres_credentials():
+    try:
+        vault_token = Path(VAULT_TOKEN_FILE).read_text().strip()
+    except OSError as error:
+        raise RuntimeError(
+            f"Unable to read Vault token file: {VAULT_TOKEN_FILE}"
+        ) from error
+
+    response = requests.get(
+        f"{VAULT_ADDR}/v1/app/data/postgres_exporter",
+        headers={"X-Vault-Token": vault_token},
+        timeout=5,
+    )
+    response.raise_for_status()
+
+    credentials = response.json().get("data", {}).get("data")
+    if not credentials:
+        raise RuntimeError("Vault returned no PostgreSQL credentials")
+
+    username = credentials.get("username")
+    password = credentials.get("password")
+    database = credentials.get("database")
+    if not username or not password or not database:
+        raise RuntimeError("Vault PostgreSQL credentials are incomplete")
+
+    return username, password, database
+
 
 def connect_database():
-    host = "postgres"
-    port = 5432
-    dbname = os.getenv("POSTGRES_DB")
-    user = os.getenv("POSTGRES_USER")
-    password = os.getenv("POSTGRES_PASSWORD")
+    username, password, database = get_postgres_credentials()
     return psycopg.connect(
-        host=host,
-        port=port,
-        dbname=dbname,
-        user=user,
+        host="postgres",
+        port=5432,
+        dbname=database,
+        user=username,
         password=password,
     )
 
-def fromDatabase(connection):
+
+def from_database():
     with connect_database() as database:
         with database.cursor() as cursor:
             cursor.execute("SELECT COUNT(*) FROM users")
-            playercount = cursor.fetchone()[0]
-            return playercount
+            return cursor.fetchone()[0]
 
 
-def toPrometheus(connection, playercount, backenddata):
-    activerooms = int(backenddata["activeRooms"])
+def from_backend():
+    response = requests.get("http://backend:3000/stats", timeout=10)
+    response.raise_for_status()
+    return response.json()
 
+
+def to_prometheus(connection, player_count, backend_data):
+    active_rooms = int(backend_data["activeRooms"])
     body = (
-        f"registered_players {playercount}\n"
-        f"activerooms {activerooms}\n"
+        f"registered_players {player_count}\n"
+        f"activerooms {active_rooms}\n"
     )
     response = (
         "HTTP/1.1 200 OK\r\n"
@@ -47,31 +87,24 @@ def toPrometheus(connection, playercount, backenddata):
     connection.sendall(response.encode("utf-8"))
 
 
-def fromBackend():
-    response = requests.get("http://backend:3000/stats", timeout=10)
-    response.raise_for_status()
-    return response.json()
-
 def main():
     signal.signal(signal.SIGTERM, shutdown)
     signal.signal(signal.SIGINT, shutdown)
 
-    port = 80
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    server.bind(("0.0.0.0", port))
+    server.bind(("0.0.0.0", 80))
     server.listen()
     server.settimeout(1)
-    print(f"Listening on port {port}")
-    while (True):
+    print("Listening on port 80")
+    while True:
         try:
             connection, address = server.accept()
         except socket.timeout:
             continue
         with connection:
-            databasedata = fromDatabase(connection)
-            backenddata = fromBackend()
-            toPrometheus(connection, databasedata, backenddata)
+            to_prometheus(connection, from_database(), from_backend())
 
-if (__name__ == "__main__"):
+
+if __name__ == "__main__":
     main()

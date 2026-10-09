@@ -1,4 +1,4 @@
-import type { WeaponAttackStats } from './Attackstats.js';
+import type { WeaponAttackStats } from './Weapon.js';
 import { PLAYER_RADIUS } from '../constants.js';
 import type { Vec2 } from '../types.js';
 

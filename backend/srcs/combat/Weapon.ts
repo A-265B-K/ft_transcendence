@@ -1,5 +1,3 @@
-import type { WeaponType } from '../player.js';
-
 export type WeaponAttackStats = {
     damage: number;
     reach: number;
@@ -49,3 +47,5 @@ export function getattackstats(weapon: WeaponType) {
             return undefined;
     }
 }
+
+export type WeaponType = 'sword' | 'axe' | 'bow' | 'dagger' | 'spear' | 'staff';

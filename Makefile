@@ -4,30 +4,39 @@ all: prod
 
 prod:
 	@mkdir -p ./backups/backups
-	@docker compose up -d --build
+	@./scripts/makefile/start.sh
 	@echo Game reachable at https://localhost:8443/
+
+init:
+	@mkdir -p ./backups/backups
+	@./scripts/bootstrap.sh
+
+reinit:
+	@$(MAKE) fclean
+	@mkdir -p ./backups/backups
+	@./scripts/bootstrap.sh
 
 dev:
 	@mkdir -p ./backups/backups
-	@docker compose -f docker-compose-dev.yaml up --build
+	@./scripts/makefile/start-dev.sh
 
 down:
-	@docker compose down
+	@./scripts/makefile/stop.sh
 
 restart:
-	@docker compose restart
+	@./scripts/makefile/restart.sh
 	@echo Game reachable at https://localhost:8443/
 
 cleanimages: 
-	@docker compose down --rmi all
+	@./scripts/makefile/clean_images.sh
 
 cleanvolumes:
-	@docker compose down --volumes
+	@./scripts/makefile/clean_volumes.sh
 
 cleanbackups:
 	@rm -rf backups/backups
 
-fclean: cleanbackups
-	@docker compose down --rmi all --volumes
+fclean:
+	@./scripts/makefile/fclean.sh
 
 re: fclean all

@@ -13,7 +13,9 @@ import { getDistance } from './util.js';
 import { type Resource } from './map.js';
 import type { castle as Castle } from './castle.js';
 
-export type WeaponType = 'sword' | 'axe' | 'bow' | 'dagger' | 'spear' | 'staff';
+import { getattackstats, type WeaponType } from './combat/Weapon.js';
+
+export type { WeaponType } from './combat/Weapon.js';
 
 export class Player {
     private readonly userId: string;
@@ -129,7 +131,15 @@ export class Player {
     getNextAttack(): number {
         return this.nextAttack;
     }
+    attackNow(weapon: WeaponType): void {
+        this.nextAttack =
+            Date.now() + (getattackstats(weapon)?.cooldown ?? 0) * 1000;
+    }
 
+    canattack(): boolean {
+        return Date.now() >= this.nextAttack;
+    }
+    cooldowncheck() {}
     setPosition(x: number, y: number): void {
         this.x = x;
         this.y = y;
@@ -142,10 +152,6 @@ export class Player {
         if (this.hp === 0) {
             this.isDead = true;
         }
-    }
-
-    setNextAttack(timestamp: number): void {
-        this.nextAttack = timestamp;
     }
 
     equipWeapon(weapon: WeaponType): void {
