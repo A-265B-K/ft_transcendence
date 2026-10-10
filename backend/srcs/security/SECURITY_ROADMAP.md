@@ -44,18 +44,18 @@ Backend files likely to grow:
 
 ## 4. Introduce Vault for secrets
 
-<!--
+<!-- 
 Goal: move credentials out of compose and into a dedicated secret store.
 
 What to store in Vault:
 
 - database credentials
 - session or JWT signing keys
-- email provider credentials
+- email provider credentials -->
 - TOTP-related encryption keys
-- any future API keys
+<!-- - any future API keys -->
 
-What to do:
+<!-- What to do:
 
 - Add a Vault service with its own persistent volume.
 - Use Vault Agent or rendered files so the backend gets secrets at runtime.
