@@ -4,7 +4,6 @@ import {
     CASTLE_RADIUS,
     PLAYER_DEFAULT_CASTLE_LEVEL
 } from './constants.js';
-import type { Player } from './player.js';
 import type { Vec2 } from './types.js';
 import { getDistance } from './util.js';
 
