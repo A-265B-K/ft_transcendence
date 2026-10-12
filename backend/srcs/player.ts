@@ -24,7 +24,7 @@ export class Player {
     private readonly slot: number;
 
     private hp: number;
-    private isDead: boolean;
+    private alive: boolean;
     private x: number;
     private y: number;
 
@@ -53,7 +53,7 @@ export class Player {
         this.castle = castle;
         this.castle.setlevel(PLAYER_DEFAULT_CASTLE_LEVEL);
         this.hp = PLAYER_DEFAULT_HP;
-        this.isDead = false;
+        this.alive = true;
 
         this.x = spawn.pos.x;
         this.y = spawn.pos.y;
@@ -88,10 +88,6 @@ export class Player {
         return this.hp;
     }
 
-    getIsDead(): boolean {
-        return this.isDead;
-    }
-
     getPosition(): { x: number; y: number } {
         return {
             x: this.x,
@@ -110,7 +106,7 @@ export class Player {
             username: this.username,
             slot: this.slot,
             hp: this.hp,
-            isDead: this.isDead,
+            isDead: !this.alive,
             x: this.x,
             y: this.y,
             inventory: this.getInventory(),
@@ -120,17 +116,10 @@ export class Player {
         };
     }
 
-    getLastMoveAt(): number {
-        return this.lastMoveAt;
-    }
-
     getEquippedWeapon(): WeaponType {
         return this.equippedWeapon;
     }
 
-    getNextAttack(): number {
-        return this.nextAttack;
-    }
     attackNow(weapon: WeaponType): void {
         this.nextAttack =
             Date.now() + (getattackstats(weapon)?.cooldown ?? 0) * 1000;
@@ -139,23 +128,24 @@ export class Player {
     canattack(): boolean {
         return Date.now() >= this.nextAttack;
     }
-    cooldowncheck() {}
+
     setPosition(x: number, y: number): void {
         this.x = x;
         this.y = y;
         this.lastMoveAt = Date.now();
     }
 
-    setHp(hp: number): void {
+    private setHp(hp: number): void {
         this.hp = Math.max(0, hp);
-
-        if (this.hp === 0) {
-            this.isDead = true;
-        }
+        this.alive = this.hp > 0;
     }
 
-    equipWeapon(weapon: WeaponType): void {
-        this.equippedWeapon = weapon;
+    heal(healamount: number): boolean {
+        if (this.alive && healamount > 0 && this.hp < PLAYER_DEFAULT_HP) {
+            this.setHp(Math.min(this.hp + healamount, PLAYER_DEFAULT_HP));
+            return true;
+        }
+        return false;
     }
 
     addResources(resource: Resource): void {
@@ -168,10 +158,6 @@ export class Player {
         }
     }
 
-    // Anti-teleport: rejects a move if it implies a speed higher than the
-    // player could actually reach, given how much time passed since their
-    // last move. Also advances player.lastMoveAt as a side effect, so time
-    // keeps flowing even while movement is being rejected.
     isMovingTooFast(pos: Vec2): boolean {
         const now = Date.now();
         const elapsedSeconds = Math.min(
@@ -187,25 +173,14 @@ export class Player {
         return getDistance({ x: this.x, y: this.y }, pos) > maxDistance;
     }
 
-    hasHp(): boolean {
-        if (this.hp > 0) {
-            return true;
-        }
-        return false;
-    }
-
     isAlive(): boolean {
-        return !this.isDead;
+        return this.alive;
     }
 
     takeDamage(damage: number): boolean {
-        this.hp = Math.max(0, this.hp - damage);
+        this.setHp(this.hp - damage);
 
-        if (this.hp === 0) {
-            this.isDead = true;
-            return true;
-        }
-        return false;
+        return this.alive === false;
     }
 
     craftWeapon(cost: Cost, weapon: WeaponType) {

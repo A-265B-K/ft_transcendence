@@ -1,5 +1,12 @@
-import { CASTLE_RADIUS, PLAYER_DEFAULT_CASTLE_LEVEL } from './constants.js';
+import {
+    CASTLE_HEAL_LVL,
+    CASTLE_HEAL_RADIUS,
+    CASTLE_RADIUS,
+    PLAYER_DEFAULT_CASTLE_LEVEL
+} from './constants.js';
+import type { Player } from './player.js';
 import type { Vec2 } from './types.js';
+import { getDistance } from './util.js';
 
 export class castle {
     private level = PLAYER_DEFAULT_CASTLE_LEVEL;
@@ -24,7 +31,12 @@ export class castle {
     setlevel(newlevel: number) {
         this.level = newlevel;
     }
-
+    canHeal(): boolean {
+        return this.level >= CASTLE_HEAL_LVL;
+    }
+    isnearcastle(playerPosition: Vec2): boolean {
+        return getDistance(playerPosition, this.position) <= CASTLE_HEAL_RADIUS;
+    }
     toJSON() {
         return {
             playerSlot: this.playerSlot,

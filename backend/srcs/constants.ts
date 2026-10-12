@@ -1,12 +1,10 @@
-export const PORT = 3000;
-export const HOST = '0.0.0.0';
-
-export const PLAYER_DEFAULT_HP = 100;
-export const PLAYER_DEFAULT_X = 0; //GENERATE IT?
-export const PLAYER_DEFAULT_Y = 0;
-
 export const ROOM_MAX_SIZE = 4;
-export const GAME_TICK_RATE = 60; // 60MS
+export const PLAYER_DEFAULT_HP = 100;
+
+export const CASTLE_HEAL_LVL = 2;
+export const CASTLE_HEAL = 2;
+export const CASTLE_HEAL_INTERVAL = 3;
+export const CASTLE_HEAL_RADIUS = 10;
 
 export const PLAYER_DEFAULT_IRON = 0;
 export const PLAYER_DEFAULT_WOOD = 0;
@@ -16,6 +14,7 @@ export const MAP_SIZE = 100;
 export const MAP_WIDTH = MAP_SIZE;
 export const MAP_HEIGHT = MAP_SIZE;
 export const CASTLE_RADIUS = 8;
+
 export const PLAYER_RADIUS = 1;
 
 export const MIN_DIST_CASTLE = 50;

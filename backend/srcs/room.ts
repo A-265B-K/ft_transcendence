@@ -155,7 +155,7 @@ export class Room {
 
     isSlotOccupied(slot: number): boolean {
         for (const player of this.players.values()) {
-            if (player.getSlot() === slot && !player.getIsDead()) {
+            if (player.getSlot() === slot && player.isAlive()) {
                 return true;
             }
         }
@@ -173,7 +173,7 @@ export class Room {
                 continue;
             }
 
-            if (player.getIsDead()) {
+            if (!player.isAlive()) {
                 continue;
             }
 
@@ -190,7 +190,7 @@ export class Room {
     positionIsAllowed(player: Player, user: SocketUser, pos: Vec2): boolean {
         return !(
             this.map.isOutOfBounds(pos) ||
-            (!player.getIsDead() &&
+            (player.isAlive() &&
                 (this.isCollidingWithOtherPlayer(user.id, pos) ||
                     this.isCollidingWithCastle(pos)))
         );
@@ -209,7 +209,7 @@ export class Room {
     }
 
     tryCollectResource(player: Player, pos: Vec2) {
-        if (player.getIsDead()) {
+        if (!player.isAlive()) {
             return;
         }
         const resource = this.map.collectResource(pos);
@@ -426,7 +426,6 @@ export class Room {
         for (const target of this.players.values()) {
             if (
                 target.getUserId() === player.getUserId() ||
-                !target.hasHp() ||
                 !target.isAlive()
             ) {
                 continue;
