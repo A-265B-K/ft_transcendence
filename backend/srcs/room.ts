@@ -119,7 +119,14 @@ export class Room {
             return (joinerror('No spawn point available'), null);
         }
 
-        const player = new Player(socket, user, slot, spawn, castle, this.roomId);
+        const player = new Player(
+            socket,
+            user,
+            slot,
+            spawn,
+            castle,
+            this.roomId
+        );
 
         this.players.set(user.id, player);
 

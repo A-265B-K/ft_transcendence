@@ -142,7 +142,10 @@ export class Player {
         this.x = x;
         this.y = y;
         this.lastMoveAt = Date.now();
-        if (getDistance(this.getPosition(), this.castle.getposition()) >= CASTLE_HEAL_RADIUS)
+        if (
+            getDistance(this.getPosition(), this.castle.getposition()) >=
+            CASTLE_HEAL_RADIUS
+        )
             this.nextcastleheal = 0;
     }
 
