@@ -86,8 +86,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         }) {
             if (socketId === joinedData.player.socketId) {
                 setHp(hp);
-                if (reason === 'damage')
-                    game.playerhitanimation();
+                if (reason === 'damage') game.playerhitanimation();
             } else {
                 if (reason === 'damage')
                     game.remoteplayerhitanimation(socketId);
