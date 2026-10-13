@@ -117,6 +117,29 @@ export const nl = {
         confirmPassword: 'Wachtwoord bevestigen',
         iAgreeTo: 'Ik ga akkoord met het',
         privacyPolicy: 'Privacybeleid',
-        termsOfService: 'Servicevoorwaarden'
+        termsOfService: 'Servicevoorwaarden',
+
+        settings: 'Instellingen',
+        twoFactorAuthentication: 'Tweestapsverificatie',
+        passwordReset: 'Wachtwoord opnieuw instellen',
+        passwordResetRequestSent: 'Als er een account met dit e-mailadres bestaat, wordt er een link voor het opnieuw instellen van het wachtwoord verstuurd.',
+
+        authenticationCode: 'Authenticatiecode',
+        verify: 'Verifiëren',
+        twoFactorVerified: 'Tweestapsverificatie geslaagd. Je wordt doorgestuurd...',
+        twoFactorVerificationFailed: 'Tweestapsverificatie mislukt',
+        loading: 'Laden...',
+
+        enterEmail: 'Voer eerst je e-mailadres in',
+        twoFactorSetupFailed: 'Het instellen van tweestapsverificatie is mislukt',
+        twoFactorScanQr: 'Scan deze QR-code met je authenticator-app',
+        twoFactorEnabled: 'Tweestapsverificatie ingeschakeld',
+        twoFactorDisableFailed: 'Het uitschakelen van tweestapsverificatie is mislukt',
+        twoFactorDisabled: 'Tweestapsverificatie uitgeschakeld',
+        generateQrCode: 'QR-code genereren',
+        scanQrCode: 'QR-code scannen',
+        qrCodeAlt: 'QR-code voor tweestapsverificatie',
+        confirmTwoFactor: 'Tweestapsverificatie bevestigen',
+        disableTwoFactor: 'Tweestapsverificatie uitschakelen',
     }
 };

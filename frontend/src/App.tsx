@@ -8,6 +8,11 @@ import { useState, useEffect, startTransition } from 'react';
 import { type JoinedPayload } from './types/game';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import PasswordResetRequest from './pages/PasswordResetRequest';
+import Settings from './pages/Settings';
+import TwoFactorAuth from './pages/TwoFactorAuth';
+import TwoFactorSetup from './pages/TwoFactorSetup';
+
 import { connectSocket, disconnectSocket } from './socket';
 import {
     BrowserRouter,
@@ -331,6 +336,46 @@ function AppContent() {
                     ) : (
                         <Navigate to="/game-menu" />
                     )
+                }
+            />
+
+            <Route
+                path="/settings"
+                element={
+                    user ? (
+                        <Settings />
+                    ) : (
+                        <Navigate to="/login" replace />
+                    )
+                }
+            />
+
+            <Route
+                path="/settings/password-reset"
+                element={<PasswordResetRequest />}
+            />
+
+            <Route
+                path="/settings/2fa"
+                element={
+                    user ? (
+                        <TwoFactorSetup />
+                    ) : (
+                        <Navigate to="/login" replace />
+                    )
+                }
+            />
+
+            <Route
+                path="/verify-2fa"
+                element={
+                    <TwoFactorAuth
+                        onLoginSuccess={(loggedUser) => {
+                            setUser(loggedUser);
+                            connectSocket();
+                            navigate('/game-menu', { replace: true });
+                        }}
+                    />
                 }
             />
 

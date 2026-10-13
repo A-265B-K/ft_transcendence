@@ -39,7 +39,7 @@ export default function LogIn({
 
             const data = await response.json();
 
-            if (data.requireTwoFactor) {
+            if (response.ok && data.requireTwoFactor) {
                 window.location.href = '/verify-2fa';
                 return;
             }

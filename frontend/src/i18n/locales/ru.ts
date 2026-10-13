@@ -118,6 +118,29 @@ export const ru = {
         confirmPassword: 'Подтвердите пароль',
         iAgreeTo: 'Я принимаю',
         privacyPolicy: 'Политику конфиденциальности',
-        termsOfService: 'Условия использования'
+        termsOfService: 'Условия использования',
+
+        settings: 'Настройки',
+        twoFactorAuthentication: 'Двухфакторная аутентификация',
+        passwordReset: 'Сброс пароля',
+        passwordResetRequestSent: 'Если аккаунт с таким адресом электронной почты существует, будет отправлена ссылка для сброса пароля.',
+
+        authenticationCode: 'Код аутентификации',
+        verify: 'Подтвердить',
+        twoFactorVerified: 'Двухфакторная аутентификация пройдена. Выполняется перенаправление...',
+        twoFactorVerificationFailed: 'Не удалось пройти двухфакторную аутентификацию',
+        loading: 'Загрузка...',
+
+        enterEmail: 'Сначала введите адрес электронной почты',
+        twoFactorSetupFailed: 'Не удалось настроить двухфакторную аутентификацию',
+        twoFactorScanQr: 'Отсканируйте этот QR-код с помощью приложения-аутентификатора',
+        twoFactorEnabled: 'Двухфакторная аутентификация включена',
+        twoFactorDisableFailed: 'Не удалось отключить двухфакторную аутентификацию',
+        twoFactorDisabled: 'Двухфакторная аутентификация отключена',
+        generateQrCode: 'Сгенерировать QR-код',
+        scanQrCode: 'Сканировать QR-код',
+        qrCodeAlt: 'QR-код для двухфакторной аутентификации',
+        confirmTwoFactor: 'Подтвердить двухфакторную аутентификацию',
+        disableTwoFactor: 'Отключить двухфакторную аутентификацию',
     }
 };
