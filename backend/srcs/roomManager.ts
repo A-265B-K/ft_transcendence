@@ -24,7 +24,7 @@ export class RoomManager {
         if (!room) {
             return;
         }
-
+        room.destroy();
         delete this.rooms[roomId];
     }
 

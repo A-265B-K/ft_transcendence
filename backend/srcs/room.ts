@@ -17,6 +17,7 @@ export class Room {
     private players: Map<string, Player>;
     private map: GameMap;
     private started: boolean;
+    private timer: ReturnType<typeof setInterval> | null = null;
 
     constructor(name: string, hostId: string, code: string) {
         this.name = name;
@@ -29,7 +30,12 @@ export class Room {
         console.log(`Room created: ${name} [${this.code}]`);
     }
 
-    // TODO add destructor;
+    destroy(): void {
+        if (this.timer !== null) {
+            clearInterval(this.timer);
+            this.timer = null;
+        }
+    }
 
     getCode(): string {
         return this.code;
@@ -37,6 +43,19 @@ export class Room {
 
     hasStarted(): boolean {
         return this.started;
+    }
+    private gameloop(socket: Socket) {
+        this.timer = setInterval(() => {
+            for (const player of this.players.values()) {
+                if (player.castleheal()) {
+                    socket.nsp.to(this.roomId).emit('player_hp', {
+                        socketId: player.getSocketId(),
+                        hp: player.getHp(),
+                        reason: 'heal'
+                    });
+                }
+            }
+        }, 250);
     }
     startgame(userId: string, socket: Socket) {
         if (!this.isHost(userId) || this.hasStarted()) return;
@@ -46,6 +65,7 @@ export class Room {
             roomId: this.roomId,
             players: Array.from(this.players.values())
         });
+        this.gameloop(socket);
     }
 
     isHost(userId: string): boolean {

@@ -1,11 +1,13 @@
 import {
-    PLAYER_DEFAULT_HP,
+    PLAYER_MAX_HP as PLAYER_MAX_HP,
     PLAYER_DEFAULT_IRON,
     PLAYER_DEFAULT_WOOD,
     PLAYER_DEFAULT_CASTLE_LEVEL,
     MOVE_TOLERANCE_SECONDS,
     PLAYER_MAX_SPEED,
-    MOVE_MAX_ELAPSED_SECONDS
+    MOVE_MAX_ELAPSED_SECONDS,
+    CASTLE_HEAL_INTERVAL,
+    CASTLE_HEAL
 } from './constants.js';
 import type { Cost } from './room.js';
 import type { Socket, SocketUser, Spawn, Vec2 } from './types.js';
@@ -33,6 +35,7 @@ export class Player {
         wood: number;
     };
     private readonly castle: Castle;
+    private nextcastleheal = 0;
 
     private lastMoveAt: number;
     private equippedWeapon: WeaponType;
@@ -52,7 +55,7 @@ export class Player {
         this.slot = slot;
         this.castle = castle;
         this.castle.setlevel(PLAYER_DEFAULT_CASTLE_LEVEL);
-        this.hp = PLAYER_DEFAULT_HP;
+        this.hp = PLAYER_MAX_HP;
         this.alive = true;
 
         this.x = spawn.pos.x;
@@ -136,13 +139,37 @@ export class Player {
     }
 
     private setHp(hp: number): void {
-        this.hp = Math.max(0, hp);
+        let newhp = Math.max(0, hp);
+        newhp = Math.min(PLAYER_MAX_HP, newhp);
+        this.hp = newhp;
         this.alive = this.hp > 0;
     }
 
+    castleheal(): boolean {
+        if (
+            this.castle.canHeal() &&
+            this.alive &&
+            this.hp < PLAYER_MAX_HP &&
+            this.castle.isnearcastle(this.getPosition())
+        ) {
+            const now = Date.now();
+            if (this.nextcastleheal) {
+                if (now >= this.nextcastleheal) {
+                    this.nextcastleheal = now + CASTLE_HEAL_INTERVAL * 1000;
+                    return this.heal(CASTLE_HEAL);
+                } else return false;
+            } else {
+                this.nextcastleheal = now + CASTLE_HEAL_INTERVAL * 1000;
+                return false;
+            }
+        } else {
+            this.nextcastleheal = 0;
+            return false;
+        }
+    }
     heal(healamount: number): boolean {
-        if (this.alive && healamount > 0 && this.hp < PLAYER_DEFAULT_HP) {
-            this.setHp(Math.min(this.hp + healamount, PLAYER_DEFAULT_HP));
+        if (this.alive && healamount > 0 && this.hp < PLAYER_MAX_HP) {
+            this.setHp(Math.min(this.hp + healamount, PLAYER_MAX_HP));
             return true;
         }
         return false;
