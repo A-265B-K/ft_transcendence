@@ -44,16 +44,10 @@ export class Room {
     hasStarted(): boolean {
         return this.started;
     }
-    private gameloop(socket: Socket) {
+    private gameloop() {
         this.timer = setInterval(() => {
             for (const player of this.players.values()) {
-                if (player.castleheal()) {
-                    socket.nsp.to(this.roomId).emit('player_hp', {
-                        socketId: player.getSocketId(),
-                        hp: player.getHp(),
-                        reason: 'heal'
-                    });
-                }
+                player.castleheal();
             }
         }, 250);
     }
@@ -65,7 +59,7 @@ export class Room {
             roomId: this.roomId,
             players: Array.from(this.players.values())
         });
-        this.gameloop(socket);
+        this.gameloop();
     }
 
     isHost(userId: string): boolean {
@@ -125,7 +119,7 @@ export class Room {
             return (joinerror('No spawn point available'), null);
         }
 
-        const player = new Player(socket, user, slot, spawn, castle);
+        const player = new Player(socket, user, slot, spawn, castle, this.roomId);
 
         this.players.set(user.id, player);
 
@@ -463,11 +457,6 @@ export class Room {
             }
 
             const isDead = target.takeDamage(attackStats.damage);
-
-            socket.nsp.to(this.roomId).emit('player_hp', {
-                socketId: target.getSocketId(),
-                hp: target.getHp()
-            });
 
             console.log(
                 player.getUsername(),

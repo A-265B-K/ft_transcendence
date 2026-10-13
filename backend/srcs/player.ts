@@ -1,5 +1,5 @@
 import {
-    PLAYER_MAX_HP as PLAYER_MAX_HP,
+    PLAYER_MAX_HP,
     PLAYER_DEFAULT_IRON,
     PLAYER_DEFAULT_WOOD,
     PLAYER_DEFAULT_CASTLE_LEVEL,
@@ -7,7 +7,8 @@ import {
     PLAYER_MAX_SPEED,
     MOVE_MAX_ELAPSED_SECONDS,
     CASTLE_HEAL_INTERVAL,
-    CASTLE_HEAL
+    CASTLE_HEAL,
+    CASTLE_HEAL_RADIUS
 } from './constants.js';
 import type { Cost } from './room.js';
 import type { Socket, SocketUser, Spawn, Vec2 } from './types.js';
@@ -22,6 +23,8 @@ export type { WeaponType } from './combat/Weapon.js';
 export class Player {
     private readonly userId: string;
     private readonly socketId: string;
+    private readonly namespace: Socket['nsp'];
+    private readonly roomId: string;
     private readonly username: string;
     private readonly slot: number;
 
@@ -46,10 +49,13 @@ export class Player {
         user: SocketUser,
         slot: number,
         spawn: Spawn,
-        castle: Castle
+        castle: Castle,
+        roomId: string
     ) {
         this.userId = user.id;
         this.socketId = socket.id;
+        this.namespace = socket.nsp;
+        this.roomId = roomId;
         this.username = user.username;
 
         this.slot = slot;
@@ -136,13 +142,23 @@ export class Player {
         this.x = x;
         this.y = y;
         this.lastMoveAt = Date.now();
+        if (getDistance(this.getPosition(), this.castle.getposition()) >= CASTLE_HEAL_RADIUS)
+            this.nextcastleheal = 0;
     }
 
-    private setHp(hp: number): void {
-        let newhp = Math.max(0, hp);
-        newhp = Math.min(PLAYER_MAX_HP, newhp);
-        this.hp = newhp;
+    private setHp(hp: number): boolean {
+        const previousHp = this.hp;
+        const newHp = Math.min(PLAYER_MAX_HP, Math.max(0, hp));
+        if (newHp === previousHp) return false;
+
+        this.hp = newHp;
         this.alive = this.hp > 0;
+        this.namespace.to(this.roomId).emit('player_hp', {
+            socketId: this.socketId,
+            hp: this.hp,
+            reason: this.hp > previousHp ? 'heal' : 'damage'
+        });
+        return true;
     }
 
     castleheal(): boolean {
@@ -169,8 +185,7 @@ export class Player {
     }
     heal(healamount: number): boolean {
         if (this.alive && healamount > 0 && this.hp < PLAYER_MAX_HP) {
-            this.setHp(Math.min(this.hp + healamount, PLAYER_MAX_HP));
-            return true;
+            return this.setHp(this.hp + healamount);
         }
         return false;
     }
