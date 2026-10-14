@@ -85,3 +85,5 @@ frontend/dist
 .secret
 .vault_secrets
 tokens/
+
+.bootstrap_complete

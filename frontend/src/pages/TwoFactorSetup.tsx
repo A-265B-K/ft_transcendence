@@ -6,7 +6,7 @@ export default function TwoFactorSetup() {
     const navigate = useNavigate();
     const { t } = useTranslation();
 
-    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
     const [token, setToken] = useState('');
     const [qrCode, setQrCode] = useState('');
     const [message, setMessage] = useState('');
@@ -14,8 +14,8 @@ export default function TwoFactorSetup() {
     const [enabled, setEnabled] = useState(false);
 
     async function setup2FA() {
-        if (!email) {
-            setMessage(t('enterEmail'));
+        if (!password) {
+            setMessage(t('fillAllFields'));
             return;
         }
 
@@ -25,8 +25,9 @@ export default function TwoFactorSetup() {
         try {
             const response = await fetch('/api/auth/2fa/setup', {
                 method: 'POST',
+                credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email }),
+                body: JSON.stringify({ password }),
             });
 
             const data = await response.json();
@@ -37,6 +38,7 @@ export default function TwoFactorSetup() {
             }
 
             setQrCode(data.qrCode);
+            setPassword('');
             setMessage(t('twoFactorScanQr'));
         } catch {
             setMessage(t('backendError'));
@@ -53,8 +55,9 @@ export default function TwoFactorSetup() {
         try {
             const response = await fetch('/api/auth/2fa/confirm', {
                 method: 'POST',
+                credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, token }),
+                body: JSON.stringify({ token }),
             });
 
             const data = await response.json();
@@ -74,8 +77,8 @@ export default function TwoFactorSetup() {
     }
 
     async function disable2FA() {
-        if (!email) {
-            setMessage(t('enterEmail'));
+        if (!password) {
+            setMessage(t('fillAllFields'));
             return;
         }
 
@@ -85,8 +88,9 @@ export default function TwoFactorSetup() {
         try {
             const response = await fetch('/api/auth/2fa/disable', {
                 method: 'POST',
+                credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email }),
+                body: JSON.stringify({ password })
             });
 
             const data = await response.json();
@@ -99,6 +103,7 @@ export default function TwoFactorSetup() {
             setEnabled(false);
             setQrCode('');
             setToken('');
+            setPassword('');
             setMessage(t('twoFactorDisabled'));
         } catch {
             setMessage(t('backendError'));
@@ -114,17 +119,17 @@ export default function TwoFactorSetup() {
                     {t('twoFactorAuthentication')}
                 </h1>
 
-                <label htmlFor="setup-email" className="mb-2 block">
-                    {t('email')}
+                <label htmlFor="setup-password" className="mb-2 block">
+                    {t('password')}
                 </label>
                 <input
-                    id="setup-email"
-                    type="email"
-                    autoComplete="email"
+                    id="setup-password"
+                    type="password"
+                    autoComplete="current-password"
                     required
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                    disabled={loading || enabled}
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    disabled={loading}
                     className="mb-4 w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 outline-none focus:border-[#ffcf5c]"
                 />
 
