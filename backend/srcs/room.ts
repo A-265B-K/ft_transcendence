@@ -415,6 +415,12 @@ export class Room {
 
         return player.craftWeapon(cost, weapon);
     }
+    upgradecastle(userId: string) {
+        if (!this.hasStarted()) return null;
+        if (this.getPlayerByUserId(userId)?.upgradecastle())
+            return this.getPlayerByUserId(userId)?.getInventory();
+        else return null;
+    }
 
     handleAttack(
         user: SocketUser,

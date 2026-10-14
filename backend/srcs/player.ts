@@ -19,6 +19,7 @@ import type { castle as Castle } from './castle.js';
 import { getattackstats, type WeaponType } from './combat/Weapon.js';
 
 export type { WeaponType } from './combat/Weapon.js';
+import type { upgradecost } from './castle.js';
 
 export class Player {
     private readonly userId: string;
@@ -230,6 +231,11 @@ export class Player {
 
     craftWeapon(cost: Cost, weapon: WeaponType) {
         if (
+            !this.alive ||
+            getDistance(this.getPosition(), this.castle.getposition()) > 7
+        )
+            return null;
+        if (
             this.inventory.wood < cost.wood ||
             this.inventory.iron < cost.iron
         ) {
@@ -242,5 +248,25 @@ export class Player {
             weapon,
             inventory: { wood: this.inventory.wood, iron: this.inventory.iron }
         };
+    }
+    upgradecastle(): boolean {
+        if (
+            !this.alive ||
+            getDistance(this.getPosition(), this.castle.getposition()) > 7 ||
+            this.castle.getlevel() >= 4
+        )
+            return false;
+        const cost = this.castle.getupgradecost(this.castle.getlevel() + 1);
+        if (
+            this.inventory.wood < cost.wood ||
+            this.inventory.iron < cost.iron
+        ) {
+            return false;
+        }
+        if (this.castle.upgrade()) {
+            this.inventory.wood -= cost.wood;
+            this.inventory.iron -= cost.iron;
+            return true;
+        } else return false;
     }
 }

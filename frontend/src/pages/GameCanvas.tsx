@@ -14,7 +14,9 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
     const { t } = useTranslation();
     const gameContainer = useRef<HTMLDivElement>(null);
     const gameRef = useRef<Game | null>(null);
-
+    const [castlelvl, setcastlelvl] = useState(
+        joinedData.player.inventory.castleLevel
+    );
     const [inventory, setInventory] = useState({
         wood: joinedData.player.inventory.wood,
         iron: joinedData.player.inventory.iron
