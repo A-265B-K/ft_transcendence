@@ -9,6 +9,7 @@ import {
 import type { Socket, Spawn, Vec2 } from './types.js';
 import { getDistance, randomPos } from './util.js';
 import type { Room } from './room.js';
+import { castle as Castle } from './castle.js';
 
 export type Resource = Room['map']['resourceSpawns'][number];
 
@@ -16,12 +17,7 @@ export class GameMap {
     private mapId: string;
     private width: number;
     private height: number;
-    private castleZones: {
-        playerSlot: number;
-        x: number;
-        y: number;
-        radius: number;
-    }[];
+    private castleZones: Castle[];
     private spawnPoints: Map<number, Spawn>;
     private obstacles: ReturnType<typeof this.generateObstacles>;
     private resourceSpawns: ReturnType<typeof this.generateResourceSpawns>;
@@ -32,35 +28,28 @@ export class GameMap {
         this.height = MAP_HEIGHT;
         this.castleZones = this.generateCastleZones(maxPlayers);
         this.spawnPoints = this.generateSpawnPoints(this.castleZones);
-        this.obstacles = this.generateObstacles(this.castleZones);
-        this.resourceSpawns = this.generateResourceSpawns(
-            this.castleZones,
-            this.obstacles
-        );
+        this.obstacles = this.generateObstacles();
+        this.resourceSpawns = this.generateResourceSpawns(this.obstacles);
     }
 
-    private generateSpawnPoints(
-        castleZones: {
-            playerSlot: number;
-            x: number;
-            y: number;
-            radius: number;
-        }[]
-    ) {
+    private generateSpawnPoints(castleZones: Castle[]) {
         const castleClearance = CASTLE_RADIUS / 2 + PLAYER_RADIUS + 1;
         const castleOffset = castleClearance / Math.sqrt(2);
 
         const spawnPoints = new Map<number, Spawn>(
-            castleZones.map((castle) => [
-                castle.playerSlot,
-                {
-                    playerSlot: castle.playerSlot,
-                    pos: {
-                        x: castle.x + castleOffset,
-                        y: castle.y + castleOffset
+            castleZones.map((castle) => {
+                const position = castle.getposition();
+                return [
+                    castle.playerSlot,
+                    {
+                        playerSlot: castle.playerSlot,
+                        pos: {
+                            x: position.x + castleOffset,
+                            y: position.y + castleOffset
+                        }
                     }
-                }
-            ])
+                ];
+            })
         );
 
         return spawnPoints;
@@ -69,12 +58,7 @@ export class GameMap {
     private generateCastleZones(maxPlayers: number) {
         const minDistBetweenCastles = MIN_DIST_CASTLE;
 
-        const castleZones: {
-            playerSlot: number;
-            x: number;
-            y: number;
-            radius: number;
-        }[] = [];
+        const castleZones: Castle[] = [];
         let attempts = 0;
         const maxAttempts = maxPlayers * 100;
 
@@ -83,7 +67,7 @@ export class GameMap {
             const pos = randomPos();
 
             let tooClose = castleZones.some(
-                (c) => getDistance(pos, c) < minDistBetweenCastles
+                (c) => getDistance(pos, c.getposition()) < minDistBetweenCastles
             );
 
             if (
@@ -96,12 +80,7 @@ export class GameMap {
             }
 
             if (!tooClose) {
-                castleZones.push({
-                    playerSlot: castleZones.length + 1,
-                    x: pos.x,
-                    y: pos.y,
-                    radius: CASTLE_RADIUS
-                });
+                castleZones.push(new Castle(castleZones.length + 1, pos));
             }
         }
 
@@ -114,15 +93,7 @@ export class GameMap {
         return castleZones;
     }
 
-    private generateObstacles(
-        castleZones: {
-            playerSlot: number;
-            x: number;
-            y: number;
-            radius: number;
-        }[],
-        count = 15
-    ) {
+    private generateObstacles(count = 15) {
         const obstacles = [];
         const types = [
             { type: 'rock', radius: 4 },
@@ -159,7 +130,10 @@ export class GameMap {
         obstacles: Vec2[]
     ) {
         for (const castle of this.castleZones) {
-            if (getDistance(pos, castle) < castle.radius + minDistFromCastle) {
+            if (
+                getDistance(pos, castle.getposition()) <
+                castle.radius + minDistFromCastle
+            ) {
                 return false;
             }
         }
@@ -174,12 +148,6 @@ export class GameMap {
     }
 
     private generateResourceSpawns(
-        castleZones: {
-            playerSlot: number;
-            x: number;
-            y: number;
-            radius: number;
-        }[],
         obstacles: {
             type: string;
             x: number;
@@ -262,13 +230,15 @@ export class GameMap {
         }, resource.respawnTime * 1000);
     }
 
-    getCastleZones(): {
-        playerSlot: number;
-        x: number;
-        y: number;
-        radius: number;
-    }[] {
+    getCastleZones(): Castle[] {
         return this.castleZones;
+    }
+
+    getCastle(slot: number): Castle | null {
+        return (
+            this.castleZones.find((castle) => castle.playerSlot === slot) ??
+            null
+        );
     }
 
     isOutOfBounds(pos: Vec2): boolean {

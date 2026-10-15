@@ -12,6 +12,17 @@ die() {
 	exit 1
 }
 
+file_permissions() {
+	local permissions
+
+	if permissions="$(stat -c '%a' "$1" 2>/dev/null)" ||
+		permissions="$(stat -f '%Lp' "$1" 2>/dev/null)"; then
+		printf '%s\n' "$permissions"
+	else
+		die "Could not read permissions for '$1'."
+	fi
+}
+
 require_docker() {
 	command -v docker >/dev/null 2>&1 ||
 		die "Docker is not installed."
@@ -48,7 +59,7 @@ require_initialized() {
 		die "Vault credentials file '$VAULT_SECRETS_FILE' is empty."
 
 	local permissions
-	permissions="$(stat -c '%a' "$VAULT_SECRETS_FILE")"
+	permissions="$(file_permissions "$VAULT_SECRETS_FILE")"
 
 	[[ "$permissions" == "600" ]] ||
 		die "$VAULT_SECRETS_FILE must have permissions 600 (currently $permissions)."

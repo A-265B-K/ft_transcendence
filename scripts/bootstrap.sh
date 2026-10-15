@@ -60,7 +60,7 @@ if [[ ! -r "$SECRET_FILE" ]]; then
 	die "Secret file '$SECRET_FILE' is not readable."
 fi
 
-SECRET_PERMS="$(stat -c '%a' "$SECRET_FILE")"
+SECRET_PERMS="$(file_permissions "$SECRET_FILE")"
 
 if [[ "$SECRET_PERMS" != "600" ]]; then
 	die "Secret file '$SECRET_FILE' must have permissions 600."

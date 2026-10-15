@@ -6,6 +6,10 @@ export interface PlayerInventory {
     castleLevel: number;
 }
 
+export type UpgradeCastleResult =
+    | { success: false }
+    | { success: true; level: number; inventory: PlayerInventory };
+
 export interface PlayerData {
     userId: string;
     socketId: string;

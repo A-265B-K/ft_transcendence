@@ -130,8 +130,8 @@ export class Game {
         return this.scene?.getCastlePointer() ?? null;
     }
 
-    isPlayerNearCastle(): boolean {
-        return this.scene?.isPlayerNearCastle() ?? false;
+    isPlayerNearCastle(range: number): boolean {
+        return this.scene?.isPlayerNearCastle(range) ?? false;
     }
 
     playerhitanimation() {
