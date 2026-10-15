@@ -72,7 +72,7 @@ log "Vault is sealed."
 [[ -f "$VAULT_SECRETS_FILE" ]] ||
 	die "Vault is sealed but $VAULT_SECRETS_FILE is missing."
 
-PERMISSIONS="$(stat -c '%a' "$VAULT_SECRETS_FILE")"
+PERMISSIONS="$(file_permissions "$VAULT_SECRETS_FILE")"
 
 [[ "$PERMISSIONS" == "600" ]] ||
 	die "$VAULT_SECRETS_FILE must have permissions 600 (currently $PERMISSIONS)."

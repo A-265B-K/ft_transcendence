@@ -9,15 +9,37 @@ const weaponrecipes = {
     axe: { wood: 20, iron: 30 }
 };
 
+const castleUpgradeRecipes: Partial<
+    Record<number, { wood: number; iron: number }>
+> = {
+    2: { wood: 50, iron: 30 },
+    3: { wood: 100, iron: 60 },
+    4: { wood: 180, iron: 120 }
+};
+
 export function Forgemenu({
-    onEquip
+    onEquip,
+    castleLevel,
+    inventory,
+    onUpgrade,
+    upgrading
 }: {
     onEquip: (
         weapon: WeaponType,
         inventory: { wood: number; iron: number }
     ) => void;
+    castleLevel: number;
+    inventory: { wood: number; iron: number };
+    onUpgrade: () => void;
+    upgrading: boolean;
 }) {
     const [open, setOpen] = useState(false);
+    const upgradeCost = castleUpgradeRecipes[castleLevel + 1];
+    const atMaxLevel = castleLevel >= 4;
+    const canAffordUpgrade =
+        !!upgradeCost &&
+        inventory.wood >= upgradeCost.wood &&
+        inventory.iron >= upgradeCost.iron;
 
     function craftweapon(weapon: WeaponType) {
         type craftresult =
@@ -81,6 +103,34 @@ export function Forgemenu({
                                 )
                             )}
                         </div>
+                        <section
+                            aria-label="Castle"
+                            className="mt-4 border-t border-slate-700 pt-4"
+                        >
+                            <button
+                                type="button"
+                                onClick={onUpgrade}
+                                disabled={
+                                    upgrading || atMaxLevel || !canAffordUpgrade
+                                }
+                                aria-busy={upgrading}
+                                className="w-full rounded-lg bg-amber-600 px-3 py-2 text-left font-bold hover:bg-amber-500 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                <span className="block">
+                                    {upgrading
+                                        ? 'Upgrading…'
+                                        : atMaxLevel
+                                          ? 'Max level'
+                                          : 'Upgrade castle'}
+                                </span>
+                                {upgradeCost && (
+                                    <span className="block text-sm font-normal">
+                                        {upgradeCost.wood} wood ·{' '}
+                                        {upgradeCost.iron} iron
+                                    </span>
+                                )}
+                            </button>
+                        </section>
                     </section>
                 )}
             </div>

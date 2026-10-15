@@ -4,8 +4,8 @@ import GamePauseMenu from './GamePauseMenu';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Game } from '../game/Game';
 import { type CastlePointer } from './CastlePointer';
-import type { JoinedPayload } from '../types/game';
-import { connectSocket, disconnectSocket } from '../socket';
+import type { JoinedPayload, UpgradeCastleResult } from '../types/game';
+import { connectSocket, disconnectSocket, getSocket } from '../socket';
 import type { GameCanvasProps } from './gameCanvasProps';
 import { useTranslation } from 'react-i18next';
 import type { WeaponType } from '../game/entities/weapons/weapon';
@@ -17,6 +17,8 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
     const [castlelvl, setcastlelvl] = useState(
         joinedData.player.inventory.castleLevel
     );
+    const [upgrading, setUpgrading] = useState(false);
+    const upgradePending = useRef(false);
     const [inventory, setInventory] = useState({
         wood: joinedData.player.inventory.wood,
         iron: joinedData.player.inventory.iron
@@ -40,6 +42,42 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
     function pauseGame() {
         setPaused(true);
         gameRef.current?.pause();
+    }
+
+    function upgradeCastle() {
+        if (
+            upgradePending.current ||
+            spectating ||
+            !nearCastle ||
+            castlelvl >= 4
+        )
+            return;
+
+        const socket = getSocket();
+        const game = gameRef.current;
+        if (!socket?.connected || !game) return;
+
+        upgradePending.current = true;
+        setUpgrading(true);
+        socket
+            .timeout(5000)
+            .emit(
+                'upgrade_castle',
+                {},
+                (error: Error | null, result?: UpgradeCastleResult) => {
+                    if (gameRef.current !== game) return;
+
+                    upgradePending.current = false;
+                    setUpgrading(false);
+                    if (error || !result?.success) return;
+
+                    const { level, inventory } = result;
+                    const { wood, iron } = inventory;
+                    game.syncInventory(wood, iron);
+                    setcastlelvl(level);
+                    game.updateRemoteCastle(joinedData.player.socketId, level);
+                }
+            );
     }
 
     useEffect(() => {
@@ -182,6 +220,9 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             level: number;
         }) {
             game.updateRemoteCastle(socketId, level);
+            if (socketId === joinedData.player.socketId) {
+                setcastlelvl(level);
+            }
         }
 
         socket.on('player_joined', handlePlayerJoined);
@@ -208,6 +249,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         }, 32);
 
         return () => {
+            upgradePending.current = false;
             socket.off('player_joined', handlePlayerJoined);
             socket.off('player_move', handlePlayerMove);
             socket.off('player_left', handlePlayerLeft);
@@ -317,8 +359,12 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
                 </div>
             </div>
 
-            {nearCastle && (
+            {nearCastle && !spectating && (
                 <Forgemenu
+                    castleLevel={castlelvl}
+                    inventory={inventory}
+                    onUpgrade={upgradeCastle}
+                    upgrading={upgrading}
                     onEquip={(weapon, updatedInventory) => {
                         gameRef.current?.equipWeapon(weapon);
                         gameRef.current?.syncInventory(
