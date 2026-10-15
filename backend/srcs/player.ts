@@ -19,7 +19,6 @@ import type { castle as Castle } from './castle.js';
 import { getattackstats, type WeaponType } from './combat/Weapon.js';
 
 export type { WeaponType } from './combat/Weapon.js';
-import type { upgradecost } from './castle.js';
 
 export class Player {
     private readonly userId: string;
