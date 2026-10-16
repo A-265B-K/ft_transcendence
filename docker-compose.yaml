@@ -43,6 +43,12 @@ services:
         SERVER_NAME: "localhost"
       ports:
         - "8443:8443"
+      healthcheck:
+        test: ["CMD", "curl", "--fail", "--silent", "--show-error", "--insecure", "--max-time", "2", "https://localhost:8443/api/ping", "--output", "/dev/null"]
+        interval: 2s
+        timeout: 3s
+        retries: 60
+        start_period: 10s
   
     postgres:
       image: postgres:18.4
