@@ -28,6 +28,21 @@ jobs:
       - name: Build, start, and wait for containers
         run: ./scripts/makefile/start.sh
 
+      - name: Wait for HTTPS entrypoint
+        run: |
+          for attempt in {1..60}; do
+            if curl --fail --silent --show-error --insecure \
+              https://localhost:8443/api/ping \
+              -o /dev/null
+            then
+              exit 0
+            fi
+            sleep 2
+          done
+
+          echo "HTTPS entrypoint did not become ready." >&2
+          exit 1
+  
       - uses: actions/setup-python@v6
 
       - name: Install Browser
