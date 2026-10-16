@@ -1,6 +1,6 @@
 import { Sprite, type Texture } from 'pixi.js';
 
-export type WeaponType = 'sword' | 'axe' | 'bow' | 'dagger' | 'spear' | 'staff';
+export type WeaponType = 'sword' | 'axe' | 'dagger' | 'spear';
 
 export type WeaponTextures = [Texture, Texture, Texture, Texture];
 export type WeaponTextureCatalogue = Record<WeaponType, WeaponTextures>;

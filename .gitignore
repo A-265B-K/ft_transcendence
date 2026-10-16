@@ -85,3 +85,6 @@ frontend/dist
 .secret
 .vault_secrets
 tokens/
+
+#random stuff
+.bootstrap_complete

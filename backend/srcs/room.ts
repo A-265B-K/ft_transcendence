@@ -17,6 +17,7 @@ export class Room {
     private players: Map<string, Player>;
     private map: GameMap;
     private started: boolean;
+    private timer: ReturnType<typeof setInterval> | null = null;
 
     constructor(name: string, hostId: string, code: string) {
         this.name = name;
@@ -29,7 +30,12 @@ export class Room {
         console.log(`Room created: ${name} [${this.code}]`);
     }
 
-    // TODO add destructor;
+    destroy(): void {
+        if (this.timer !== null) {
+            clearInterval(this.timer);
+            this.timer = null;
+        }
+    }
 
     getCode(): string {
         return this.code;
@@ -37,6 +43,13 @@ export class Room {
 
     hasStarted(): boolean {
         return this.started;
+    }
+    private gameloop() {
+        this.timer = setInterval(() => {
+            for (const player of this.players.values()) {
+                player.castleheal();
+            }
+        }, 250);
     }
     startgame(userId: string, socket: Socket) {
         if (!this.isHost(userId) || this.hasStarted()) return;
@@ -46,6 +59,7 @@ export class Room {
             roomId: this.roomId,
             players: Array.from(this.players.values())
         });
+        this.gameloop();
     }
 
     isHost(userId: string): boolean {
@@ -99,12 +113,20 @@ export class Room {
         if (slot === null) return (joinerror('No player slot available'), null);
 
         const spawn = this.map.getSpawnPoint(slot);
-        if (!spawn) {
+        const castle = this.map.getCastle(slot);
+        if (!spawn || !castle) {
             console.error(`No spawn point found for slot ${slot}`);
             return (joinerror('No spawn point available'), null);
         }
 
-        const player = new Player(socket, user, slot, spawn);
+        const player = new Player(
+            socket,
+            user,
+            slot,
+            spawn,
+            castle,
+            this.roomId
+        );
 
         this.players.set(user.id, player);
 
@@ -154,7 +176,7 @@ export class Room {
 
     isSlotOccupied(slot: number): boolean {
         for (const player of this.players.values()) {
-            if (player.getSlot() === slot && !player.getIsDead()) {
+            if (player.getSlot() === slot && player.isAlive()) {
                 return true;
             }
         }
@@ -172,7 +194,7 @@ export class Room {
                 continue;
             }
 
-            if (player.getIsDead()) {
+            if (!player.isAlive()) {
                 continue;
             }
 
@@ -189,7 +211,7 @@ export class Room {
     positionIsAllowed(player: Player, user: SocketUser, pos: Vec2): boolean {
         return !(
             this.map.isOutOfBounds(pos) ||
-            (!player.getIsDead() &&
+            (player.isAlive() &&
                 (this.isCollidingWithOtherPlayer(user.id, pos) ||
                     this.isCollidingWithCastle(pos)))
         );
@@ -199,7 +221,8 @@ export class Room {
         for (const castle of this.map.getCastleZones()) {
             if (this.isSlotOccupied(castle.playerSlot)) {
                 const blockRadius = castle.radius / 2 + PLAYER_RADIUS;
-                if (getDistance(pos, castle) < blockRadius) return true;
+                if (getDistance(pos, castle.getposition()) < blockRadius)
+                    return true;
             }
         }
 
@@ -207,7 +230,7 @@ export class Room {
     }
 
     tryCollectResource(player: Player, pos: Vec2) {
-        if (player.getIsDead()) {
+        if (!player.isAlive()) {
             return;
         }
         const resource = this.map.collectResource(pos);
@@ -392,6 +415,12 @@ export class Room {
 
         return player.craftWeapon(cost, weapon);
     }
+    upgradecastle(userId: string) {
+        if (!this.hasStarted()) return null;
+        if (this.getPlayerByUserId(userId)?.upgradecastle())
+            return this.getPlayerByUserId(userId)?.getInventory();
+        else return null;
+    }
 
     handleAttack(
         user: SocketUser,
@@ -424,7 +453,6 @@ export class Room {
         for (const target of this.players.values()) {
             if (
                 target.getUserId() === player.getUserId() ||
-                !target.hasHp() ||
                 !target.isAlive()
             ) {
                 continue;
@@ -442,11 +470,6 @@ export class Room {
             }
 
             const isDead = target.takeDamage(attackStats.damage);
-
-            socket.nsp.to(this.roomId).emit('player_hp', {
-                socketId: target.getSocketId(),
-                hp: target.getHp()
-            });
 
             console.log(
                 player.getUsername(),

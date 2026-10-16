@@ -387,8 +387,7 @@ export class GameScene {
         this.map.setResourceTile(Math.floor(x), Math.floor(y), type);
     }
 
-    isPlayerNearCastle(): boolean {
-        const range = 7;
+    isPlayerNearCastle(range: number): boolean {
         const dx = this.player.gridX - this.castle.gridX;
         const dy = this.player.gridY - this.castle.gridY;
 
@@ -409,12 +408,6 @@ export class GameScene {
                 this.textures.axe3,
                 this.textures.axe4
             ],
-            bow: [
-                this.textures.bow1,
-                this.textures.bow2,
-                this.textures.bow3,
-                this.textures.bow4
-            ],
             dagger: [
                 this.textures.dagger1,
                 this.textures.dagger2,
@@ -426,12 +419,6 @@ export class GameScene {
                 this.textures.spear2,
                 this.textures.spear3,
                 this.textures.spear4
-            ],
-            staff: [
-                this.textures.staff1,
-                this.textures.staff2,
-                this.textures.staff3,
-                this.textures.staff4
             ]
         });
     }
