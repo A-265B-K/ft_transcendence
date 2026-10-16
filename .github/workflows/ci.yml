@@ -38,7 +38,6 @@ jobs:
       - name: Test App
         run: python .github/scripts/Apptest.py
 
-
   Codequality:
     runs-on: ubuntu-latest
     strategy:

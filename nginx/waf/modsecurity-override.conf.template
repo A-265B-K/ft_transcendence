@@ -1,0 +1,4 @@
+# Application-specific ModSecurity exclusions.
+# This file is loaded before OWASP CRS rules.
+
+Include /etc/modsecurity.d/socketio-exclusions.conf
