@@ -31,6 +31,7 @@ jobs:
       - name: Show container status on failure
         if: failure()
         run: |
+          source ./scripts/load-env.sh
           docker compose -f docker-compose.yaml ps
           docker compose -f docker-compose.yaml logs --tail=200 nginx_prod
 
