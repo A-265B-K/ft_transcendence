@@ -98,4 +98,5 @@ What to do:
 <!-- 6. Add Vault and remove secrets from compose. -->
 
 <!-- 7. Add ModSecurity/WAF at the Nginx edge and tune it. -->
+
 8. Add rate limiting, lockout, and audit logging.
