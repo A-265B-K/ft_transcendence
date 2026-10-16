@@ -9,17 +9,30 @@ COPY frontend/ ./
 RUN npm run build
 
 
+# copy owasp modesecurity image's digest directly
 FROM owasp/modsecurity-crs:nginx@sha256:133267aa811e1a57a23b52ef04b3c30e802bcbe5454588f6d6af1f69f4b2b667
-COPY nginx/waf/socketio-exclusions.conf /etc/modsecurity.d/socketio-exclusions.conf
-COPY nginx/waf/default.conf /etc/nginx/templates/modsecurity.d/default.conf
 
 USER root
 
+# Custom NGINX routing configuration
+COPY nginx/waf/prod.conf.template \
+    /etc/nginx/templates/conf.d/prod.conf.template
+
+# Custom ModSecurity exclusions
+COPY nginx/waf/socketio-exclusions.conf \
+    /etc/modsecurity.d/socketio-exclusions.conf
+
+# Include exclusions before CRS rules
+COPY nginx/waf/modsecurity-override.conf.template \
+    /etc/nginx/templates/modsecurity.d/modsecurity-override.conf.template
+
+# Built frontend and legal pages.
 COPY --from=frontend /app/dist/ /var/www/frontend/
 COPY nginx/pages/ /var/www/pages/
 
-COPY nginx/waf/default.conf \
-    /etc/nginx/templates/conf.d/default.conf
+# No need for ssl certificates
+# OWASP CRS container generates a self-signed certificate on start-up
+
 
 RUN chmod -R a+rX /var/www/frontend /var/www/pages
 
