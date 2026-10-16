@@ -39,7 +39,6 @@ services:
         MODSEC_AUDIT_ENGINE: "RelevantOnly"
         SSL_PORT: "8443"
         PORT: "8080"
-        SERVER_TOKENS: "off"
         SERVER_NAME: "localhost"
       ports:
         - "8443:8443"

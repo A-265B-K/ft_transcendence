@@ -14,9 +14,12 @@ FROM owasp/modsecurity-crs:nginx@sha256:133267aa811e1a57a23b52ef04b3c30e802bcbe5
 
 USER root
 
+# Replace the image's default proxy server with the project routing below.
+RUN rm /etc/nginx/templates/conf.d/default.conf.template
+
 # Custom NGINX routing configuration
-COPY nginx/waf/prod.conf.template \
-    /etc/nginx/templates/conf.d/prod.conf.template
+COPY nginx/waf/default.conf.template \
+    /etc/nginx/templates/conf.d/default.conf.template
 
 # Custom ModSecurity exclusions
 COPY nginx/waf/socketio-exclusions.conf \

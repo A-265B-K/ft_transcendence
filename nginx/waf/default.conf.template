@@ -1,6 +1,3 @@
-# dont display Nginx version in headers
-server_tokens off;
-
 map $http_upgrade $connection_upgrade {
     default upgrade;
     '' close;
