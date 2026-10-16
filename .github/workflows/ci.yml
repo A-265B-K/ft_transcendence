@@ -28,12 +28,12 @@ jobs:
       - name: Build, start, and wait for containers
         run: ./scripts/makefile/start.sh
 
-      - name: Show container status on failure
-        if: failure()
-        run: |
-          source ./scripts/load-env.sh
-          docker compose -f docker-compose.yaml ps
-          docker compose -f docker-compose.yaml logs --tail=200 nginx_prod
+      # - name: Show container status on failure
+      #   if: failure()
+      #   run: |
+      #     source ./scripts/load-env.sh
+      #     docker compose -f docker-compose.yaml ps
+      #     docker compose -f docker-compose.yaml logs --tail=200 nginx_prod
 
       - uses: actions/setup-python@v6
 
