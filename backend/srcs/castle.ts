@@ -55,12 +55,7 @@ export class castle {
         this.nextcastleheal = 0;
     }
     castleheal(player: Player): boolean {
-        if (
-            this.canHeal() &&
-            player.isAlive() &&
-            player.getHp() < PLAYER_MAX_HP &&
-            player.isnearcastle()
-        ) {
+        if (player.getHp() < PLAYER_MAX_HP) {
             const now = Date.now();
             if (this.nextcastleheal) {
                 if (now >= this.nextcastleheal) {

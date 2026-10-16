@@ -169,7 +169,7 @@ export class Player {
     }
 
     castlecheck() {
-        if (!this.isnearcastle()) return false;
+        if (! this.alive || !this.isnearcastle()) return false;
 
         if (this.castle.canHeal()) this.castle.castleheal(this);
         if (this.castle.canAddarmor()) this.castle.castlearmor(this);
