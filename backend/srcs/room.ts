@@ -47,7 +47,7 @@ export class Room {
     private gameloop() {
         this.timer = setInterval(() => {
             for (const player of this.players.values()) {
-                player.castleheal();
+                player.castlecheck();
             }
         }, 250);
     }

@@ -6,8 +6,6 @@ import {
     MOVE_TOLERANCE_SECONDS,
     PLAYER_MAX_SPEED,
     MOVE_MAX_ELAPSED_SECONDS,
-    CASTLE_HEAL_INTERVAL,
-    CASTLE_HEAL,
     CASTLE_HEAL_RADIUS
 } from './constants.js';
 import type { Cost } from './room.js';
@@ -38,7 +36,6 @@ export class Player {
         wood: number;
     };
     private readonly castle: Castle;
-    private nextcastleheal = 0;
 
     private lastMoveAt: number;
     private equippedWeapon: WeaponType;
@@ -146,7 +143,7 @@ export class Player {
             getDistance(this.getPosition(), this.castle.getposition()) >=
             CASTLE_HEAL_RADIUS
         )
-            this.nextcastleheal = 0;
+            this.castle.resetHealingCooldown();
     }
 
     private setHp(hp: number): boolean {
@@ -164,27 +161,19 @@ export class Player {
         return true;
     }
 
-    castleheal(): boolean {
-        if (
-            this.castle.canHeal() &&
-            this.alive &&
-            this.hp < PLAYER_MAX_HP &&
-            this.castle.isnearcastle(this.getPosition())
-        ) {
-            const now = Date.now();
-            if (this.nextcastleheal) {
-                if (now >= this.nextcastleheal) {
-                    this.nextcastleheal = now + CASTLE_HEAL_INTERVAL * 1000;
-                    return this.heal(CASTLE_HEAL);
-                } else return false;
-            } else {
-                this.nextcastleheal = now + CASTLE_HEAL_INTERVAL * 1000;
-                return false;
-            }
-        } else {
-            this.nextcastleheal = 0;
-            return false;
-        }
+    isnearcastle(): boolean {
+        return (
+            getDistance(this.getPosition(), this.castle.getposition()) <=
+            CASTLE_HEAL_RADIUS
+        );
+    }
+
+    castlecheck() {
+        if (!this.isnearcastle()) return false;
+
+        if (this.castle.canHeal()) this.castle.castleheal(this);
+        if (this.castle.canAddarmor()) this.castle.castlearmor(this);
+        if (this.castle.canAttack()) this.castle.castleattack();
     }
     heal(healamount: number): boolean {
         if (this.alive && healamount > 0 && this.hp < PLAYER_MAX_HP) {
