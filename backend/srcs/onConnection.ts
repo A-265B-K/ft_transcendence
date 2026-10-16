@@ -1,4 +1,4 @@
-import type { Socket, SocketUser } from './types.js';
+import type { Inventory, Socket, SocketUser } from './types.js';
 import { RoomManager } from './roomManager.js';
 
 const onDisconnection = (
@@ -192,6 +192,46 @@ const onConnection = async (socket: Socket, roomManager: RoomManager) => {
 
             const ok = room?.handleAttack(user, data, socket) ?? false;
             callback({ ok });
+        }
+    );
+
+    socket.on(
+        'upgrade_castle',
+        (
+            data: unknown,
+            callback: (
+                response:
+                    | { success: false }
+                    | { success: true; level: number; inventory: Inventory }
+            ) => void
+        ) => {
+            if (typeof callback !== 'function') return;
+
+            if (!currentRoomId) {
+                callback({ success: false });
+                return;
+            }
+
+            const room = roomManager.getRoomById(currentRoomId);
+            if (!room) {
+                callback({ success: false });
+                return;
+            }
+            const inventory = room.upgradecastle(user.id);
+            if (!inventory) {
+                callback({ success: false });
+                return;
+            }
+            socket.to(currentRoomId).emit('castle_update', {
+                socketId: socket.id,
+                level: inventory.castleLevel
+            });
+
+            callback({
+                success: true,
+                level: inventory.castleLevel,
+                inventory
+            });
         }
     );
 

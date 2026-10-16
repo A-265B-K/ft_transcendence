@@ -3,7 +3,7 @@ vault_validate_secrets_file() {
 		die "Vault credentials file '$VAULT_SECRETS_FILE' not found."
 
 	local permissions
-	permissions="$(stat -c '%a' "$VAULT_SECRETS_FILE")"
+	permissions="$(file_permissions "$VAULT_SECRETS_FILE")"
 
 	[[ "$permissions" == "600" ]] ||
 		die "$VAULT_SECRETS_FILE must have permissions 600 (currently $permissions)."
