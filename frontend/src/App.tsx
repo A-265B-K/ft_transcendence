@@ -11,6 +11,7 @@ import ResetPassword from './pages/ResetPassword';
 import PasswordResetRequest from './pages/PasswordResetRequest';
 import Settings from './pages/Settings';
 import TwoFactorAuth from './pages/TwoFactorAuth';
+import TwoFactorSettings from './pages/TwoFactorSettings';
 import TwoFactorSetup from './pages/TwoFactorSetup';
 
 import { connectSocket, disconnectSocket } from './socket';
@@ -355,17 +356,15 @@ function AppContent() {
                 element={<PasswordResetRequest />}
             />
 
-            <Route
-                path="/settings/2fa"
-                element={
-                    user ? (
-                        <TwoFactorSetup />
-                    ) : (
-                        <Navigate to="/login" replace />
-                    )
-                }
+
+            <Route path="/settings/2fa" 
+                element={<TwoFactorSettings />} 
             />
 
+            <Route path="/settings/2fa/setup" 
+                element={<TwoFactorSetup />} 
+            />
+            
             <Route
                 path="/verify-2fa"
                 element={
