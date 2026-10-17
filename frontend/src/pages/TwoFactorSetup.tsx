@@ -29,17 +29,15 @@ export default function TwoFactorSetup() {
                 method: 'POST',
                 credentials: 'include',
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ token }),
+                body: JSON.stringify({ token })
             });
 
             const data = await response.json();
 
             if (!response.ok || !data.ok) {
-                setMessage(
-                    data.message ?? t('twoFactorVerificationFailed'),
-                );
+                setMessage(data.message ?? t('twoFactorVerificationFailed'));
                 return;
             }
 
@@ -60,9 +58,7 @@ export default function TwoFactorSetup() {
 
                 {qrCode ? (
                     <>
-                        <h2 className="font-bold">
-                            {t('scanQrCode')}
-                        </h2>
+                        <h2 className="font-bold">{t('scanQrCode')}</h2>
 
                         <p className="mt-2 text-sm text-white/70">
                             {t('twoFactorScanQr')}
@@ -75,10 +71,7 @@ export default function TwoFactorSetup() {
                         />
 
                         <form onSubmit={confirm2FA}>
-                            <label
-                                htmlFor="setup-token"
-                                className="mb-2 block"
-                            >
+                            <label htmlFor="setup-token" className="mb-2 block">
                                 {t('authenticationCode')}
                             </label>
 
@@ -93,7 +86,7 @@ export default function TwoFactorSetup() {
                                 value={token}
                                 onChange={(event) =>
                                     setToken(
-                                        event.target.value.replace(/\D/g, ''),
+                                        event.target.value.replace(/\D/g, '')
                                     )
                                 }
                                 disabled={loading}
@@ -105,9 +98,7 @@ export default function TwoFactorSetup() {
                                 disabled={loading || token.length !== 6}
                                 className="w-full rounded-xl bg-linear-to-r from-[#ffcf5c] to-[#ff9f43] px-4 py-3 font-bold text-[#10212a] disabled:opacity-50"
                             >
-                                {loading
-                                    ? t('loading')
-                                    : t('confirmTwoFactor')}
+                                {loading ? t('loading') : t('confirmTwoFactor')}
                             </button>
                         </form>
                     </>

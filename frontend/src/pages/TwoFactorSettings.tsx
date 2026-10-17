@@ -15,7 +15,7 @@ export default function TwoFactorSettings() {
         async function loadStatus() {
             try {
                 const response = await fetch('/api/auth/2fa/status', {
-                    credentials: 'include',
+                    credentials: 'include'
                 });
 
                 const data = await response.json();
@@ -48,9 +48,9 @@ export default function TwoFactorSettings() {
                 method: 'POST',
                 credentials: 'include',
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ password }),
+                body: JSON.stringify({ password })
             });
 
             const data = await response.json();
@@ -84,9 +84,9 @@ export default function TwoFactorSettings() {
                 method: 'POST',
                 credentials: 'include',
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ password }),
+                body: JSON.stringify({ password })
             });
 
             const data = await response.json();
@@ -97,7 +97,7 @@ export default function TwoFactorSettings() {
             }
 
             navigate('/settings/2fa/setup', {
-                state: { qrCode: data.qrCode },
+                state: { qrCode: data.qrCode }
             });
         } catch {
             setMessage(t('backendError'));
@@ -146,9 +146,7 @@ export default function TwoFactorSettings() {
                                 disabled={loading || !password}
                                 className="w-full rounded-xl border border-red-400/40 px-4 py-3 font-bold text-red-300 disabled:opacity-50"
                             >
-                                {loading
-                                    ? t('loading')
-                                    : t('disableTwoFactor')}
+                                {loading ? t('loading') : t('disableTwoFactor')}
                             </button>
                         ) : (
                             <button
@@ -157,9 +155,7 @@ export default function TwoFactorSettings() {
                                 disabled={loading || !password}
                                 className="w-full rounded-xl bg-linear-to-r from-[#ffcf5c] to-[#ff9f43] px-4 py-3 font-bold text-[#10212a] disabled:opacity-50"
                             >
-                                {loading
-                                    ? t('loading')
-                                    : t('generateQrCode')}
+                                {loading ? t('loading') : t('generateQrCode')}
                             </button>
                         )}
                     </>

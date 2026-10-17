@@ -342,13 +342,7 @@ function AppContent() {
 
             <Route
                 path="/settings"
-                element={
-                    user ? (
-                        <Settings />
-                    ) : (
-                        <Navigate to="/login" replace />
-                    )
-                }
+                element={user ? <Settings /> : <Navigate to="/login" replace />}
             />
 
             <Route
@@ -356,15 +350,10 @@ function AppContent() {
                 element={<PasswordResetRequest />}
             />
 
+            <Route path="/settings/2fa" element={<TwoFactorSettings />} />
 
-            <Route path="/settings/2fa" 
-                element={<TwoFactorSettings />} 
-            />
+            <Route path="/settings/2fa/setup" element={<TwoFactorSetup />} />
 
-            <Route path="/settings/2fa/setup" 
-                element={<TwoFactorSetup />} 
-            />
-            
             <Route
                 path="/verify-2fa"
                 element={

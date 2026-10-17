@@ -7,7 +7,6 @@ export default function Settings() {
 
     return (
         <div className="grid min-h-screen place-items-center bg-linear-to-b from-[#10212a] to-[#081016] px-4 text-[#f4f7fb]">
-
             <div className="w-full max-w-md rounded-3xl border border-white/10 bg-[#081016]/80 p-8 shadow-2xl backdrop-blur-md">
                 <h1 className="mb-6 text-center text-2xl font-bold">
                     {t('settings')}

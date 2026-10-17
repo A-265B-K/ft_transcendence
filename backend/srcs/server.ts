@@ -249,7 +249,9 @@ fastify.post<{ Body: TwoFAEnableBody }>(
         }
 
         const result = await enableUser2FA(user.email);
-        return reply.code(result.ok ? 200 : result.statusCode).send(result);
+        return reply
+            .code(result.ok ? 200 : (result.statusCode ?? 500))
+            .send(result);
     }
 );
 
@@ -279,7 +281,9 @@ fastify.post<{ Body: TwoFAConfirmBody }>(
         }
 
         const result = await confirm2FASetup(user.email, request.body.token);
-        return reply.code(result.ok ? 200 : result.statusCode).send(result);
+        return reply
+            .code(result.ok ? 200 : (result.statusCode ?? 500))
+            .send(result);
     }
 );
 
@@ -331,7 +335,9 @@ fastify.post<{ Body: TwoFADisableBody }>(
         }
 
         const result = await disableUser2FA(user.email);
-        return reply.code(result.ok ? 200 : result.statusCode).send(result);
+        return reply
+            .code(result.ok ? 200 : (result.statusCode ?? 500))
+            .send(result);
     }
 );
 

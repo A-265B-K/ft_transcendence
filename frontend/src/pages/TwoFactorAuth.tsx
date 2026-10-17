@@ -3,9 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { type TwoFactorAuthProps } from './TwoFactorAuthProps';
 
-export default function TwoFactorAuth({
-    onLoginSuccess
-}: TwoFactorAuthProps) {
+export default function TwoFactorAuth({ onLoginSuccess }: TwoFactorAuthProps) {
     const navigate = useNavigate();
     const { t } = useTranslation();
 
@@ -22,10 +20,10 @@ export default function TwoFactorAuth({
             const response = await fetch('/api/auth/2fa/verify', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/json'
                 },
                 credentials: 'include',
-                body: JSON.stringify({ token }),
+                body: JSON.stringify({ token })
             });
 
             const data = await response.json();
@@ -48,9 +46,7 @@ export default function TwoFactorAuth({
                     onLoginSuccess(sessionData.user);
                 }, 1000);
             } else {
-                setMessage(
-                    data.message ?? t('twoFactorVerificationFailed')
-                );
+                setMessage(data.message ?? t('twoFactorVerificationFailed'));
             }
         } catch {
             setMessage(t('backendError'));
