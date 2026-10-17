@@ -1,12 +1,16 @@
 import { useState } from 'react';
 import type { WeaponType } from '../game/entities/weapons/weapon';
 import { getSocket } from '../socket';
+import daggerIcon from '../assets/weapons/dagger/dagger1.png';
+import swordIcon from '../assets/weapons/sword/sword1.png';
+import spearIcon from '../assets/weapons/spear/spear1.png';
+import axeIcon from '../assets/weapons/axe/axe1.png';
 
 const weaponrecipes = {
-    dagger: { wood: 15, iron: 15 },
-    sword: { wood: 30, iron: 20 },
-    spear: { wood: 30, iron: 20 },
-    axe: { wood: 20, iron: 30 }
+    dagger: { wood: 15, iron: 15, icon: daggerIcon },
+    sword: { wood: 30, iron: 20, icon: swordIcon },
+    spear: { wood: 30, iron: 20, icon: spearIcon },
+    axe: { wood: 20, iron: 30, icon: axeIcon }
 };
 
 const castleUpgradeRecipes: Partial<
@@ -106,15 +110,21 @@ export function Forgemenu({
                                             inventory.wood < recipe.wood ||
                                             inventory.iron < recipe.iron
                                         }
-                                        className="rounded-lg bg-slate-700 px-3 py-2 text-left hover:bg-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
+                                        className="flex items-center gap-3 rounded-lg bg-slate-700 px-3 py-2 text-left hover:bg-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
                                     >
-                                        <span className="font-bold capitalize">
-                                            {weapon}
-                                        </span>
-
-                                        <span className="block text-sm text-slate-300">
-                                            {recipe.wood} wood · {recipe.iron}{' '}
-                                            iron
+                                        <img
+                                            src={recipe.icon}
+                                            alt=""
+                                            className="h-10 w-10 shrink-0 object-contain"
+                                        />
+                                        <span>
+                                            <span className="block font-bold capitalize">
+                                                {weapon}
+                                            </span>
+                                            <span className="block text-sm text-slate-300">
+                                                {recipe.wood} wood ·{' '}
+                                                {recipe.iron} iron
+                                            </span>
                                         </span>
                                     </button>
                                 )
