@@ -9,6 +9,10 @@ import { connectSocket, disconnectSocket, getSocket } from '../socket';
 import type { GameCanvasProps } from './gameCanvasProps';
 import { useTranslation } from 'react-i18next';
 import type { WeaponType } from '../game/entities/weapons/weapon';
+import healingIcon from '../assets/castleboons/healing.png';
+import shieldIcon from '../assets/castleboons/shield.png';
+
+const CASTLE_HEAL_RADIUS = 10;
 
 export default function GameCanvas({ joinedData }: GameCanvasProps) {
     const { t } = useTranslation();
@@ -25,12 +29,14 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
     });
 
     const [hp, setHp] = useState(joinedData.player.hp);
+    const [armorActive, setArmorActive] = useState(false);
     const [spectating, setSpectating] = useState(false);
     const [castlePointer, setCastlePointer] = useState<CastlePointer | null>(
         null
     );
 
     const [nearCastle, setNearCastle] = useState(false);
+    const [withinHealingRange, setWithinHealingRange] = useState(false);
 
     const [paused, setPaused] = useState(false);
 
@@ -225,6 +231,11 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             }
         }
 
+        const handlearmor = (data: { armor: boolean }) => {
+            game.setarmor(data.armor);
+            setArmorActive(data.armor);
+        };
+
         socket.on('player_joined', handlePlayerJoined);
         socket.on('player_move', handlePlayerMove);
         socket.on('player_left', handlePlayerLeft);
@@ -236,6 +247,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         socket.on('castle_update', handleCastleUpgrade);
         socket.on('player_died', handlePlayerDied);
         socket.on('player_weapon_equipped', handlePlayerWeaponEquipped);
+        socket.on('armor', handlearmor);
 
         const intervalId = window.setInterval(() => {
             const snapshot = game.getInventorySnapshot();
@@ -246,6 +258,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
 
             if (pointer) setCastlePointer(pointer);
             setNearCastle(game.isPlayerNearCastle(7));
+            setWithinHealingRange(game.isPlayerNearCastle(CASTLE_HEAL_RADIUS));
         }, 32);
 
         return () => {
@@ -261,6 +274,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             socket.off('join_error', handleJoinError);
             socket.off('castle_update', handleCastleUpgrade);
             socket.off('player_weapon_equipped', handlePlayerWeaponEquipped);
+            socket.off('armor', handlearmor);
             window.clearInterval(intervalId);
 
             gameRef.current = null;
@@ -324,9 +338,29 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             )}
 
             <div className="pointer-events-none absolute left-4 top-4 z-50">
-                <div className="w-64">
-                    <div className="mb-1 text-sm font-bold text-white">
-                        HP {hp} / 100
+                <div className="w-64 shrink-0">
+                    <div className="mb-1 flex h-12 items-center justify-between">
+                        <div className="text-sm font-bold text-white">
+                            HP {hp} / 100
+                        </div>
+                        <div className="flex items-center gap-1">
+                            {castlelvl >= 2 &&
+                                withinHealingRange &&
+                                !spectating && (
+                                    <img
+                                        src={healingIcon}
+                                        alt="Healing"
+                                        className="h-12 w-12 object-contain"
+                                    />
+                                )}
+                            {!spectating && armorActive && (
+                                <img
+                                    src={shieldIcon}
+                                    alt="Armor"
+                                    className="h-12 w-12 object-contain"
+                                />
+                            )}
+                        </div>
                     </div>
 
                     <div className="h-4 overflow-hidden rounded-full bg-black/50">

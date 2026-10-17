@@ -1,11 +1,12 @@
 import {
-    CASTLE_HEAL_LVL,
-    CASTLE_HEAL_RADIUS,
+    CASTLE_HEAL,
+    CASTLE_HEAL_INTERVAL,
     CASTLE_RADIUS,
-    PLAYER_DEFAULT_CASTLE_LEVEL
+    PLAYER_DEFAULT_CASTLE_LEVEL,
+    PLAYER_MAX_HP
 } from './constants.js';
+import type { Player } from './player.js';
 import type { Vec2 } from './types.js';
-import { getDistance } from './util.js';
 
 export type upgradecost = {
     wood: number;
@@ -15,6 +16,7 @@ export type upgradecost = {
 export class castle {
     private level = PLAYER_DEFAULT_CASTLE_LEVEL;
     private readonly position: Vec2;
+    private nextcastleheal = 0;
 
     constructor(
         readonly playerSlot: number,
@@ -40,11 +42,37 @@ export class castle {
     setlevel(newlevel: number) {
         this.level = newlevel;
     }
-    canHeal(): boolean {
-        return this.level >= CASTLE_HEAL_LVL;
+    canHeal(Player: Player): boolean {
+        return Player.isnearcastle() && this.level >= 2;
     }
-    isnearcastle(playerPosition: Vec2): boolean {
-        return getDistance(playerPosition, this.position) <= CASTLE_HEAL_RADIUS;
+    canAddarmor(): boolean {
+        return this.level >= 3;
+    }
+    canAttack(): boolean {
+        return this.level == 4;
+    }
+    resetHealingCooldown(): void {
+        this.nextcastleheal = 0;
+    }
+    castleheal(player: Player): boolean {
+        if (player.getHp() < PLAYER_MAX_HP) {
+            const now = Date.now();
+            if (this.nextcastleheal) {
+                if (now >= this.nextcastleheal) {
+                    this.nextcastleheal = now + CASTLE_HEAL_INTERVAL * 1000;
+                    return player.heal(CASTLE_HEAL);
+                } else return false;
+            } else {
+                this.nextcastleheal = now + CASTLE_HEAL_INTERVAL * 1000;
+                return false;
+            }
+        } else {
+            this.resetHealingCooldown();
+            return false;
+        }
+    }
+    castleattack(): boolean {
+        return false;
     }
     toJSON() {
         return {

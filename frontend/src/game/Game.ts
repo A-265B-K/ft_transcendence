@@ -151,4 +151,10 @@ export class Game {
     setPlayerDead(): void {
         this.scene?.setPlayerDead();
     }
+    armoractive() {
+        return this.scene?.player.hasarmor();
+    }
+    setarmor(newarmor: boolean) {
+        this.scene?.player.setarmor(newarmor);
+    }
 }
