@@ -29,12 +29,14 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
     });
 
     const [hp, setHp] = useState(joinedData.player.hp);
+    const [armorActive, setArmorActive] = useState(false);
     const [spectating, setSpectating] = useState(false);
     const [castlePointer, setCastlePointer] = useState<CastlePointer | null>(
         null
     );
 
     const [nearCastle, setNearCastle] = useState(false);
+    const [withinHealingRange, setWithinHealingRange] = useState(false);
 
     const [paused, setPaused] = useState(false);
 
@@ -231,6 +233,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
 
         const handlearmor = (data: { armor: boolean }) => {
             game.setarmor(data.armor);
+            setArmorActive(data.armor);
         };
 
         socket.on('player_joined', handlePlayerJoined);
@@ -255,6 +258,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
 
             if (pointer) setCastlePointer(pointer);
             setNearCastle(game.isPlayerNearCastle(7));
+            setWithinHealingRange(game.isPlayerNearCastle(CASTLE_HEAL_RADIUS));
         }, 32);
 
         return () => {
@@ -270,6 +274,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             socket.off('join_error', handleJoinError);
             socket.off('castle_update', handleCastleUpgrade);
             socket.off('player_weapon_equipped', handlePlayerWeaponEquipped);
+            socket.off('armor', handlearmor);
             window.clearInterval(intervalId);
 
             gameRef.current = null;
@@ -340,16 +345,15 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
                         </div>
                         <div className="flex items-center gap-1">
                             {castlelvl >= 2 &&
-                                gameRef.current?.isPlayerNearCastle(
-                                    CASTLE_HEAL_RADIUS
-                                ) && (
+                                withinHealingRange &&
+                                !spectating && (
                                     <img
                                         src={healingIcon}
                                         alt="Healing"
                                         className="h-12 w-12 object-contain"
                                     />
                                 )}
-                            {gameRef.current?.armoractive() && (
+                            {!spectating && armorActive && (
                                 <img
                                     src={shieldIcon}
                                     alt="Armor"

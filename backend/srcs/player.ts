@@ -105,10 +105,13 @@ export class Player {
     }
 
     checkarmor() {
-        const armorvalue = this.armor && Date.now() <= this.armorexpiry;
-        if (this.armor != armorvalue) {
+        const armorvalue =
+            this.alive && this.armor && Date.now() < this.armorexpiry;
+        if (this.armor !== armorvalue) {
+            this.armor = armorvalue;
+            this.armorexpiry = 0;
             this.namespace.to(this.socketId).emit('armor', {
-                armorvalue
+                armor: armorvalue
             });
         }
         return armorvalue;
@@ -121,6 +124,7 @@ export class Player {
 
         this.armorexpiry = Date.now() + 20 * 1000;
         this.armor = true;
+        this.namespace.to(this.socketId).emit('armor', { armor: true });
         return true;
     }
 
@@ -176,6 +180,7 @@ export class Player {
 
         this.hp = newHp;
         this.alive = this.hp > 0;
+        if (!this.alive) this.checkarmor();
         this.namespace.to(this.roomId).emit('player_hp', {
             socketId: this.socketId,
             hp: this.hp,
@@ -192,10 +197,9 @@ export class Player {
     }
 
     castlecheck() {
-        if (!this.alive || !this.isnearcastle()) return false;
-
-        this.armor = this.checkarmor();
-        if (this.castle.canHeal()) this.castle.castleheal(this);
+        this.checkarmor();
+        if (!this.alive) return;
+        if (this.castle.canHeal(this)) this.castle.castleheal(this);
         if (this.castle.canAttack()) this.castle.castleattack();
     }
     heal(healamount: number): boolean {

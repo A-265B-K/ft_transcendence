@@ -29,6 +29,6 @@ log "Starting application stack..."
 
 docker compose \
 	-f "$COMPOSE_FILE_PROD" \
-	up -d
+	up --build -d
 
 log "Application stack started."

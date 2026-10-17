@@ -42,8 +42,8 @@ export class castle {
     setlevel(newlevel: number) {
         this.level = newlevel;
     }
-    canHeal(): boolean {
-        return this.level >= 2;
+    canHeal(Player: Player): boolean {
+        return Player.isnearcastle() && this.level >= 2;
     }
     canAddarmor(): boolean {
         return this.level >= 3;
