@@ -71,9 +71,6 @@ export class castle {
             return false;
         }
     }
-    castlearmor(Player: Player): boolean {
-        return false;
-    }
     castleattack(): boolean {
         return false;
     }

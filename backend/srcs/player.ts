@@ -41,6 +41,9 @@ export class Player {
     private equippedWeapon: WeaponType;
     private nextAttack: number;
 
+    private armor = false;
+    private armorexpiry = 0;
+
     constructor(
         socket: Socket,
         user: SocketUser,
@@ -99,6 +102,20 @@ export class Player {
             x: this.x,
             y: this.y
         };
+    }
+
+    checkarmor() {
+        return this.armor && Date.now() <= this.armorexpiry;
+    }
+
+    equiparmor() {
+        if (!this.alive || !this.isnearcastle() || !this.castle.canAddarmor()) {
+            return false;
+        }
+
+        this.armorexpiry = Date.now() + 20 * 1000;
+        this.armor = true;
+        return true;
     }
 
     getInventory() {
@@ -169,10 +186,10 @@ export class Player {
     }
 
     castlecheck() {
-        if (! this.alive || !this.isnearcastle()) return false;
+        if (!this.alive || !this.isnearcastle()) return false;
 
+        this.armor = this.checkarmor();
         if (this.castle.canHeal()) this.castle.castleheal(this);
-        if (this.castle.canAddarmor()) this.castle.castlearmor(this);
         if (this.castle.canAttack()) this.castle.castleattack();
     }
     heal(healamount: number): boolean {
@@ -212,8 +229,9 @@ export class Player {
     }
 
     takeDamage(damage: number): boolean {
-        this.setHp(this.hp - damage);
+        if (this.checkarmor()) damage = (damage / 100) * 80;
 
+        this.setHp(this.hp - damage);
         return this.alive === false;
     }
 

@@ -415,6 +415,12 @@ export class Room {
 
         return player.craftWeapon(cost, weapon);
     }
+    equiparmor(userId: string): boolean {
+        if (!this.hasStarted()) return false;
+
+        return this.getPlayerByUserId(userId)?.equiparmor() ?? false;
+    }
+
     upgradecastle(userId: string) {
         if (!this.hasStarted()) return null;
         if (this.getPlayerByUserId(userId)?.upgradecastle())

@@ -79,6 +79,19 @@ const onConnection = async (socket: Socket, roomManager: RoomManager) => {
         }
     );
 
+    socket.on(
+        'equiparmor',
+        (_data: unknown, reply: (result: { success: boolean }) => void) => {
+            if (typeof reply !== 'function') return;
+
+            const room = currentRoomId
+                ? roomManager.getRoomById(currentRoomId)
+                : undefined;
+
+            reply({ success: room?.equiparmor(user.id) ?? false });
+        }
+    );
+
     socket.on('get_room_by_code', ({ code }: { code: unknown }) => {
         if (typeof code !== 'string') {
             socket.emit('join_error', {
