@@ -42,6 +42,7 @@ export class Player {
     private readonly textures: PlayerTextures;
     weapon?: Weapon;
     private hittimer = 0;
+    private Armor = false;
 
     constructor(textures: PlayerTextures) {
         this.textures = textures;
@@ -151,6 +152,9 @@ export class Player {
         }
     }
 
+    hasarmor() {
+        return this.Armor;
+    }
     private setWalkAnimation() {
         const animations = {
             down: [this.textures.playerDown1, this.textures.playerDown2],

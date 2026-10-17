@@ -151,4 +151,7 @@ export class Game {
     setPlayerDead(): void {
         this.scene?.setPlayerDead();
     }
+    armoractive() {
+        return this.scene?.player.hasarmor();
+    }
 }

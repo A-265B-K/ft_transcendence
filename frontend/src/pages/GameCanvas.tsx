@@ -9,6 +9,10 @@ import { connectSocket, disconnectSocket, getSocket } from '../socket';
 import type { GameCanvasProps } from './gameCanvasProps';
 import { useTranslation } from 'react-i18next';
 import type { WeaponType } from '../game/entities/weapons/weapon';
+import healingIcon from '../assets/castleboons/healing.png';
+import shieldIcon from '../assets/castleboons/shield.png';
+
+const CASTLE_HEAL_RADIUS = 10;
 
 export default function GameCanvas({ joinedData }: GameCanvasProps) {
     const { t } = useTranslation();
@@ -324,9 +328,30 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             )}
 
             <div className="pointer-events-none absolute left-4 top-4 z-50">
-                <div className="w-64">
-                    <div className="mb-1 text-sm font-bold text-white">
-                        HP {hp} / 100
+                <div className="w-64 shrink-0">
+                    <div className="mb-1 flex h-12 items-center justify-between">
+                        <div className="text-sm font-bold text-white">
+                            HP {hp} / 100
+                        </div>
+                        <div className="flex items-center gap-1">
+                            {castlelvl >= 2 &&
+                                gameRef.current?.isPlayerNearCastle(
+                                    CASTLE_HEAL_RADIUS
+                                ) && (
+                                    <img
+                                        src={healingIcon}
+                                        alt="Healing"
+                                        className="h-12 w-12 object-contain"
+                                    />
+                                )}
+                            {gameRef.current?.armoractive() && (
+                                <img
+                                    src={shieldIcon}
+                                    alt="Armor"
+                                    className="h-12 w-12 object-contain"
+                                />
+                            )}
+                        </div>
                     </div>
 
                     <div className="h-4 overflow-hidden rounded-full bg-black/50">
