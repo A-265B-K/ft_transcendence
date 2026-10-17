@@ -155,6 +155,9 @@ export class Player {
     hasarmor() {
         return this.Armor;
     }
+    setarmor(newarmor: boolean) {
+        this.Armor = newarmor;
+    }
     private setWalkAnimation() {
         const animations = {
             down: [this.textures.playerDown1, this.textures.playerDown2],

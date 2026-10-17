@@ -229,6 +229,10 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             }
         }
 
+        const handlearmor = (data: { armor: boolean }) => {
+            game.setarmor(data.armor);
+        };
+
         socket.on('player_joined', handlePlayerJoined);
         socket.on('player_move', handlePlayerMove);
         socket.on('player_left', handlePlayerLeft);
@@ -240,6 +244,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         socket.on('castle_update', handleCastleUpgrade);
         socket.on('player_died', handlePlayerDied);
         socket.on('player_weapon_equipped', handlePlayerWeaponEquipped);
+        socket.on('armor', handlearmor);
 
         const intervalId = window.setInterval(() => {
             const snapshot = game.getInventorySnapshot();

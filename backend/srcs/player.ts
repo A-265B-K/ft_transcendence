@@ -105,7 +105,13 @@ export class Player {
     }
 
     checkarmor() {
-        return this.armor && Date.now() <= this.armorexpiry;
+        const armorvalue = this.armor && Date.now() <= this.armorexpiry;
+        if (this.armor != armorvalue) {
+            this.namespace.to(this.socketId).emit('armor', {
+                armorvalue
+            });
+        }
+        return armorvalue;
     }
 
     equiparmor() {
