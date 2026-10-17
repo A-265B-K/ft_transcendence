@@ -6,8 +6,6 @@ import {
     MOVE_TOLERANCE_SECONDS,
     PLAYER_MAX_SPEED,
     MOVE_MAX_ELAPSED_SECONDS,
-    CASTLE_HEAL_INTERVAL,
-    CASTLE_HEAL,
     CASTLE_HEAL_RADIUS
 } from './constants.js';
 import type { Cost } from './room.js';
@@ -38,11 +36,13 @@ export class Player {
         wood: number;
     };
     private readonly castle: Castle;
-    private nextcastleheal = 0;
 
     private lastMoveAt: number;
     private equippedWeapon: WeaponType;
     private nextAttack: number;
+
+    private armor = false;
+    private armorexpiry = 0;
 
     constructor(
         socket: Socket,
@@ -104,6 +104,30 @@ export class Player {
         };
     }
 
+    checkarmor() {
+        const armorvalue =
+            this.alive && this.armor && Date.now() < this.armorexpiry;
+        if (this.armor !== armorvalue) {
+            this.armor = armorvalue;
+            this.armorexpiry = 0;
+            this.namespace.to(this.socketId).emit('armor', {
+                armor: armorvalue
+            });
+        }
+        return armorvalue;
+    }
+
+    equiparmor() {
+        if (!this.alive || !this.isnearcastle() || !this.castle.canAddarmor()) {
+            return false;
+        }
+
+        this.armorexpiry = Date.now() + 20 * 1000;
+        this.armor = true;
+        this.namespace.to(this.socketId).emit('armor', { armor: true });
+        return true;
+    }
+
     getInventory() {
         return { ...this.inventory, castleLevel: this.castle.getlevel() };
     }
@@ -146,7 +170,7 @@ export class Player {
             getDistance(this.getPosition(), this.castle.getposition()) >=
             CASTLE_HEAL_RADIUS
         )
-            this.nextcastleheal = 0;
+            this.castle.resetHealingCooldown();
     }
 
     private setHp(hp: number): boolean {
@@ -156,6 +180,7 @@ export class Player {
 
         this.hp = newHp;
         this.alive = this.hp > 0;
+        if (!this.alive) this.checkarmor();
         this.namespace.to(this.roomId).emit('player_hp', {
             socketId: this.socketId,
             hp: this.hp,
@@ -164,27 +189,18 @@ export class Player {
         return true;
     }
 
-    castleheal(): boolean {
-        if (
-            this.castle.canHeal() &&
-            this.alive &&
-            this.hp < PLAYER_MAX_HP &&
-            this.castle.isnearcastle(this.getPosition())
-        ) {
-            const now = Date.now();
-            if (this.nextcastleheal) {
-                if (now >= this.nextcastleheal) {
-                    this.nextcastleheal = now + CASTLE_HEAL_INTERVAL * 1000;
-                    return this.heal(CASTLE_HEAL);
-                } else return false;
-            } else {
-                this.nextcastleheal = now + CASTLE_HEAL_INTERVAL * 1000;
-                return false;
-            }
-        } else {
-            this.nextcastleheal = 0;
-            return false;
-        }
+    isnearcastle(): boolean {
+        return (
+            getDistance(this.getPosition(), this.castle.getposition()) <=
+            CASTLE_HEAL_RADIUS
+        );
+    }
+
+    castlecheck() {
+        this.checkarmor();
+        if (!this.alive) return;
+        if (this.castle.canHeal(this)) this.castle.castleheal(this);
+        if (this.castle.canAttack()) this.castle.castleattack();
     }
     heal(healamount: number): boolean {
         if (this.alive && healamount > 0 && this.hp < PLAYER_MAX_HP) {
@@ -223,8 +239,9 @@ export class Player {
     }
 
     takeDamage(damage: number): boolean {
-        this.setHp(this.hp - damage);
+        if (this.checkarmor()) damage = (damage / 100) * 80;
 
+        this.setHp(this.hp - damage);
         return this.alive === false;
     }
 

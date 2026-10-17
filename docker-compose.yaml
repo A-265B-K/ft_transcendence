@@ -166,6 +166,7 @@ volumes:
   grafana:
   postgres_data:
     name: ${POSTGRES_VOLUME_NAME:-ft_transcendence_postgres_data}
+    external: true
   vault_data:
 
 secrets:
