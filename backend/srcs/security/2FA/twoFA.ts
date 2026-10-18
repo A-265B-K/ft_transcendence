@@ -135,3 +135,35 @@ export async function verify2FALogin(email: string, token: string) {
         };
     }
 }
+
+export async function get2FAstatus(email: string) {
+    try {
+        const user = await findUserByEmail(email);
+
+        if (!user) {
+            return {
+                ok: false,
+                statusCode: 400,
+                message: 'User not found'
+            };
+        }
+        return {
+            ok: true,
+            statusCode: 200,
+            user: {
+                id: user.id,
+                username: user.username,
+                email: user.email,
+                enabled2FA: user.enabled_2fa
+            }
+        };
+    } catch (error) {
+        console.error('[2FA.status] failed:', error);
+
+        return {
+            ok: false,
+            statusCode: 500,
+            message: '2FA status lookup failed'
+        };
+    }
+}

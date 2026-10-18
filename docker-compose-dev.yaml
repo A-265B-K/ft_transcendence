@@ -114,7 +114,7 @@ services:
         interval: 1s
         timeout: 3s
         retries: 10
-        start_period: 10s
+        start_period: 30s
 
     backups:
       build: ./backups
