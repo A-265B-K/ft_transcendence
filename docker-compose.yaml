@@ -25,15 +25,29 @@ services:
 
     nginx_prod:
       build: 
-        dockerfile: ./nginx/prod.Dockerfile
+        dockerfile: ./nginx/waf/waf_prod.Dockerfile
         context: .
       depends_on:
         backend:
           condition: service_healthy
         grafana:
           condition: service_healthy
+      environment:
+        MODSEC_RULE_ENGINE: "On"
+        BLOCKING_PARANOIA: "1"
+        ANOMALY_INBOUND: "5"
+        MODSEC_AUDIT_ENGINE: "RelevantOnly"
+        SSL_PORT: "8443"
+        PORT: "8080"
+        SERVER_NAME: "localhost"
       ports:
-        - "8443:443"
+        - "8443:8443"
+      healthcheck:
+        test: ["CMD", "curl", "--fail", "--silent", "--show-error", "--insecure", "--max-time", "2", "https://localhost:8443/api/ping", "--output", "/dev/null"]
+        interval: 2s
+        timeout: 3s
+        retries: 60
+        start_period: 10s
   
     postgres:
       image: postgres:18.4

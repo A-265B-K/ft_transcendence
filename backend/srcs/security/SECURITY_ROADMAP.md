@@ -51,11 +51,13 @@ What to store in Vault:
 
 - database credentials
 - session or JWT signing keys
-- email provider credentials
-- TOTP-related encryption keys
-- any future API keys
+- email provider credentials -->
 
-What to do:
+- TOTP-related encryption keys
+
+<!-- - any future API keys -->
+
+<!-- What to do:
 
 - Add a Vault service with its own persistent volume.
 - Use Vault Agent or rendered files so the backend gets secrets at runtime.
@@ -64,7 +66,7 @@ What to do:
 
 ## 5. Put ModSecurity/WAF at the edge
 
-Goal: harden the public edge after auth exists.
+<!-- Goal: harden the public edge after auth exists.
 
 What to do:
 
@@ -72,7 +74,7 @@ What to do:
 - Start in detection mode first, then switch to blocking after tuning.
 - Keep websocket upgrade paths working for `/socket.io/`.
 - Write explicit allow rules for the routes that must accept browser traffic.
-- Make login and registration endpoints the main WAF focus.
+- Make login and registration endpoints the main WAF focus. -->
 
 ## 6. Add hardening around the auth flow
 
@@ -95,5 +97,6 @@ What to do:
 <!--5. Gate websocket joins on authenticated sessions.-->
 <!-- 6. Add Vault and remove secrets from compose. -->
 
-7. Add ModSecurity/WAF at the Nginx edge and tune it.
+<!-- 7. Add ModSecurity/WAF at the Nginx edge and tune it. -->
+
 8. Add rate limiting, lockout, and audit logging.

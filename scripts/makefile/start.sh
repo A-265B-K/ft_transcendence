@@ -29,6 +29,6 @@ log "Starting application stack..."
 
 docker compose \
 	-f "$COMPOSE_FILE_PROD" \
-	up --build -d
+	up --build -d --wait --wait-timeout 180
 
 log "Application stack started."
