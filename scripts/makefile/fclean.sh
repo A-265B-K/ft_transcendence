@@ -25,6 +25,8 @@ docker compose \
 	--rmi all \
 	--remove-orphans
 
+./scripts/makefile/clean_volumes.sh
+
 log "Removing generated secrets and backups..."
 
 rm -rf \
