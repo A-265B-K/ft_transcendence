@@ -43,6 +43,14 @@ export default function GameMenu({ user, onLogout }: GameMenuProps) {
 
                     <button
                         type="button"
+                        onClick={() => navigate('/settings')}
+                        className="rounded-xl border border-white/15 bg-white/5 px-4 py-3 font-bold transition hover:bg-white/10"
+                    >
+                        {t('settings')}
+                    </button>
+
+                    <button
+                        type="button"
                         onClick={onLogout}
                         className="mt-3 rounded-xl border border-white/15 bg-transparent px-4 py-3 text-[#f4f7fb] transition hover:bg-white/10"
                     >

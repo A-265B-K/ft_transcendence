@@ -22,11 +22,6 @@ export default defineConfig({
             '/setup-2fa': {
                 target: 'http://backend:3000',
                 changeOrigin: true
-            },
-
-            '/verify-2fa': {
-                target: 'http://backend:3000',
-                changeOrigin: true
             }
         }
     }

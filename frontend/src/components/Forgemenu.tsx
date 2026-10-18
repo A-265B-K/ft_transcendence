@@ -1,12 +1,16 @@
 import { useState } from 'react';
 import type { WeaponType } from '../game/entities/weapons/weapon';
 import { getSocket } from '../socket';
+import daggerIcon from '../assets/weapons/dagger/dagger1.png';
+import swordIcon from '../assets/weapons/sword/sword1.png';
+import spearIcon from '../assets/weapons/spear/spear1.png';
+import axeIcon from '../assets/weapons/axe/axe1.png';
 
 const weaponrecipes = {
-    dagger: { wood: 15, iron: 15 },
-    sword: { wood: 30, iron: 20 },
-    spear: { wood: 30, iron: 20 },
-    axe: { wood: 20, iron: 30 }
+    dagger: { wood: 15, iron: 15, icon: daggerIcon },
+    sword: { wood: 30, iron: 20, icon: swordIcon },
+    spear: { wood: 30, iron: 20, icon: spearIcon },
+    axe: { wood: 20, iron: 30, icon: axeIcon }
 };
 
 const castleUpgradeRecipes: Partial<
@@ -34,6 +38,7 @@ export function Forgemenu({
     upgrading: boolean;
 }) {
     const [open, setOpen] = useState(false);
+    const [equippingArmor, setEquippingArmor] = useState(false);
     const upgradeCost = castleUpgradeRecipes[castleLevel + 1];
     const atMaxLevel = castleLevel >= 4;
     const canAffordUpgrade =
@@ -59,6 +64,18 @@ export function Forgemenu({
             }
         });
     }
+    function equiparmor() {
+        if (equippingArmor || upgrading || castleLevel < 3) return;
+
+        const socket = getSocket();
+        if (!socket?.connected) return;
+
+        setEquippingArmor(true);
+        socket.timeout(5000).emit('equiparmor', {}, () => {
+            setEquippingArmor(false);
+        });
+    }
+
     return (
         <div>
             <div className="absolute bottom-24 right-4 z-50 text-white">
@@ -89,20 +106,57 @@ export function Forgemenu({
                                                 weapon as keyof typeof weaponrecipes
                                             )
                                         }
-                                        className="rounded-lg bg-slate-700 px-3 py-2 text-left hover:bg-slate-600"
+                                        disabled={
+                                            inventory.wood < recipe.wood ||
+                                            inventory.iron < recipe.iron
+                                        }
+                                        className="flex items-center gap-3 rounded-lg bg-slate-700 px-3 py-2 text-left hover:bg-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
                                     >
-                                        <span className="font-bold capitalize">
-                                            {weapon}
-                                        </span>
-
-                                        <span className="block text-sm text-slate-300">
-                                            {recipe.wood} wood · {recipe.iron}{' '}
-                                            iron
+                                        <img
+                                            src={recipe.icon}
+                                            alt=""
+                                            className="h-10 w-10 shrink-0 object-contain"
+                                        />
+                                        <span>
+                                            <span className="block font-bold capitalize">
+                                                {weapon}
+                                            </span>
+                                            <span className="block text-sm text-slate-300">
+                                                {recipe.wood} wood ·{' '}
+                                                {recipe.iron} iron
+                                            </span>
                                         </span>
                                     </button>
                                 )
                             )}
                         </div>
+                        <section
+                            aria-label="Armor"
+                            className="mt-4 border-t border-slate-700 pt-4"
+                        >
+                            <button
+                                type="button"
+                                onClick={equiparmor}
+                                disabled={
+                                    castleLevel < 3 ||
+                                    equippingArmor ||
+                                    upgrading
+                                }
+                                aria-busy={equippingArmor}
+                                className="w-full rounded-lg bg-slate-700 px-3 py-2 text-left hover:bg-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                <span className="block font-bold">
+                                    {equippingArmor
+                                        ? 'Equipping armor…'
+                                        : 'Equip armor'}
+                                </span>
+                                <span className="block text-sm text-slate-300">
+                                    {castleLevel < 3
+                                        ? 'Requires castle level 3'
+                                        : '20% damage reduction for 20 seconds'}
+                                </span>
+                            </button>
+                        </section>
                         <section
                             aria-label="Castle"
                             className="mt-4 border-t border-slate-700 pt-4"

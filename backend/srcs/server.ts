@@ -18,6 +18,7 @@ import {
     deleteTemporary2FA
 } from './security/repository/sessionRepository.js';
 import {
+    findUserByEmail,
     findUserByVerificationToken,
     changeEmailVerified,
     findUserByPasswordResetRequestToken,
@@ -28,7 +29,8 @@ import {
     enableUser2FA,
     disableUser2FA,
     confirm2FASetup,
-    verify2FALogin
+    verify2FALogin,
+    get2FAstatus
 } from './security/2FA/twoFA.js';
 import { passwordResetRequest } from './security/auth/passwordReset.js';
 import bcrypt from 'bcrypt';
@@ -145,6 +147,30 @@ fastify.get('/api/auth/me', async (request, reply) => {
     };
 });
 
+fastify.get('/api/auth/2fa/status', async (request, reply) => {
+    const session_id = request.cookies.session_id;
+    if (!session_id) {
+        return reply.code(401).send({
+            ok: false,
+            message: 'Not logged in'
+        });
+    }
+
+    const session_id_hash = createHash('sha256')
+        .update(session_id)
+        .digest('hex');
+    const user = await getCurrentUser(session_id_hash);
+    if (!user) {
+        return reply.code(401).send({
+            ok: false,
+            message: 'Invalid session'
+        });
+    }
+
+    const result = await get2FAstatus(user.email);
+    return reply.code(result.statusCode).send(result);
+});
+
 fastify.post('/api/auth/logout', async (request, reply) => {
     try {
         const session_id = request.cookies.session_id;
@@ -175,39 +201,143 @@ fastify.post('/api/auth/logout', async (request, reply) => {
 });
 
 type TwoFAEnableBody = {
-    email: string;
+    password: string;
 };
 fastify.post<{ Body: TwoFAEnableBody }>(
     '/api/auth/2fa/setup',
-    async (request) => {
-        const { email } = request.body;
+    async (request, reply) => {
+        const session_id = request.cookies.session_id;
+        if (!session_id) {
+            return reply.code(401).send({
+                ok: false,
+                message: 'Not logged in'
+            });
+        }
 
-        return await enableUser2FA(email);
+        const session_id_hash = createHash('sha256')
+            .update(session_id)
+            .digest('hex');
+        const currentUser = await getCurrentUser(session_id_hash);
+        if (!currentUser) {
+            return reply.code(401).send({
+                ok: false,
+                message: 'Invalid session'
+            });
+        }
+
+        const { password } = request.body;
+        if (!password) {
+            return reply.code(400).send({
+                ok: false,
+                message: 'Password is required'
+            });
+        }
+
+        const user = await findUserByEmail(currentUser.email);
+        if (!user || !(await bcrypt.compare(password, user.password_hash))) {
+            return reply.code(401).send({
+                ok: false,
+                message: 'Invalid password'
+            });
+        }
+
+        if (user.enabled_2fa) {
+            return reply.code(409).send({
+                ok: false,
+                message: '2FA is already enabled'
+            });
+        }
+
+        const result = await enableUser2FA(user.email);
+        return reply
+            .code(result.ok ? 200 : (result.statusCode ?? 500))
+            .send(result);
     }
 );
 
 type TwoFAConfirmBody = {
-    email: string;
     token: string;
 };
 fastify.post<{ Body: TwoFAConfirmBody }>(
     '/api/auth/2fa/confirm',
-    async (request) => {
-        const { email, token } = request.body;
+    async (request, reply) => {
+        const session_id = request.cookies.session_id;
+        if (!session_id) {
+            return reply.code(401).send({
+                ok: false,
+                message: 'Not logged in'
+            });
+        }
 
-        return await confirm2FASetup(email, token);
+        const session_id_hash = createHash('sha256')
+            .update(session_id)
+            .digest('hex');
+        const user = await getCurrentUser(session_id_hash);
+        if (!user) {
+            return reply.code(401).send({
+                ok: false,
+                message: 'Invalid session'
+            });
+        }
+
+        const result = await confirm2FASetup(user.email, request.body.token);
+        return reply
+            .code(result.ok ? 200 : (result.statusCode ?? 500))
+            .send(result);
     }
 );
 
 type TwoFADisableBody = {
-    email: string;
+    password: string;
 };
 fastify.post<{ Body: TwoFADisableBody }>(
     '/api/auth/2fa/disable',
-    async (request) => {
-        const { email } = request.body;
-        // delete cookies
-        return await disableUser2FA(email);
+    async (request, reply) => {
+        const session_id = request.cookies.session_id;
+
+        if (!session_id) {
+            return reply.code(401).send({
+                ok: false,
+                message: 'Not logged in'
+            });
+        }
+
+        const session_id_hash = createHash('sha256')
+            .update(session_id)
+            .digest('hex');
+
+        const user = await getCurrentUser(session_id_hash);
+
+        if (!user) {
+            return reply.code(401).send({
+                ok: false,
+                message: 'Invalid session'
+            });
+        }
+
+        const { password } = request.body;
+        if (!password) {
+            return reply.code(400).send({
+                ok: false,
+                message: 'Password is required'
+            });
+        }
+
+        const authenticatedUser = await findUserByEmail(user.email);
+        if (
+            !authenticatedUser ||
+            !(await bcrypt.compare(password, authenticatedUser.password_hash))
+        ) {
+            return reply.code(401).send({
+                ok: false,
+                message: 'Invalid password'
+            });
+        }
+
+        const result = await disableUser2FA(user.email);
+        return reply
+            .code(result.ok ? 200 : (result.statusCode ?? 500))
+            .send(result);
     }
 );
 
@@ -407,7 +537,6 @@ fastify.get('/verify-2fa', async (request, reply) => {
 });
 
 // Socket ..............................................................................
-
 async function server() {
     const roomManager = new RoomManager();
 

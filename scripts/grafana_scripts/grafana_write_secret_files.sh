@@ -10,7 +10,7 @@ mkdir -p "$GRAFANA_SECRETS_DIR"
 chmod 700 "$GRAFANA_SECRETS_DIR"
 
 if [[ ! -s "$GRAFANA_VAULT_TOKEN_FILE" ]]; then
-    die "Grafana Vault token not found."
+	die "Grafana Vault token not found."
 fi
 
 [[ -s "$GRAFANA_VAULT_TOKEN_FILE" ]] ||
@@ -19,30 +19,30 @@ fi
 grafana_token="$(cat "$GRAFANA_VAULT_TOKEN_FILE")"
 
 grafana_username="$(
-    docker exec \
-        -e VAULT_TOKEN="$grafana_token" \
-        "$VAULT_CONTAINER" \
-        vault kv get \
-            -field=username \
-            app/grafana
+	docker exec \
+		-e VAULT_TOKEN="$grafana_token" \
+		"$VAULT_CONTAINER" \
+		vault kv get \
+			-field=username \
+			app/grafana
 )"
 
 grafana_password="$(
-    docker exec \
-        -e VAULT_TOKEN="$grafana_token" \
-        "$VAULT_CONTAINER" \
-        vault kv get \
-            -field=password \
-            app/grafana
+	docker exec \
+		-e VAULT_TOKEN="$grafana_token" \
+		"$VAULT_CONTAINER" \
+		vault kv get \
+			-field=password \
+			app/grafana
 )"
 
 (
-    umask 077
-    printf '%s' "$grafana_username" \
-        > "$GRAFANA_SECRETS_DIR/admin_user"
+	umask 077
+	printf '%s' "$grafana_username" \
+		> "$GRAFANA_SECRETS_DIR/admin_user"
 
-    printf '%s' "$grafana_password" \
-        > "$GRAFANA_SECRETS_DIR/admin_password"
+	printf '%s' "$grafana_password" \
+		> "$GRAFANA_SECRETS_DIR/admin_password"
 )
 
 unset grafana_token
