@@ -1,5 +1,6 @@
 import type { Inventory, Socket, SocketUser } from './types.js';
 import { RoomManager } from './roomManager.js';
+import { Room } from './room.js';
 
 const onDisconnection = (
     socket: Socket,
@@ -247,6 +248,12 @@ const onConnection = async (socket: Socket, roomManager: RoomManager) => {
             });
         }
     );
+
+    socket.on('castleattack', () => {
+        if (!currentRoomId) return;
+    
+        roomManager.getRoomById(currentRoomId)?.castleattack(user);
+    } )
 
     socket.on('disconnect', () => {
         console.log('Player disconnected:', user.username);

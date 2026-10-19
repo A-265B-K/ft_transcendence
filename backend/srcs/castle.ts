@@ -71,9 +71,18 @@ export class castle {
             return false;
         }
     }
-    castleattack(): boolean {
-        return false;
+
+    castleattack(player: Player) {
+        if (this.canAttack()) {
+            return {
+                start: this.getposition(),
+                target: player.getPosition()
+            };
+        }
+        else
+            return null;
     }
+
     toJSON() {
         return {
             playerSlot: this.playerSlot,

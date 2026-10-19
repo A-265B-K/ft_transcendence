@@ -496,4 +496,10 @@ export class Room {
         player.attackNow(player.getEquippedWeapon());
         return true;
     }
+    castleattack(user: SocketUser) {
+        const player = this.getPlayerByUserId(user.id);
+        if (!this.hasStarted() || !player || !player.isAlive()) return false;
+    
+        return player.castleattack();
+    }
 }

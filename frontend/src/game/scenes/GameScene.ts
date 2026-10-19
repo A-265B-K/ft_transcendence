@@ -434,6 +434,10 @@ export class GameScene {
         );
     }
 
+    castleranged() : void {
+        this.socket.emit('castleattack');
+    }
+
     setPlayerDead(): void {
         this.player.container.visible = false;
         if (this.castle) {

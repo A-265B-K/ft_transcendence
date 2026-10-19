@@ -200,7 +200,6 @@ export class Player {
         this.checkarmor();
         if (!this.alive) return;
         if (this.castle.canHeal(this)) this.castle.castleheal(this);
-        if (this.castle.canAttack()) this.castle.castleattack();
     }
     heal(healamount: number): boolean {
         if (this.alive && healamount > 0 && this.hp < PLAYER_MAX_HP) {
@@ -284,5 +283,11 @@ export class Player {
             this.inventory.iron -= cost.iron;
             return true;
         } else return false;
+    }
+    castleattack() {
+        const data = this.castle.castleattack(this);
+        if (data === null) return false;
+    
+        return true;
     }
 }

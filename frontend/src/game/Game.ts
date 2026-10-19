@@ -35,6 +35,9 @@ export class Game {
         this.input.Attack = () => {
             this.scene?.requestattack();
         };
+        this.input.Castleranged = () => {
+            this.scene?.castleranged();
+        }
     }
 
     equipWeapon(weapon: WeaponType) {
