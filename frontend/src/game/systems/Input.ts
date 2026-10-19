@@ -53,6 +53,7 @@ export class Input {
         window.addEventListener('keydown', this.handleKeyDown);
         window.addEventListener('keyup', this.handleKeyUp);
         window.addEventListener('blur', this.handleBlur);
+        window.addEventListener('contextmenu', this.handleBlur);
     }
 
     /**
@@ -63,6 +64,7 @@ export class Input {
         window.removeEventListener('keydown', this.handleKeyDown);
         window.removeEventListener('keyup', this.handleKeyUp);
         window.removeEventListener('blur', this.handleBlur);
+        window.removeEventListener('contextmenu', this.handleBlur);
     }
 
     /**
