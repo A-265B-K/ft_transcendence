@@ -6,6 +6,7 @@ import { Input } from './systems/Input';
 import { type JoinedPayload } from '../types/game';
 import type { Socket } from 'socket.io-client';
 import type { HarvestableTile } from './world/tileResource';
+import type { CastleAttackStarted } from '../types/game';
 
 export class Game {
     readonly app: Application;
@@ -122,7 +123,9 @@ export class Game {
     destroy() {
         this.app.ticker.remove(this.handleTick);
         this.input.destroy();
+        this.scene?.clearBoulders();
         this.app.destroy();
+
     }
 
     getInventorySnapshot() {
@@ -159,5 +162,8 @@ export class Game {
     }
     setarmor(newarmor: boolean) {
         this.scene?.player.setarmor(newarmor);
+    }
+    launchboulder(shot: CastleAttackStarted) {
+        this.scene?.launchboulder(shot);
     }
 }

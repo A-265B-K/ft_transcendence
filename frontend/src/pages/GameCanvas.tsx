@@ -237,7 +237,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             target: { x: number; y: number };
             durationMs: number;
         }) {
-            console.log('Boulder launched:', data);
+            game.launchboulder(data);
         }
 
         const handlearmor = (data: { armor: boolean }) => {

@@ -49,7 +49,8 @@ export class castle {
         return this.level >= 3;
     }
     canAttack(): boolean {
-        return this.level == 4;
+        return true;
+        // return this.level == 4;
     }
     resetHealingCooldown(): void {
         this.nextcastleheal = 0;
