@@ -1,6 +1,5 @@
 import type { Inventory, Socket, SocketUser } from './types.js';
 import { RoomManager } from './roomManager.js';
-import { Room } from './room.js';
 
 const onDisconnection = (
     socket: Socket,
