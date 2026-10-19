@@ -78,9 +78,7 @@ export class castle {
                 start: this.getposition(),
                 target: player.getPosition()
             };
-        }
-        else
-            return null;
+        } else return null;
     }
 
     toJSON() {

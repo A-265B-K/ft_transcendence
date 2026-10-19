@@ -37,7 +37,7 @@ export class Game {
         };
         this.input.Castleranged = () => {
             this.scene?.castleranged();
-        }
+        };
     }
 
     equipWeapon(weapon: WeaponType) {

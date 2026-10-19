@@ -434,7 +434,7 @@ export class GameScene {
         );
     }
 
-    castleranged() : void {
+    castleranged(): void {
         this.socket.emit('castleattack');
     }
 

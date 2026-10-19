@@ -499,7 +499,7 @@ export class Room {
     castleattack(user: SocketUser) {
         const player = this.getPlayerByUserId(user.id);
         if (!this.hasStarted() || !player || !player.isAlive()) return false;
-    
+
         return player.castleattack();
     }
 }
