@@ -231,6 +231,15 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             }
         }
 
+        function handleCastleAttackStarted(data: {
+            socketId: string;
+            start: { x: number; y: number };
+            target: { x: number; y: number };
+            durationMs: number;
+        }) {
+            console.log('Boulder launched:', data);
+        }
+
         const handlearmor = (data: { armor: boolean }) => {
             game.setarmor(data.armor);
             setArmorActive(data.armor);
@@ -248,6 +257,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         socket.on('player_died', handlePlayerDied);
         socket.on('player_weapon_equipped', handlePlayerWeaponEquipped);
         socket.on('armor', handlearmor);
+        socket.on('castle_attack_started', handleCastleAttackStarted);
 
         const intervalId = window.setInterval(() => {
             const snapshot = game.getInventorySnapshot();
@@ -275,6 +285,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             socket.off('castle_update', handleCastleUpgrade);
             socket.off('player_weapon_equipped', handlePlayerWeaponEquipped);
             socket.off('armor', handlearmor);
+            socket.off('castle_attack_started', handleCastleAttackStarted);
             window.clearInterval(intervalId);
 
             gameRef.current = null;

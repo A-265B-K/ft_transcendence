@@ -285,9 +285,6 @@ export class Player {
         } else return false;
     }
     castleattack() {
-        const data = this.castle.castleattack(this);
-        if (data === null) return false;
-
-        return true;
+        return this.castle.castleattack(this);
     }
 }

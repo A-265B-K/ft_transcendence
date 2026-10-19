@@ -251,7 +251,7 @@ const onConnection = async (socket: Socket, roomManager: RoomManager) => {
     socket.on('castleattack', () => {
         if (!currentRoomId) return;
 
-        roomManager.getRoomById(currentRoomId)?.castleattack(user);
+        roomManager.getRoomById(currentRoomId)?.castleattack(user, socket);
     });
 
     socket.on('disconnect', () => {

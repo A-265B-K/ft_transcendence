@@ -496,10 +496,18 @@ export class Room {
         player.attackNow(player.getEquippedWeapon());
         return true;
     }
-    castleattack(user: SocketUser) {
+    castleattack(user: SocketUser, socket: Socket) {
         const player = this.getPlayerByUserId(user.id);
         if (!this.hasStarted() || !player || !player.isAlive()) return false;
 
-        return player.castleattack();
+        const shot = player.castleattack();
+        if (shot === null) return;
+
+        socket.nsp.to(this.roomId).emit('castle_attack_started', {
+            socketId: player.getSocketId(),
+            start: shot.start,
+            target: shot.target,
+            durationMs: 1500
+        });
     }
 }
