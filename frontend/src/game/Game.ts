@@ -125,7 +125,6 @@ export class Game {
         this.input.destroy();
         this.scene?.clearBoulders();
         this.app.destroy();
-
     }
 
     getInventorySnapshot() {

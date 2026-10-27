@@ -6,6 +6,7 @@ import { Player } from './player.js';
 import { getDistance, isvaliddirection } from './util.js';
 import { istargethit } from './combat/Detection.js';
 import { getattackstats, type WeaponType } from './combat/Weapon.js';
+import type { boulder } from './types.js';
 
 export type Cost = { wood: number; iron: number };
 
@@ -15,6 +16,7 @@ export class Room {
     private roomId: string;
     private code: string;
     private players: Map<string, Player>;
+    private boulders: boulder[] = [];
     private map: GameMap;
     private started: boolean;
     private timer: ReturnType<typeof setInterval> | null = null;
@@ -30,6 +32,35 @@ export class Room {
         console.log(`Room created: ${name} [${this.code}]`);
     }
 
+    private gameloop() {
+        this.timer = setInterval(() => {
+            for (const player of this.players.values()) {
+                player.castlecheck();
+            }
+            this.bouldercheck();
+        }, 250);
+    }
+
+    bouldercheck() {
+        const now = Date.now();
+
+        this.boulders = this.boulders.filter((boulder) => {
+            if (now < boulder.impacttime) return true;
+
+            for (const player of this.players.values()) {
+                if (
+                    player.isAlive() &&
+                    getDistance(player.getPosition(), boulder.impactlocation) <=
+                        3
+                ) {
+                    player.takeDamage(10);
+                }
+            }
+
+            return false;
+        });
+    }
+
     destroy(): void {
         if (this.timer !== null) {
             clearInterval(this.timer);
@@ -43,13 +74,6 @@ export class Room {
 
     hasStarted(): boolean {
         return this.started;
-    }
-    private gameloop() {
-        this.timer = setInterval(() => {
-            for (const player of this.players.values()) {
-                player.castlecheck();
-            }
-        }, 250);
     }
     startgame(userId: string, socket: Socket) {
         if (!this.isHost(userId) || this.hasStarted()) return;
@@ -475,7 +499,7 @@ export class Room {
                 continue;
             }
 
-            const isDead = target.takeDamage(attackStats.damage);
+            target.takeDamage(attackStats.damage);
 
             console.log(
                 player.getUsername(),
@@ -485,13 +509,6 @@ export class Room {
                 attackStats.damage,
                 'damage'
             );
-
-            if (isDead) {
-                socket.nsp.to(target.getSocketId()).emit('player_died');
-                socket.nsp.to(this.roomId).emit('player_died', {
-                    player: target
-                });
-            }
         }
         player.attackNow(player.getEquippedWeapon());
         return true;
@@ -509,5 +526,11 @@ export class Room {
             target: shot.target,
             durationMs: 1500
         });
+
+        const newboulder: boulder = {
+            impacttime: Date.now() + 1500,
+            impactlocation: shot.target
+        };
+        this.boulders.push(newboulder);
     }
 }

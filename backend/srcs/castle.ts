@@ -17,6 +17,7 @@ export class castle {
     private level = PLAYER_DEFAULT_CASTLE_LEVEL;
     private readonly position: Vec2;
     private nextcastleheal = 0;
+    private boulderlandtime = 0;
 
     constructor(
         readonly playerSlot: number,
@@ -49,8 +50,7 @@ export class castle {
         return this.level >= 3;
     }
     canAttack(): boolean {
-        return true;
-        // return this.level == 4;
+        return this.level == 4 && Date.now() >= this.boulderlandtime;
     }
     resetHealingCooldown(): void {
         this.nextcastleheal = 0;
@@ -75,6 +75,7 @@ export class castle {
 
     castleattack(player: Player) {
         if (this.canAttack()) {
+            this.boulderlandtime = Date.now() + 1500;
             return {
                 start: this.getposition(),
                 target: player.getPosition()

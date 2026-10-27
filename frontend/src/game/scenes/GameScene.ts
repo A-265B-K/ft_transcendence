@@ -461,6 +461,7 @@ export class GameScene {
         sprite.anchor.set(0.5, 1);
         sprite.width = 40;
         sprite.height = 40;
+        sprite.zIndex = Number.MAX_SAFE_INTEGER;
 
         sprite.position.set(
             isoX(shot.start.x, shot.start.y),

@@ -237,11 +237,17 @@ export class Player {
         return this.alive;
     }
 
-    takeDamage(damage: number): boolean {
+    takeDamage(damage: number): void {
+        if (!this.alive) return;
+
         if (this.checkarmor()) damage = (damage / 100) * 80;
 
         this.setHp(this.hp - damage);
-        return this.alive === false;
+        if (!this.alive) {
+            this.namespace.to(this.roomId).emit('player_died', {
+                player: this
+            });
+        }
     }
 
     craftWeapon(cost: Cost, weapon: WeaponType) {
