@@ -319,7 +319,10 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
     }
 
     return (
-        <div className="relative h-screen w-screen overflow-hidden">
+        <div
+            className="relative h-screen w-screen overflow-hidden"
+            onContextMenuCapture={(event) => event.preventDefault()}
+        >
             <div ref={gameContainer} className="h-full w-full" />
 
             {castlePointer && (

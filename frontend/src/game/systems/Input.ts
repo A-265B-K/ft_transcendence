@@ -43,12 +43,8 @@ export class Input {
      * Handle window blur events - clear all keys
      * Prevents stuck keys when window loses focus
      */
-    private readonly resetKeys = () => {
+    private readonly handleBlur = () => {
         this.keys = {};
-    };
-
-    private readonly handleContextMenu = (e: MouseEvent) => {
-        e.preventDefault();
     };
 
     /**
@@ -58,8 +54,7 @@ export class Input {
         // Attach event listeners to window
         window.addEventListener('keydown', this.handleKeyDown);
         window.addEventListener('keyup', this.handleKeyUp);
-        window.addEventListener('blur', this.resetKeys);
-        window.addEventListener('contextmenu', this.handleContextMenu);
+        window.addEventListener('blur', this.handleBlur);
     }
 
     /**
@@ -69,8 +64,7 @@ export class Input {
     destroy() {
         window.removeEventListener('keydown', this.handleKeyDown);
         window.removeEventListener('keyup', this.handleKeyUp);
-        window.removeEventListener('blur', this.resetKeys);
-        window.removeEventListener('contextmenu', this.handleContextMenu);
+        window.removeEventListener('blur', this.handleBlur);
     }
 
     /**
