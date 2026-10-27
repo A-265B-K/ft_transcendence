@@ -47,6 +47,10 @@ export class Input {
         this.keys = {};
     };
 
+    private readonly handleContextMenu = (e: MouseEvent) => {
+        e.preventDefault();
+    };
+
     /**
      * Constructor - attach event listeners
      */
@@ -55,7 +59,7 @@ export class Input {
         window.addEventListener('keydown', this.handleKeyDown);
         window.addEventListener('keyup', this.handleKeyUp);
         window.addEventListener('blur', this.resetKeys);
-        window.addEventListener('contextmenu', this.resetKeys);
+        window.addEventListener('contextmenu', this.handleContextMenu);
     }
 
     /**
@@ -66,7 +70,7 @@ export class Input {
         window.removeEventListener('keydown', this.handleKeyDown);
         window.removeEventListener('keyup', this.handleKeyUp);
         window.removeEventListener('blur', this.resetKeys);
-        window.removeEventListener('contextmenu', this.resetKeys);
+        window.removeEventListener('contextmenu', this.handleContextMenu);
     }
 
     /**
