@@ -102,8 +102,8 @@ export class castle {
         };
 
         const LVL_4UPGRADE: upgradecost = {
-            wood: 180,
-            iron: 120
+            wood: 100,
+            iron: 60
         };
 
         switch (lvl) {

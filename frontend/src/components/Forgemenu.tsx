@@ -18,7 +18,7 @@ const castleUpgradeRecipes: Partial<
 > = {
     2: { wood: 50, iron: 30 },
     3: { wood: 100, iron: 60 },
-    4: { wood: 180, iron: 120 }
+    4: { wood: 100, iron: 60 }
 };
 
 export function Forgemenu({
