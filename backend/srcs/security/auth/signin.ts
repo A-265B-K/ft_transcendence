@@ -58,7 +58,6 @@ export async function SignInUser(
         };
     }
     try {
-        console.log('Searching for:', email);
         const user = await findUserByEmail(email);
         if (!user) {
             return {
