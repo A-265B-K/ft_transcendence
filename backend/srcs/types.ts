@@ -1,4 +1,5 @@
 import type { Socket } from 'socket.io';
+import type { castle } from './castle.js';
 
 export type Vec2 = {
     x: number;
@@ -25,6 +26,12 @@ declare module 'socket.io' {
         };
     }
 }
+
+export type Catapult = {
+    owner: castle;
+    target: castle;
+    position: Vec2;
+};
 
 export type SocketUser = NonNullable<Socket['user']>;
 
