@@ -24,6 +24,7 @@ export class GameScene {
     readonly remotePlayers = new Map<string, RemotePlayer>();
     readonly textures: GameTextures;
     readonly socket: Socket;
+    private readonly forestBackground: TilingSprite;
     private wasmoving = false;
     // private isSpectating = false;
 
@@ -45,6 +46,14 @@ export class GameScene {
 
         this.world = new Container();
         this.world.sortableChildren = true;
+
+        this.forestBackground = new TilingSprite({
+            texture: textures.forestBackground,
+            width: 1,
+            height: 1
+        });
+        this.forestBackground.zIndex = -1;
+        this.world.addChild(this.forestBackground);
 
         this.map = new GameMap(
             textures.grass,
@@ -285,6 +294,11 @@ export class GameScene {
             screenHeight,
             deltaSeconds
         );
+
+        this.forestBackground.position.set(-this.camera.x, -this.camera.y);
+        this.forestBackground.width = screenWidth;
+        this.forestBackground.height = screenHeight;
+        this.forestBackground.tilePosition.set(this.camera.x, this.camera.y);
 
         /*
          * Visible map rendering is
