@@ -3,7 +3,7 @@ import { Application, Ticker } from 'pixi.js';
 import { loadGameTextures } from './assets/loadGameTextures';
 import { GameScene } from './scenes/GameScene';
 import { Input } from './systems/Input';
-import { type JoinedPayload } from '../types/game';
+import type { JoinedPayload, Vec2 } from '../types/game';
 import type { Socket } from 'socket.io-client';
 import type { HarvestableTile } from './world/tileResource';
 import type { CastleAttackStarted } from '../types/game';
@@ -93,6 +93,14 @@ export class Game {
 
     spawnResourceTile(x: number, y: number, type: HarvestableTile) {
         this.scene?.spawnResourceTile(x, y, type);
+    }
+
+    spawnCatapult(catapultId: string, position: Vec2) {
+        this.scene?.spawnCatapult(catapultId, position);
+    }
+
+    updateCatapult(catapultId: string, position: Vec2) {
+        this.scene?.updateCatapult(catapultId, position);
     }
 
     updateRemoteCastle(socketId: string, level: number) {

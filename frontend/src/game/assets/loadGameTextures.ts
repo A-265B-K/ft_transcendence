@@ -36,6 +36,7 @@ import spear2Url from '../../assets/weapons/spear/spear2.png';
 import spear3Url from '../../assets/weapons/spear/spear3.png';
 import spear4Url from '../../assets/weapons/spear/spear4.png';
 import BoulderUrl from '../../assets/boulder.png';
+import catapultUrl from '../../assets/catapult/down.png';
 
 export type GameTextures = {
     grass: Texture;
@@ -82,6 +83,7 @@ export type GameTextures = {
     spear4: Texture;
 
     boulder: Texture;
+    catapult: Texture;
 };
 
 export async function loadGameTextures(): Promise<GameTextures> {
@@ -127,7 +129,8 @@ export async function loadGameTextures(): Promise<GameTextures> {
         spear2,
         spear3,
         spear4,
-        boulder
+        boulder,
+        catapult
     ] = await Promise.all([
         Assets.load(grassUrl),
         Assets.load<Texture>(forestBackgroundUrl),
@@ -172,7 +175,8 @@ export async function loadGameTextures(): Promise<GameTextures> {
         Assets.load<Texture>(spear2Url),
         Assets.load<Texture>(spear3Url),
         Assets.load<Texture>(spear4Url),
-        Assets.load<Texture>(BoulderUrl)
+        Assets.load<Texture>(BoulderUrl),
+        Assets.load<Texture>(catapultUrl)
     ]);
 
     return {
@@ -218,6 +222,7 @@ export async function loadGameTextures(): Promise<GameTextures> {
         spear3,
         spear4,
 
-        boulder
+        boulder,
+        catapult
     };
 }

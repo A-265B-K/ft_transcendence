@@ -4,7 +4,7 @@ import GamePauseMenu from './GamePauseMenu';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Game } from '../game/Game';
 import { type CastlePointer } from './CastlePointer';
-import type { JoinedPayload, UpgradeCastleResult } from '../types/game';
+import type { JoinedPayload, UpgradeCastleResult, Vec2 } from '../types/game';
 import { connectSocket, disconnectSocket, getSocket } from '../socket';
 import type { GameCanvasProps } from './gameCanvasProps';
 import { useTranslation } from 'react-i18next';
@@ -231,6 +231,26 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             }
         }
 
+        function handleCatapultSpawn({
+            catapultId,
+            position
+        }: {
+            catapultId: string;
+            position: Vec2;
+        }) {
+            game.spawnCatapult(catapultId, position);
+        }
+
+        function handleCatapultMove({
+            catapultId,
+            position
+        }: {
+            catapultId: string;
+            position: Vec2;
+        }) {
+            game.updateCatapult(catapultId, position);
+        }
+
         function handleCastleAttackStarted(data: {
             socketId: string;
             start: { x: number; y: number };
@@ -258,6 +278,8 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         socket.on('player_weapon_equipped', handlePlayerWeaponEquipped);
         socket.on('armor', handlearmor);
         socket.on('castle_attack_started', handleCastleAttackStarted);
+        socket.on('catapult_spawn', handleCatapultSpawn);
+        socket.on('catapult_move', handleCatapultMove);
 
         const intervalId = window.setInterval(() => {
             const snapshot = game.getInventorySnapshot();
@@ -286,6 +308,8 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             socket.off('player_weapon_equipped', handlePlayerWeaponEquipped);
             socket.off('armor', handlearmor);
             socket.off('castle_attack_started', handleCastleAttackStarted);
+            socket.off('catapult_spawn', handleCatapultSpawn);
+            socket.off('catapult_move', handleCatapultMove);
             window.clearInterval(intervalId);
 
             gameRef.current = null;

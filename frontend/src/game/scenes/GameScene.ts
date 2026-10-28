@@ -1,12 +1,13 @@
 import { Container, Sprite, TilingSprite } from 'pixi.js';
 import { Player, type InputState } from '../entities/Player';
 import { Castle } from '../entities/Castle';
+import { Catapult } from '../entities/catapult';
 import { Camera } from '../systems/Camera';
 import { GameMap } from '../world/GameMap';
 import type { HarvestableTile } from '../world/tileResource';
 import type { GameTextures } from '../assets/loadGameTextures';
 import { isoX, isoY } from '../world/iso';
-import type { JoinedPayload } from '../../types/game';
+import type { JoinedPayload, Vec2 } from '../../types/game';
 import { RemotePlayer } from '../entities/RemotePlayer';
 import type { Socket } from 'socket.io-client';
 
@@ -19,6 +20,7 @@ export class GameScene {
     readonly player: Player;
     readonly castle: Castle;
     readonly castles = new Map<number, Castle>();
+    private readonly catapults = new Map<string, Catapult>();
     readonly camera: Camera;
     readonly joinedData: JoinedPayload;
     readonly remotePlayers = new Map<string, RemotePlayer>();
@@ -352,6 +354,22 @@ export class GameScene {
         const index = Math.round(degrees / 45) % directions.length;
 
         return directions[index];
+    }
+
+    spawnCatapult(catapultId: string, position: Vec2) {
+        if (this.catapults.has(catapultId)) return;
+
+        const catapult = new Catapult(
+            catapultId,
+            this.textures.catapult,
+            position
+        );
+        this.catapults.set(catapult.id, catapult);
+        catapult.spawn(this.world);
+    }
+
+    updateCatapult(catapultId: string, position: Vec2) {
+        this.catapults.get(catapultId)?.update(position);
     }
 
     updateRemoteCastle(socketId: string, level: number) {

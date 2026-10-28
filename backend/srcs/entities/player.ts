@@ -16,7 +16,7 @@ import { type Resource } from '../map.js';
 import type { castle as Castle } from './castle.js';
 
 import { getattackstats, type WeaponType } from '../combat/Weapon.js';
-import type { catapult } from './catapult.js';
+import { catapult } from './catapult.js';
 
 export type { WeaponType } from '../combat/Weapon.js';
 
@@ -280,7 +280,16 @@ export class Player {
         };
     }
     payForCatapult(): boolean {
-        return this.alive && this.pay(CATAPULT_COST);
+        if (!this.alive || !this.pay(CATAPULT_COST)) return false;
+
+        const newCatapult = new catapult(
+            this.castle,
+            this.namespace,
+            this.roomId
+        );
+        this.catapults.push(newCatapult);
+        newCatapult.spawn();
+        return true;
     }
 
     upgradecastle(): boolean {
