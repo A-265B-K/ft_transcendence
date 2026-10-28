@@ -1,4 +1,4 @@
-import { Container, Sprite } from 'pixi.js';
+import { Container, Sprite, TilingSprite } from 'pixi.js';
 import { Player, type InputState } from '../entities/Player';
 import { Castle } from '../entities/Castle';
 import { Camera } from '../systems/Camera';
