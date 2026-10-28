@@ -8,13 +8,14 @@ import {
     MOVE_MAX_ELAPSED_SECONDS,
     CASTLE_HEAL_RADIUS
 } from './constants.js';
-import type { Cost } from './room.js';
+import type { Cost } from './room/room.js';
 import type { Socket, SocketUser, Spawn, Vec2 } from './types.js';
 import { getDistance } from './util.js';
 import { type Resource } from './map.js';
 import type { castle as Castle } from './castle.js';
 
 import { getattackstats, type WeaponType } from './combat/Weapon.js';
+import type { catapult } from '../catapult.js';
 
 export type { WeaponType } from './combat/Weapon.js';
 
@@ -25,7 +26,7 @@ export class Player {
     private readonly roomId: string;
     private readonly username: string;
     private readonly slot: number;
-
+    private readonly catapults : catapult[];
     private hp: number;
     private alive: boolean;
     private x: number;

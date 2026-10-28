@@ -5,7 +5,7 @@ import { randomBytes, createHash } from 'node:crypto';
 import { Server } from 'socket.io';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import onConnection from './onConnection.js';
+import onConnection from './onconnection/index.js';
 import { registerUser } from './security/auth/registration.js';
 import { SignInUser } from './security/auth/signin.js';
 import {

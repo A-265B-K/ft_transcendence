@@ -1,5 +1,5 @@
 import { ROOM_MAX_SIZE } from './constants.js';
-import { Room } from './room.js';
+import { Room } from './room/room.js';
 import type { Socket, SocketUser } from './types.js';
 
 export class RoomManager {
