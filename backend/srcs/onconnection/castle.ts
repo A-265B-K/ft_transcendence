@@ -4,6 +4,14 @@ import type { Inventory } from '../types.js';
 export const registerCastleHandlers = (context: ConnectionContext) => {
     const { socket, user, roomManager } = context;
 
+    socket.on('castleattack', () => {
+        if (!context.currentRoomId) return;
+
+        roomManager
+            .getRoomById(context.currentRoomId)
+            ?.castleattack(user, socket);
+    });
+
     socket.on(
         'upgrade_castle',
         (

@@ -82,3 +82,10 @@ export interface JoinedPayload {
     players: PlayerData[];
     room: LobbyRoom;
 }
+
+export interface CastleAttackStarted {
+    socketId: string;
+    start: { x: number; y: number };
+    target: { x: number; y: number };
+    durationMs: number;
+}

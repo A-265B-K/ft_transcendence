@@ -1,4 +1,4 @@
-import { Container, TilingSprite } from 'pixi.js';
+import { Container, Sprite, TilingSprite } from 'pixi.js';
 import { Player, type InputState } from '../entities/Player';
 import { Castle } from '../entities/Castle';
 import { Camera } from '../systems/Camera';
@@ -11,6 +11,7 @@ import { RemotePlayer } from '../entities/RemotePlayer';
 import type { Socket } from 'socket.io-client';
 
 import { Weapon } from '../entities/weapons/weapon';
+import type { CastleAttackStarted } from '../../types/game';
 
 export class GameScene {
     readonly world: Container;
@@ -26,6 +27,12 @@ export class GameScene {
     private readonly forestBackground: TilingSprite;
     private wasmoving = false;
     // private isSpectating = false;
+
+    private readonly boulders: {
+        sprite: Sprite;
+        shot: CastleAttackStarted;
+        elapsedMs: number;
+    }[] = [];
 
     constructor(
         textures: GameTextures,
@@ -303,6 +310,7 @@ export class GameScene {
             this.camera.x,
             this.camera.y
         );
+        this.updateBoulders(deltaSeconds);
     }
 
     getCastlePointer() {
@@ -448,10 +456,69 @@ export class GameScene {
         );
     }
 
+    castleranged(): void {
+        this.socket.emit('castleattack');
+    }
+
     setPlayerDead(): void {
         this.player.container.visible = false;
         if (this.castle) {
             this.castle.container.visible = false;
         }
+    }
+
+    launchboulder(shot: CastleAttackStarted) {
+        if (shot.durationMs <= 0) return;
+
+        const sprite = new Sprite(this.textures.boulder);
+
+        sprite.anchor.set(0.5, 1);
+        sprite.width = 40;
+        sprite.height = 40;
+        sprite.zIndex = Number.MAX_SAFE_INTEGER;
+
+        sprite.position.set(
+            isoX(shot.start.x, shot.start.y),
+            isoY(shot.start.x, shot.start.y) - 90
+        );
+
+        this.world.addChild(sprite);
+        this.boulders.push({ sprite, shot, elapsedMs: 0 });
+    }
+    private updateBoulders(deltaSeconds: number): void {
+        for (let i = this.boulders.length - 1; i >= 0; i--) {
+            const boulder = this.boulders[i];
+            if (!boulder) continue;
+
+            const { sprite, shot } = boulder;
+
+            boulder.elapsedMs += deltaSeconds * 1000;
+
+            const t = Math.min(boulder.elapsedMs / shot.durationMs, 1);
+            const x = shot.start.x + (shot.target.x - shot.start.x) * t;
+            const y = shot.start.y + (shot.target.y - shot.start.y) * t;
+            const launchHeight = 90 * (1 - t);
+            const arcHeight = 4 * 160 * t * (1 - t);
+
+            sprite.position.set(
+                isoX(x, y),
+                isoY(x, y) - launchHeight - arcHeight
+            );
+
+            if (t >= 1) {
+                this.world.removeChild(sprite);
+                sprite.destroy();
+                this.boulders.splice(i, 1);
+            }
+        }
+    }
+
+    clearBoulders(): void {
+        for (const { sprite } of this.boulders) {
+            this.world.removeChild(sprite);
+            sprite.destroy();
+        }
+
+        this.boulders.length = 0;
     }
 }

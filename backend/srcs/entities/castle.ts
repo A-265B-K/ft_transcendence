@@ -17,6 +17,7 @@ export class castle {
     private level = PLAYER_DEFAULT_CASTLE_LEVEL;
     private readonly position: Vec2;
     private nextcastleheal = 0;
+    private boulderlandtime = 0;
 
     constructor(
         readonly playerSlot: number,
@@ -49,7 +50,7 @@ export class castle {
         return this.level >= 3;
     }
     canAttack(): boolean {
-        return this.level == 4;
+        return this.level == 4 && Date.now() >= this.boulderlandtime;
     }
     resetHealingCooldown(): void {
         this.nextcastleheal = 0;
@@ -71,9 +72,17 @@ export class castle {
             return false;
         }
     }
-    castleattack(): boolean {
-        return false;
+
+    castleattack(player: Player) {
+        if (this.canAttack()) {
+            this.boulderlandtime = Date.now() + 1500;
+            return {
+                start: this.getposition(),
+                target: player.getPosition()
+            };
+        } else return null;
     }
+
     toJSON() {
         return {
             playerSlot: this.playerSlot,
@@ -93,8 +102,8 @@ export class castle {
         };
 
         const LVL_4UPGRADE: upgradecost = {
-            wood: 180,
-            iron: 120
+            wood: 100,
+            iron: 60
         };
 
         switch (lvl) {

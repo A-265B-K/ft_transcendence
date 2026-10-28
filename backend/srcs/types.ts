@@ -17,6 +17,11 @@ export type Inventory = {
     castleLevel: number;
 };
 
+export type boulder = {
+    impacttime: number;
+    impactlocation: Vec2;
+};
+
 declare module 'socket.io' {
     interface Socket {
         user?: {

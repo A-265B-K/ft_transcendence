@@ -48,7 +48,7 @@ export function handleRoomAttack(
             continue;
         }
 
-        const isDead = target.takeDamage(attackStats.damage);
+        target.takeDamage(attackStats.damage);
 
         console.log(
             player.getUsername(),
@@ -58,13 +58,6 @@ export function handleRoomAttack(
             attackStats.damage,
             'damage'
         );
-
-        if (isDead) {
-            socket.nsp.to(target.getSocketId()).emit('player_died');
-            socket.nsp.to(roomId).emit('player_died', {
-                player: target
-            });
-        }
     }
     player.attackNow(player.getEquippedWeapon());
     return true;

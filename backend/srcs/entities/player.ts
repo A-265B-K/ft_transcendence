@@ -27,7 +27,7 @@ export class Player {
     private readonly roomId: string;
     private readonly username: string;
     private readonly slot: number;
-    private readonly catapults: catapult[];
+    private readonly catapults: catapult[] = [];
     private hp: number;
     private alive: boolean;
     private x: number;
@@ -202,7 +202,6 @@ export class Player {
         this.checkarmor();
         if (!this.alive) return;
         if (this.castle.canHeal(this)) this.castle.castleheal(this);
-        if (this.castle.canAttack()) this.castle.castleattack();
     }
     heal(healamount: number): boolean {
         if (this.alive && healamount > 0 && this.hp < PLAYER_MAX_HP) {
@@ -240,11 +239,17 @@ export class Player {
         return this.alive;
     }
 
-    takeDamage(damage: number): boolean {
+    takeDamage(damage: number): void {
+        if (!this.alive) return;
+
         if (this.checkarmor()) damage = (damage / 100) * 80;
 
         this.setHp(this.hp - damage);
-        return this.alive === false;
+        if (!this.alive) {
+            this.namespace.to(this.roomId).emit('player_died', {
+                player: this
+            });
+        }
     }
 
     private pay(cost: Cost): boolean {
@@ -289,5 +294,8 @@ export class Player {
         if (!this.pay(cost)) return false;
 
         return this.castle.upgrade();
+    }
+    castleattack() {
+        return this.castle.castleattack(this);
     }
 }

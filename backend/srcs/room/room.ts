@@ -1,11 +1,12 @@
 import { randomUUID } from 'crypto';
 import { ROOM_MAX_SIZE } from '../constants.js';
 import { GameMap } from '../map.js';
-import type { Socket, SocketUser, Vec2 } from '../types.js';
+import type { Socket, SocketUser, Vec2, boulder } from '../types.js';
 import { Player } from '../entities/player.js';
 import type { WeaponType } from '../combat/Weapon.js';
 import * as roomCombat from './roomCombat.js';
 import * as roomMovement from './roomMovement.js';
+import { getDistance } from '../util.js';
 
 export type Cost = { wood: number; iron: number };
 
@@ -15,6 +16,7 @@ export class Room {
     private roomId: string;
     private code: string;
     private players: Map<string, Player>;
+    private boulders: boulder[] = [];
     private map: GameMap;
     private started: boolean;
     private timer: ReturnType<typeof setInterval> | null = null;
@@ -30,6 +32,35 @@ export class Room {
         console.log(`Room created: ${name} [${this.code}]`);
     }
 
+    private gameloop() {
+        this.timer = setInterval(() => {
+            for (const player of this.players.values()) {
+                player.castlecheck();
+            }
+            this.bouldercheck();
+        }, 250);
+    }
+
+    bouldercheck() {
+        const now = Date.now();
+
+        this.boulders = this.boulders.filter((boulder) => {
+            if (now < boulder.impacttime) return true;
+
+            for (const player of this.players.values()) {
+                if (
+                    player.isAlive() &&
+                    getDistance(player.getPosition(), boulder.impactlocation) <=
+                        3
+                ) {
+                    player.takeDamage(10);
+                }
+            }
+
+            return false;
+        });
+    }
+
     destroy(): void {
         if (this.timer !== null) {
             clearInterval(this.timer);
@@ -43,13 +74,6 @@ export class Room {
 
     hasStarted(): boolean {
         return this.started;
-    }
-    private gameloop() {
-        this.timer = setInterval(() => {
-            for (const player of this.players.values()) {
-                player.castlecheck();
-            }
-        }, 250);
     }
     startgame(userId: string, socket: Socket) {
         if (!this.isHost(userId) || this.hasStarted()) return;
@@ -335,5 +359,25 @@ export class Room {
             socket,
             data
         );
+    }
+    castleattack(user: SocketUser, socket: Socket) {
+        const player = this.getPlayerByUserId(user.id);
+        if (!this.hasStarted() || !player || !player.isAlive()) return false;
+
+        const shot = player.castleattack();
+        if (shot === null) return;
+
+        socket.nsp.to(this.roomId).emit('castle_attack_started', {
+            socketId: player.getSocketId(),
+            start: shot.start,
+            target: shot.target,
+            durationMs: 1500
+        });
+
+        const newboulder: boulder = {
+            impacttime: Date.now() + 1500,
+            impactlocation: shot.target
+        };
+        this.boulders.push(newboulder);
     }
 }

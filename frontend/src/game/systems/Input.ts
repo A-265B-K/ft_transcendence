@@ -19,6 +19,7 @@ export class Input {
      * Handle keydown events - mark key as pressed
      */
     Attack?: () => void;
+    Castleranged?: () => void;
 
     private readonly handleKeyDown = (e: KeyboardEvent) => {
         const key = e.key.toLowerCase();
@@ -28,6 +29,7 @@ export class Input {
             this.interactQueued = true;
         }
         if (key == 'f' && !e.repeat) this.Attack?.();
+        if (key == 'r' && !e.repeat) this.Castleranged?.();
     };
 
     /**
@@ -53,7 +55,6 @@ export class Input {
         window.addEventListener('keydown', this.handleKeyDown);
         window.addEventListener('keyup', this.handleKeyUp);
         window.addEventListener('blur', this.handleBlur);
-        window.addEventListener('contextmenu', this.handleBlur);
     }
 
     /**
@@ -64,7 +65,6 @@ export class Input {
         window.removeEventListener('keydown', this.handleKeyDown);
         window.removeEventListener('keyup', this.handleKeyUp);
         window.removeEventListener('blur', this.handleBlur);
-        window.removeEventListener('contextmenu', this.handleBlur);
     }
 
     /**
