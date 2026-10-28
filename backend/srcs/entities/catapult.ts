@@ -1,6 +1,6 @@
-import { castle } from './srcs/castle.js';
-import type { Vec2 } from './srcs/types.js';
-import { getDistance } from './srcs/util.js';
+import { castle } from './castle.js';
+import type { Vec2 } from '../types.js';
+import { getDistance } from '../util.js';
 
 export class catapult {
     private _target: castle;

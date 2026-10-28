@@ -63,16 +63,4 @@ export const registerEquipmentHandlers = (context: ConnectionContext) => {
             reply({ success: room?.equiparmor(user.id) ?? false });
         }
     );
-        socket.on(
-        'new_catapult',
-        (callback: (response: { ok: boolean }) => void) => {
-            if (typeof callback !== 'function' || !context.currentRoomId)
-                return;
-            const room = roomManager.getRoomById(context.currentRoomId);
-            if (!room) {
-                callback({ ok: false });
-                return;
-            }
-        }
-    );
 };

@@ -1,4 +1,4 @@
-import type { Player } from '../player.js';
+import type { Player } from '../entities/player.js';
 import type { Socket } from '../types.js';
 import { isvaliddirection } from '../util.js';
 import { istargethit } from '../combat/Detection.js';

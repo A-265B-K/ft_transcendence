@@ -2,7 +2,7 @@ import { randomUUID } from 'crypto';
 import { ROOM_MAX_SIZE } from '../constants.js';
 import { GameMap } from '../map.js';
 import type { Socket, SocketUser, Vec2 } from '../types.js';
-import { Player } from '../player.js';
+import { Player } from '../entities/player.js';
 import type { WeaponType } from '../combat/Weapon.js';
 import * as roomCombat from './roomCombat.js';
 import * as roomMovement from './roomMovement.js';
@@ -302,6 +302,15 @@ export class Room {
         if (!this.hasStarted()) return false;
 
         return this.getPlayerByUserId(userId)?.equiparmor() ?? false;
+    }
+
+    payForCatapult(userId: string) {
+        if (!this.hasStarted()) return null;
+
+        const player = this.getPlayerByUserId(userId);
+        if (!player?.payForCatapult()) return null;
+
+        return player.getInventory();
     }
 
     upgradecastle(userId: string) {

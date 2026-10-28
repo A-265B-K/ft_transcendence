@@ -1,6 +1,6 @@
 import { PLAYER_RADIUS } from '../constants.js';
 import type { GameMap } from '../map.js';
-import type { Player } from '../player.js';
+import type { Player } from '../entities/player.js';
 import type { Socket, SocketUser, Vec2 } from '../types.js';
 import { getDistance } from '../util.js';
 

@@ -6,18 +6,19 @@ import {
     MOVE_TOLERANCE_SECONDS,
     PLAYER_MAX_SPEED,
     MOVE_MAX_ELAPSED_SECONDS,
-    CASTLE_HEAL_RADIUS
-} from './constants.js';
-import type { Cost } from './room/room.js';
-import type { Socket, SocketUser, Spawn, Vec2 } from './types.js';
-import { getDistance } from './util.js';
-import { type Resource } from './map.js';
+    CASTLE_HEAL_RADIUS,
+    CATAPULT_COST
+} from '../constants.js';
+import type { Cost } from '../room/room.js';
+import type { Socket, SocketUser, Spawn, Vec2 } from '../types.js';
+import { getDistance } from '../util.js';
+import { type Resource } from '../map.js';
 import type { castle as Castle } from './castle.js';
 
-import { getattackstats, type WeaponType } from './combat/Weapon.js';
-import type { catapult } from '../catapult.js';
+import { getattackstats, type WeaponType } from '../combat/Weapon.js';
+import type { catapult } from './catapult.js';
 
-export type { WeaponType } from './combat/Weapon.js';
+export type { WeaponType } from '../combat/Weapon.js';
 
 export class Player {
     private readonly userId: string;
@@ -26,7 +27,7 @@ export class Player {
     private readonly roomId: string;
     private readonly username: string;
     private readonly slot: number;
-    private readonly catapults : catapult[];
+    private readonly catapults: catapult[];
     private hp: number;
     private alive: boolean;
     private x: number;
@@ -246,26 +247,37 @@ export class Player {
         return this.alive === false;
     }
 
+    private pay(cost: Cost): boolean {
+        if (
+            this.inventory.wood < cost.wood ||
+            this.inventory.iron < cost.iron
+        ) {
+            return false;
+        }
+
+        this.inventory.wood -= cost.wood;
+        this.inventory.iron -= cost.iron;
+        return true;
+    }
+
     craftWeapon(cost: Cost, weapon: WeaponType) {
         if (
             !this.alive ||
             getDistance(this.getPosition(), this.castle.getposition()) > 7
         )
             return null;
-        if (
-            this.inventory.wood < cost.wood ||
-            this.inventory.iron < cost.iron
-        ) {
-            return null;
-        }
-        this.inventory.wood -= cost.wood;
-        this.inventory.iron -= cost.iron;
+        if (!this.pay(cost)) return null;
+
         this.equippedWeapon = weapon;
         return {
             weapon,
             inventory: { wood: this.inventory.wood, iron: this.inventory.iron }
         };
     }
+    payForCatapult(): boolean {
+        return this.alive && this.pay(CATAPULT_COST);
+    }
+
     upgradecastle(): boolean {
         if (
             !this.alive ||
@@ -274,16 +286,8 @@ export class Player {
         )
             return false;
         const cost = this.castle.getupgradecost(this.castle.getlevel() + 1);
-        if (
-            this.inventory.wood < cost.wood ||
-            this.inventory.iron < cost.iron
-        ) {
-            return false;
-        }
-        if (this.castle.upgrade()) {
-            this.inventory.wood -= cost.wood;
-            this.inventory.iron -= cost.iron;
-            return true;
-        } else return false;
+        if (!this.pay(cost)) return false;
+
+        return this.castle.upgrade();
     }
 }

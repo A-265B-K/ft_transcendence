@@ -1,5 +1,5 @@
 import type { Socket } from 'socket.io';
-import type { castle } from './castle.js';
+import type { castle } from './entities/castle.js';
 
 export type Vec2 = {
     x: number;
