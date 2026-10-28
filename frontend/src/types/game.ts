@@ -1,5 +1,10 @@
 import { type WeaponType } from '../game/entities/weapons/weapon';
 
+export type Vec2 = {
+    x: number;
+    y: number;
+};
+
 export interface PlayerInventory {
     wood: number;
     iron: number;
@@ -81,4 +86,11 @@ export interface JoinedPayload {
     map: MapData;
     players: PlayerData[];
     room: LobbyRoom;
+}
+
+export interface CastleAttackStarted {
+    socketId: string;
+    start: { x: number; y: number };
+    target: { x: number; y: number };
+    durationMs: number;
 }

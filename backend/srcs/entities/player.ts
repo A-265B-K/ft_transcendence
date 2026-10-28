@@ -6,17 +6,19 @@ import {
     MOVE_TOLERANCE_SECONDS,
     PLAYER_MAX_SPEED,
     MOVE_MAX_ELAPSED_SECONDS,
-    CASTLE_HEAL_RADIUS
-} from './constants.js';
-import type { Cost } from './room.js';
-import type { Socket, SocketUser, Spawn, Vec2 } from './types.js';
-import { getDistance } from './util.js';
-import { type Resource } from './map.js';
+    CASTLE_HEAL_RADIUS,
+    CATAPULT_COST
+} from '../constants.js';
+import type { Cost } from '../room/room.js';
+import type { Socket, SocketUser, Spawn, Vec2 } from '../types.js';
+import { getDistance } from '../util.js';
+import { type Resource } from '../map.js';
 import type { castle as Castle } from './castle.js';
 
-import { getattackstats, type WeaponType } from './combat/Weapon.js';
+import { getattackstats, type WeaponType } from '../combat/Weapon.js';
+import { catapult } from './catapult.js';
 
-export type { WeaponType } from './combat/Weapon.js';
+export type { WeaponType } from '../combat/Weapon.js';
 
 export class Player {
     private readonly userId: string;
@@ -25,7 +27,7 @@ export class Player {
     private readonly roomId: string;
     private readonly username: string;
     private readonly slot: number;
-
+    private readonly catapults: catapult[] = [];
     private hp: number;
     private alive: boolean;
     private x: number;
@@ -200,7 +202,6 @@ export class Player {
         this.checkarmor();
         if (!this.alive) return;
         if (this.castle.canHeal(this)) this.castle.castleheal(this);
-        if (this.castle.canAttack()) this.castle.castleattack();
     }
     heal(healamount: number): boolean {
         if (this.alive && healamount > 0 && this.hp < PLAYER_MAX_HP) {
@@ -238,11 +239,30 @@ export class Player {
         return this.alive;
     }
 
-    takeDamage(damage: number): boolean {
+    takeDamage(damage: number): void {
+        if (!this.alive) return;
+
         if (this.checkarmor()) damage = (damage / 100) * 80;
 
         this.setHp(this.hp - damage);
-        return this.alive === false;
+        if (!this.alive) {
+            this.namespace.to(this.roomId).emit('player_died', {
+                player: this
+            });
+        }
+    }
+
+    private pay(cost: Cost): boolean {
+        if (
+            this.inventory.wood < cost.wood ||
+            this.inventory.iron < cost.iron
+        ) {
+            return false;
+        }
+
+        this.inventory.wood -= cost.wood;
+        this.inventory.iron -= cost.iron;
+        return true;
     }
 
     craftWeapon(cost: Cost, weapon: WeaponType) {
@@ -251,20 +271,27 @@ export class Player {
             getDistance(this.getPosition(), this.castle.getposition()) > 7
         )
             return null;
-        if (
-            this.inventory.wood < cost.wood ||
-            this.inventory.iron < cost.iron
-        ) {
-            return null;
-        }
-        this.inventory.wood -= cost.wood;
-        this.inventory.iron -= cost.iron;
+        if (!this.pay(cost)) return null;
+
         this.equippedWeapon = weapon;
         return {
             weapon,
             inventory: { wood: this.inventory.wood, iron: this.inventory.iron }
         };
     }
+    payForCatapult(): boolean {
+        if (!this.alive || !this.pay(CATAPULT_COST)) return false;
+
+        const newCatapult = new catapult(
+            this.castle,
+            this.namespace,
+            this.roomId
+        );
+        this.catapults.push(newCatapult);
+        newCatapult.spawn();
+        return true;
+    }
+
     upgradecastle(): boolean {
         if (
             !this.alive ||
@@ -273,16 +300,11 @@ export class Player {
         )
             return false;
         const cost = this.castle.getupgradecost(this.castle.getlevel() + 1);
-        if (
-            this.inventory.wood < cost.wood ||
-            this.inventory.iron < cost.iron
-        ) {
-            return false;
-        }
-        if (this.castle.upgrade()) {
-            this.inventory.wood -= cost.wood;
-            this.inventory.iron -= cost.iron;
-            return true;
-        } else return false;
+        if (!this.pay(cost)) return false;
+
+        return this.castle.upgrade();
+    }
+    castleattack() {
+        return this.castle.castleattack(this);
     }
 }

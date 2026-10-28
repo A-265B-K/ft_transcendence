@@ -8,8 +8,8 @@ import {
 } from './constants.js';
 import type { Socket, Spawn, Vec2 } from './types.js';
 import { getDistance, randomPos } from './util.js';
-import type { Room } from './room.js';
-import { castle as Castle } from './castle.js';
+import type { Room } from './room/room.js';
+import { castle as Castle } from './entities/castle.js';
 
 export type Resource = Room['map']['resourceSpawns'][number];
 

@@ -1,11 +1,12 @@
 import { randomUUID } from 'crypto';
-import { PLAYER_RADIUS, ROOM_MAX_SIZE } from './constants.js';
-import { GameMap } from './map.js';
-import type { Socket, SocketUser, Vec2 } from './types.js';
-import { Player } from './player.js';
-import { getDistance, isvaliddirection } from './util.js';
-import { istargethit } from './combat/Detection.js';
-import { getattackstats, type WeaponType } from './combat/Weapon.js';
+import { ROOM_MAX_SIZE } from '../constants.js';
+import { GameMap } from '../map.js';
+import type { Socket, SocketUser, Vec2, boulder } from '../types.js';
+import { Player } from '../entities/player.js';
+import type { WeaponType } from '../combat/Weapon.js';
+import * as roomCombat from './roomCombat.js';
+import * as roomMovement from './roomMovement.js';
+import { getDistance } from '../util.js';
 
 export type Cost = { wood: number; iron: number };
 
@@ -15,6 +16,7 @@ export class Room {
     private roomId: string;
     private code: string;
     private players: Map<string, Player>;
+    private boulders: boulder[] = [];
     private map: GameMap;
     private started: boolean;
     private timer: ReturnType<typeof setInterval> | null = null;
@@ -30,6 +32,35 @@ export class Room {
         console.log(`Room created: ${name} [${this.code}]`);
     }
 
+    private gameloop() {
+        this.timer = setInterval(() => {
+            for (const player of this.players.values()) {
+                player.castlecheck();
+            }
+            this.bouldercheck();
+        }, 250);
+    }
+
+    bouldercheck() {
+        const now = Date.now();
+
+        this.boulders = this.boulders.filter((boulder) => {
+            if (now < boulder.impacttime) return true;
+
+            for (const player of this.players.values()) {
+                if (
+                    player.isAlive() &&
+                    getDistance(player.getPosition(), boulder.impactlocation) <=
+                        3
+                ) {
+                    player.takeDamage(10);
+                }
+            }
+
+            return false;
+        });
+    }
+
     destroy(): void {
         if (this.timer !== null) {
             clearInterval(this.timer);
@@ -43,13 +74,6 @@ export class Room {
 
     hasStarted(): boolean {
         return this.started;
-    }
-    private gameloop() {
-        this.timer = setInterval(() => {
-            for (const player of this.players.values()) {
-                player.castlecheck();
-            }
-        }, 250);
     }
     startgame(userId: string, socket: Socket) {
         if (!this.isHost(userId) || this.hasStarted()) return;
@@ -175,13 +199,7 @@ export class Room {
     }
 
     isSlotOccupied(slot: number): boolean {
-        for (const player of this.players.values()) {
-            if (player.getSlot() === slot && player.isAlive()) {
-                return true;
-            }
-        }
-
-        return false;
+        return roomMovement.isSlotOccupied(this.players, slot);
     }
 
     isPositionOccupied(
@@ -189,63 +207,26 @@ export class Room {
         position: Vec2,
         collisionRadius: number
     ): boolean {
-        for (const player of this.players.values()) {
-            if (player.getUserId() === selfUserId) {
-                continue;
-            }
-
-            if (!player.isAlive()) {
-                continue;
-            }
-
-            const distance = getDistance(position, player.getPosition());
-
-            if (distance < collisionRadius) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    positionIsAllowed(player: Player, user: SocketUser, pos: Vec2): boolean {
-        return !(
-            this.map.isOutOfBounds(pos) ||
-            (player.isAlive() &&
-                (this.isCollidingWithOtherPlayer(user.id, pos) ||
-                    this.isCollidingWithCastle(pos)))
+        return roomMovement.isPositionOccupied(
+            this.players,
+            selfUserId,
+            position,
+            collisionRadius
         );
     }
 
-    private isCollidingWithCastle(pos: Vec2): boolean {
-        for (const castle of this.map.getCastleZones()) {
-            if (this.isSlotOccupied(castle.playerSlot)) {
-                const blockRadius = castle.radius / 2 + PLAYER_RADIUS;
-                if (getDistance(pos, castle.getposition()) < blockRadius)
-                    return true;
-            }
-        }
-
-        return false;
+    positionIsAllowed(player: Player, user: SocketUser, pos: Vec2): boolean {
+        return roomMovement.positionIsAllowed(
+            this.map,
+            this.players,
+            player,
+            user,
+            pos
+        );
     }
 
     tryCollectResource(player: Player, pos: Vec2) {
-        if (!player.isAlive()) {
-            return;
-        }
-        const resource = this.map.collectResource(pos);
-
-        if (!resource) {
-            return;
-        }
-
-        player.addResources(resource);
-
-        return resource;
-    }
-
-    private isCollidingWithOtherPlayer(selfUserId: string, pos: Vec2): boolean {
-        return this.isPositionOccupied(selfUserId, pos, PLAYER_RADIUS * 2);
+        return roomMovement.tryCollectResource(this.map, player, pos);
     }
 
     private getPlayerByUserId(userId: string): Player | null {
@@ -285,90 +266,16 @@ export class Room {
         moving: boolean
     ) {
         const player = this.getPlayerByUserId(user.id);
-        if (!player || !this.hasStarted()) {
-            return;
-        }
+        if (!player || !this.hasStarted()) return;
 
-        const nextPos = { x, y };
-
-        if (!this.positionIsAllowed(player, user, player.getPosition())) {
-            const closestValidPos = this.getClosestValidPosition(
-                player,
-                user,
-                player.getPosition()
-            );
-            player.setPosition(closestValidPos.x, closestValidPos.y);
-        } else if (
-            this.positionIsAllowed(player, user, nextPos) &&
-            !player.isMovingTooFast(nextPos)
-        ) {
-            player.setPosition(x, y);
-
-            socket.to(this.roomId).emit('player_move', {
-                socketId: socket.id,
-                x,
-                y,
-                moving
-            });
-
-            const collectedResource = this.tryCollectResource(player, nextPos);
-            if (collectedResource) {
-                const payload = {
-                    resourceId: collectedResource.id,
-                    type: collectedResource.type,
-                    x: collectedResource.x,
-                    y: collectedResource.y,
-                    playerId: user.id,
-                    inventory: player.getInventory()
-                };
-
-                socket.emit('resource_collected', payload);
-                socket.to(this.roomId).emit('resource_collected', payload);
-
-                this.map.scheduleResourceRespawn(
-                    socket,
-                    this.roomId,
-                    collectedResource
-                );
-            }
-        }
-
-        const finalPosition = player.getPosition();
-
-        // Always tell the mover the authoritative position, so the client
-        // snaps back when the server rejected the move (blocked or not).
-        socket.emit('player_move', {
-            socketId: socket.id,
-            x: finalPosition.x,
-            y: finalPosition.y
-        });
-    }
-
-    private getClosestValidPosition(
-        player: Player,
-        user: SocketUser,
-        startPos: Vec2
-    ): Vec2 {
-        for (let distance = 0; distance < 100; distance++) {
-            for (
-                let x = startPos.x - distance;
-                x <= startPos.x + distance;
-                x++
-            ) {
-                for (
-                    let y = startPos.y - distance;
-                    y <= startPos.y + distance;
-                    y++
-                ) {
-                    if (this.positionIsAllowed(player, user, { x, y })) {
-                        return { x, y };
-                    }
-                }
-            }
-        }
-
-        // In case nothing can be found, spawn at 0
-        return { x: 0, y: 0 };
+        return roomMovement.movePlayer(
+            { map: this.map, players: this.players, roomId: this.roomId },
+            socket,
+            user,
+            player,
+            { x, y },
+            moving
+        );
     }
 
     RemovePreviousSession(userId: string, socket: Socket) {
@@ -421,6 +328,15 @@ export class Room {
         return this.getPlayerByUserId(userId)?.equiparmor() ?? false;
     }
 
+    payForCatapult(userId: string) {
+        if (!this.hasStarted()) return null;
+
+        const player = this.getPlayerByUserId(userId);
+        if (!player?.payForCatapult()) return null;
+
+        return player.getInventory();
+    }
+
     upgradecastle(userId: string) {
         if (!this.hasStarted()) return null;
         if (this.getPlayerByUserId(userId)?.upgradecastle())
@@ -434,66 +350,34 @@ export class Room {
         socket: Socket
     ): boolean {
         const player = this.getPlayerByUserId(user.id);
+        if (!player || !this.hasStarted()) return false;
 
-        if (!player || !this.hasStarted() || !player.canattack()) {
-            return false;
-        }
+        return roomCombat.handleRoomAttack(
+            player,
+            this.players,
+            this.roomId,
+            socket,
+            data
+        );
+    }
+    castleattack(user: SocketUser, socket: Socket) {
+        const player = this.getPlayerByUserId(user.id);
+        if (!this.hasStarted() || !player || !player.isAlive()) return false;
 
-        const weapon = player.getEquippedWeapon();
-        const direction = data.direction;
+        const shot = player.castleattack();
+        if (shot === null) return;
 
-        if (!weapon || !player.isAlive() || !isvaliddirection(direction)) {
-            return false;
-        }
-
-        const attackStats = getattackstats(weapon);
-        if (!attackStats) {
-            return false;
-        }
-
-        socket.to(this.roomId).emit('player_attacked', {
+        socket.nsp.to(this.roomId).emit('castle_attack_started', {
             socketId: player.getSocketId(),
-            direction
+            start: shot.start,
+            target: shot.target,
+            durationMs: 1500
         });
 
-        for (const target of this.players.values()) {
-            if (
-                target.getUserId() === player.getUserId() ||
-                !target.isAlive()
-            ) {
-                continue;
-            }
-
-            if (
-                !istargethit(
-                    player.getPosition(),
-                    target.getPosition(),
-                    attackStats,
-                    direction
-                )
-            ) {
-                continue;
-            }
-
-            const isDead = target.takeDamage(attackStats.damage);
-
-            console.log(
-                player.getUsername(),
-                'hit',
-                target.getUsername(),
-                'for',
-                attackStats.damage,
-                'damage'
-            );
-
-            if (isDead) {
-                socket.nsp.to(target.getSocketId()).emit('player_died');
-                socket.nsp.to(this.roomId).emit('player_died', {
-                    player: target
-                });
-            }
-        }
-        player.attackNow(player.getEquippedWeapon());
-        return true;
+        const newboulder: boulder = {
+            impacttime: Date.now() + 1500,
+            impactlocation: shot.target
+        };
+        this.boulders.push(newboulder);
     }
 }

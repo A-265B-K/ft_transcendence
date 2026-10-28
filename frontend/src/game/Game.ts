@@ -3,9 +3,10 @@ import { Application, Ticker } from 'pixi.js';
 import { loadGameTextures } from './assets/loadGameTextures';
 import { GameScene } from './scenes/GameScene';
 import { Input } from './systems/Input';
-import { type JoinedPayload } from '../types/game';
+import type { JoinedPayload, Vec2 } from '../types/game';
 import type { Socket } from 'socket.io-client';
 import type { HarvestableTile } from './world/tileResource';
+import type { CastleAttackStarted } from '../types/game';
 
 export class Game {
     readonly app: Application;
@@ -34,6 +35,9 @@ export class Game {
         this.app = new Application();
         this.input.Attack = () => {
             this.scene?.requestattack();
+        };
+        this.input.Castleranged = () => {
+            this.scene?.castleranged();
         };
     }
 
@@ -91,6 +95,14 @@ export class Game {
         this.scene?.spawnResourceTile(x, y, type);
     }
 
+    spawnCatapult(catapultId: string, position: Vec2) {
+        this.scene?.spawnCatapult(catapultId, position);
+    }
+
+    updateCatapult(catapultId: string, position: Vec2) {
+        this.scene?.updateCatapult(catapultId, position);
+    }
+
     updateRemoteCastle(socketId: string, level: number) {
         this.scene?.updateRemoteCastle(socketId, level);
     }
@@ -119,6 +131,7 @@ export class Game {
     destroy() {
         this.app.ticker.remove(this.handleTick);
         this.input.destroy();
+        this.scene?.clearBoulders();
         this.app.destroy();
     }
 
@@ -156,5 +169,8 @@ export class Game {
     }
     setarmor(newarmor: boolean) {
         this.scene?.player.setarmor(newarmor);
+    }
+    launchboulder(shot: CastleAttackStarted) {
+        this.scene?.launchboulder(shot);
     }
 }
