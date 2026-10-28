@@ -1,10 +1,12 @@
+import type { WeaponType } from './entities/weapons/weapon';
 import { Application, Ticker } from 'pixi.js';
 import { loadGameTextures } from './assets/loadGameTextures';
 import { GameScene } from './scenes/GameScene';
 import { Input } from './systems/Input';
-import { type JoinedPayload } from '../types/game';
+import type { JoinedPayload, Vec2 } from '../types/game';
 import type { Socket } from 'socket.io-client';
 import type { HarvestableTile } from './world/tileResource';
+import type { CastleAttackStarted } from '../types/game';
 
 export class Game {
     readonly app: Application;
@@ -17,8 +19,10 @@ export class Game {
 
         const deltaSeconds = ticker.deltaMS / 1000;
         this.scene.player.weapon?.update(deltaSeconds);
-        for (const enemy of this.scene.remotePlayers.values())
+        for (const enemy of this.scene.remotePlayers.values()) {
             enemy.weapon?.update(deltaSeconds);
+            enemy.updateHitAnimation(deltaSeconds);
+        }
         this.scene.update(
             this.input.state,
             this.app.renderer.width,
@@ -32,8 +36,17 @@ export class Game {
         this.input.Attack = () => {
             this.scene?.requestattack();
         };
+        this.input.Castleranged = () => {
+            this.scene?.castleranged();
+        };
     }
 
+    equipWeapon(weapon: WeaponType) {
+        this.scene?.player.equipWeapon(weapon);
+    }
+    equipremoteweapon(socketId: string, weapon: WeaponType) {
+        this.scene?.remotePlayers.get(socketId)?.equipWeapon(weapon);
+    }
     addRemotePlayer(player: JoinedPayload['players'][number]) {
         this.scene?.addRemotePlayer(player);
     }
@@ -82,6 +95,14 @@ export class Game {
         this.scene?.spawnResourceTile(x, y, type);
     }
 
+    spawnCatapult(catapultId: string, position: Vec2) {
+        this.scene?.spawnCatapult(catapultId, position);
+    }
+
+    updateCatapult(catapultId: string, position: Vec2) {
+        this.scene?.updateCatapult(catapultId, position);
+    }
+
     updateRemoteCastle(socketId: string, level: number) {
         this.scene?.updateRemoteCastle(socketId, level);
     }
@@ -110,6 +131,7 @@ export class Game {
     destroy() {
         this.app.ticker.remove(this.handleTick);
         this.input.destroy();
+        this.scene?.clearBoulders();
         this.app.destroy();
     }
 
@@ -121,6 +143,16 @@ export class Game {
         return this.scene?.getCastlePointer() ?? null;
     }
 
+    isPlayerNearCastle(range: number): boolean {
+        return this.scene?.isPlayerNearCastle(range) ?? false;
+    }
+
+    playerhitanimation() {
+        this.scene?.player.hitanimation();
+    }
+    remoteplayerhitanimation(socketId: string) {
+        this.scene?.remotePlayers.get(socketId)?.hitanimation();
+    }
     pause() {
         this.app.ticker.stop();
     }
@@ -131,5 +163,14 @@ export class Game {
 
     setPlayerDead(): void {
         this.scene?.setPlayerDead();
+    }
+    armoractive() {
+        return this.scene?.player.hasarmor();
+    }
+    setarmor(newarmor: boolean) {
+        this.scene?.player.setarmor(newarmor);
+    }
+    launchboulder(shot: CastleAttackStarted) {
+        this.scene?.launchboulder(shot);
     }
 }

@@ -1,10 +1,19 @@
 import { type WeaponType } from '../game/entities/weapons/weapon';
 
+export type Vec2 = {
+    x: number;
+    y: number;
+};
+
 export interface PlayerInventory {
     wood: number;
     iron: number;
     castleLevel: number;
 }
+
+export type UpgradeCastleResult =
+    | { success: false }
+    | { success: true; level: number; inventory: PlayerInventory };
 
 export interface PlayerData {
     userId: string;
@@ -63,6 +72,8 @@ export interface MapData {
 
 export interface LobbyRoom {
     roomId: string;
+    hostId: string;
+    started: boolean;
     name: string;
     code: string;
     playerCount: number;
@@ -75,4 +86,11 @@ export interface JoinedPayload {
     map: MapData;
     players: PlayerData[];
     room: LobbyRoom;
+}
+
+export interface CastleAttackStarted {
+    socketId: string;
+    start: { x: number; y: number };
+    target: { x: number; y: number };
+    durationMs: number;
 }

@@ -1,28 +1,42 @@
+import { Forgemenu } from '../components/Forgemenu';
 import { Inventory } from '../components/Inventory';
 import GamePauseMenu from './GamePauseMenu';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Game } from '../game/Game';
 import { type CastlePointer } from './CastlePointer';
-import type { JoinedPayload } from '../types/game';
-import { connectSocket, disconnectSocket } from '../socket';
+import type { JoinedPayload, UpgradeCastleResult, Vec2 } from '../types/game';
+import { connectSocket, disconnectSocket, getSocket } from '../socket';
 import type { GameCanvasProps } from './gameCanvasProps';
 import { useTranslation } from 'react-i18next';
+import type { WeaponType } from '../game/entities/weapons/weapon';
+import healingIcon from '../assets/castleboons/healing.png';
+import shieldIcon from '../assets/castleboons/shield.png';
+
+const CASTLE_HEAL_RADIUS = 10;
 
 export default function GameCanvas({ joinedData }: GameCanvasProps) {
     const { t } = useTranslation();
     const gameContainer = useRef<HTMLDivElement>(null);
     const gameRef = useRef<Game | null>(null);
-
+    const [castlelvl, setcastlelvl] = useState(
+        joinedData.player.inventory.castleLevel
+    );
+    const [upgrading, setUpgrading] = useState(false);
+    const upgradePending = useRef(false);
     const [inventory, setInventory] = useState({
         wood: joinedData.player.inventory.wood,
         iron: joinedData.player.inventory.iron
     });
 
     const [hp, setHp] = useState(joinedData.player.hp);
+    const [armorActive, setArmorActive] = useState(false);
     const [spectating, setSpectating] = useState(false);
     const [castlePointer, setCastlePointer] = useState<CastlePointer | null>(
         null
     );
+
+    const [nearCastle, setNearCastle] = useState(false);
+    const [withinHealingRange, setWithinHealingRange] = useState(false);
 
     const [paused, setPaused] = useState(false);
 
@@ -34,6 +48,42 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
     function pauseGame() {
         setPaused(true);
         gameRef.current?.pause();
+    }
+
+    function upgradeCastle() {
+        if (
+            upgradePending.current ||
+            spectating ||
+            !nearCastle ||
+            castlelvl >= 4
+        )
+            return;
+
+        const socket = getSocket();
+        const game = gameRef.current;
+        if (!socket?.connected || !game) return;
+
+        upgradePending.current = true;
+        setUpgrading(true);
+        socket
+            .timeout(5000)
+            .emit(
+                'upgrade_castle',
+                {},
+                (error: Error | null, result?: UpgradeCastleResult) => {
+                    if (gameRef.current !== game) return;
+
+                    upgradePending.current = false;
+                    setUpgrading(false);
+                    if (error || !result?.success) return;
+
+                    const { level, inventory } = result;
+                    const { wood, iron } = inventory;
+                    game.syncInventory(wood, iron);
+                    setcastlelvl(level);
+                    game.updateRemoteCastle(joinedData.player.socketId, level);
+                }
+            );
     }
 
     useEffect(() => {
@@ -61,17 +111,32 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             game.removeRemotePlayer(player);
             game.removeRemoteCastle(player);
         }
+        function handlePlayerWeaponEquipped({
+            socketId,
+            weapon
+        }: {
+            socketId: string;
+            weapon: WeaponType;
+        }) {
+            game.equipremoteweapon(socketId, weapon);
+        }
 
         function handlePlayerHP({
             socketId,
-            hp
+            hp,
+            reason
         }: {
             socketId: string;
             hp: number;
+            reason: string;
         }) {
-            if (socketId !== joinedData.player.socketId) return;
-
-            setHp(hp);
+            if (socketId === joinedData.player.socketId) {
+                setHp(hp);
+                if (reason === 'damage') game.playerhitanimation();
+            } else {
+                if (reason === 'damage')
+                    game.remoteplayerhitanimation(socketId);
+            }
         }
 
         function handleJoinError({ message }: { message: string }) {
@@ -161,7 +226,44 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             level: number;
         }) {
             game.updateRemoteCastle(socketId, level);
+            if (socketId === joinedData.player.socketId) {
+                setcastlelvl(level);
+            }
         }
+
+        function handleCatapultSpawn({
+            catapultId,
+            position
+        }: {
+            catapultId: string;
+            position: Vec2;
+        }) {
+            game.spawnCatapult(catapultId, position);
+        }
+
+        function handleCatapultMove({
+            catapultId,
+            position
+        }: {
+            catapultId: string;
+            position: Vec2;
+        }) {
+            game.updateCatapult(catapultId, position);
+        }
+
+        function handleCastleAttackStarted(data: {
+            socketId: string;
+            start: { x: number; y: number };
+            target: { x: number; y: number };
+            durationMs: number;
+        }) {
+            game.launchboulder(data);
+        }
+
+        const handlearmor = (data: { armor: boolean }) => {
+            game.setarmor(data.armor);
+            setArmorActive(data.armor);
+        };
 
         socket.on('player_joined', handlePlayerJoined);
         socket.on('player_move', handlePlayerMove);
@@ -173,6 +275,11 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         socket.on('resource_spawned', handleResourceSpawned);
         socket.on('castle_update', handleCastleUpgrade);
         socket.on('player_died', handlePlayerDied);
+        socket.on('player_weapon_equipped', handlePlayerWeaponEquipped);
+        socket.on('armor', handlearmor);
+        socket.on('castle_attack_started', handleCastleAttackStarted);
+        socket.on('catapult_spawn', handleCatapultSpawn);
+        socket.on('catapult_move', handleCatapultMove);
 
         const intervalId = window.setInterval(() => {
             const snapshot = game.getInventorySnapshot();
@@ -182,9 +289,12 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             if (snapshot) setInventory(snapshot);
 
             if (pointer) setCastlePointer(pointer);
+            setNearCastle(game.isPlayerNearCastle(7));
+            setWithinHealingRange(game.isPlayerNearCastle(CASTLE_HEAL_RADIUS));
         }, 32);
 
         return () => {
+            upgradePending.current = false;
             socket.off('player_joined', handlePlayerJoined);
             socket.off('player_move', handlePlayerMove);
             socket.off('player_left', handlePlayerLeft);
@@ -195,6 +305,11 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             socket.off('resource_spawned', handleResourceSpawned);
             socket.off('join_error', handleJoinError);
             socket.off('castle_update', handleCastleUpgrade);
+            socket.off('player_weapon_equipped', handlePlayerWeaponEquipped);
+            socket.off('armor', handlearmor);
+            socket.off('castle_attack_started', handleCastleAttackStarted);
+            socket.off('catapult_spawn', handleCatapultSpawn);
+            socket.off('catapult_move', handleCatapultMove);
             window.clearInterval(intervalId);
 
             gameRef.current = null;
@@ -228,7 +343,10 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
     }
 
     return (
-        <div className="relative h-screen w-screen overflow-hidden">
+        <div
+            className="relative h-screen w-screen overflow-hidden"
+            onContextMenuCapture={(event) => event.preventDefault()}
+        >
             <div ref={gameContainer} className="h-full w-full" />
 
             {castlePointer && (
@@ -258,9 +376,29 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             )}
 
             <div className="pointer-events-none absolute left-4 top-4 z-50">
-                <div className="w-64">
-                    <div className="mb-1 text-sm font-bold text-white">
-                        HP {hp} / 100
+                <div className="w-64 shrink-0">
+                    <div className="mb-1 flex h-12 items-center justify-between">
+                        <div className="text-sm font-bold text-white">
+                            HP {hp} / 100
+                        </div>
+                        <div className="flex items-center gap-1">
+                            {castlelvl >= 2 &&
+                                withinHealingRange &&
+                                !spectating && (
+                                    <img
+                                        src={healingIcon}
+                                        alt="Healing"
+                                        className="h-12 w-12 object-contain"
+                                    />
+                                )}
+                            {!spectating && armorActive && (
+                                <img
+                                    src={shieldIcon}
+                                    alt="Armor"
+                                    className="h-12 w-12 object-contain"
+                                />
+                            )}
+                        </div>
                     </div>
 
                     <div className="h-4 overflow-hidden rounded-full bg-black/50">
@@ -292,6 +430,23 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
                     <Inventory counts={inventory} />
                 </div>
             </div>
+
+            {nearCastle && !spectating && (
+                <Forgemenu
+                    castleLevel={castlelvl}
+                    inventory={inventory}
+                    onUpgrade={upgradeCastle}
+                    upgrading={upgrading}
+                    onEquip={(weapon, updatedInventory) => {
+                        gameRef.current?.equipWeapon(weapon);
+                        gameRef.current?.syncInventory(
+                            updatedInventory.wood,
+                            updatedInventory.iron
+                        );
+                        setInventory(updatedInventory);
+                    }}
+                />
+            )}
 
             {!spectating && paused && (
                 <GamePauseMenu

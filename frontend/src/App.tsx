@@ -4,17 +4,24 @@ import Signup from './pages/SignUp';
 import LogIn from './pages/Login';
 import GameMenu from './pages/GameMenu';
 import Disconnected from './pages/Disconnected';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, startTransition } from 'react';
 import { type JoinedPayload } from './types/game';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import PasswordResetRequest from './pages/PasswordResetRequest';
+import Settings from './pages/Settings';
+import TwoFactorAuth from './pages/TwoFactorAuth';
+import TwoFactorSettings from './pages/TwoFactorSettings';
+import TwoFactorSetup from './pages/TwoFactorSetup';
+
 import { connectSocket, disconnectSocket } from './socket';
 import {
     BrowserRouter,
     useNavigate,
     Routes,
     Route,
-    Navigate
+    Navigate,
+    useLocation
 } from 'react-router-dom';
 import CreateRoom from './pages/CreateRoom';
 import Room from './pages/Room';
@@ -36,6 +43,7 @@ export default function App() {
 
 function AppContent() {
     const navigate = useNavigate();
+    const path = useLocation().pathname;
     const [loading, setLoading] = useState(true);
     const [user, setUser] = useState<User | null>(null);
     const [joinedData, setJoinedData] = useState<JoinedPayload | null>(null);
@@ -112,9 +120,7 @@ function AppContent() {
     }, [user]);
 
     useEffect(() => {
-        if (!user) {
-            return;
-        }
+        if (!user && path !== '/disconnected') return;
 
         let stopped = false;
         let failedChecks = 0;
@@ -134,10 +140,10 @@ function AppContent() {
                     signal: controller.signal
                 });
 
-                if (!response.ok) {
+                if (!response.ok)
                     throw new Error(`Health check failed: ${response.status}`);
-                }
-
+                else if (response.ok && !stopped && path === '/disconnected')
+                    navigate('/', { replace: true });
                 failedChecks = 0;
             } catch (error) {
                 failedChecks += 1;
@@ -148,10 +154,12 @@ function AppContent() {
                 );
 
                 // Three failures × two seconds between checks
-                if (failedChecks >= 3 && !stopped) {
-                    setUser(null);
-                    setJoinedData(null);
-                    navigate('/disconnected');
+                if (failedChecks >= 3 && !stopped && path !== '/disconnected') {
+                    startTransition(() => {
+                        setUser(null);
+                        setJoinedData(null);
+                        navigate('/disconnected');
+                    });
                     disconnectSocket();
                 }
             } finally {
@@ -167,13 +175,17 @@ function AppContent() {
             stopped = true;
             window.clearInterval(interval);
         };
-    }, [user, navigate]);
+    }, [user, navigate, path]);
 
     async function logout() {
         await fetch('/api/auth/logout', {
             method: 'POST',
             credentials: 'include'
         });
+        disconnectSocket();
+        setJoinedData(null);
+        setRestoringGame(false);
+        localStorage.removeItem('gameRoomId');
         setUser(null);
         navigate('/');
     }
@@ -325,6 +337,33 @@ function AppContent() {
                     ) : (
                         <Navigate to="/game-menu" />
                     )
+                }
+            />
+
+            <Route
+                path="/settings"
+                element={user ? <Settings /> : <Navigate to="/login" replace />}
+            />
+
+            <Route
+                path="/settings/password-reset"
+                element={<PasswordResetRequest />}
+            />
+
+            <Route path="/settings/2fa" element={<TwoFactorSettings />} />
+
+            <Route path="/settings/2fa/setup" element={<TwoFactorSetup />} />
+
+            <Route
+                path="/verify-2fa"
+                element={
+                    <TwoFactorAuth
+                        onLoginSuccess={(loggedUser) => {
+                            setUser(loggedUser);
+                            connectSocket();
+                            navigate('/game-menu', { replace: true });
+                        }}
+                    />
                 }
             />
 

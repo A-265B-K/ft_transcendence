@@ -41,6 +41,8 @@ export class Player {
     direction: Direction = 'down';
     private readonly textures: PlayerTextures;
     weapon?: Weapon;
+    private hittimer = 0;
+    private Armor = false;
 
     constructor(textures: PlayerTextures) {
         this.textures = textures;
@@ -93,7 +95,6 @@ export class Player {
             moveX += 0.25;
             moveY -= 0.25;
         }
-
         const magnitude = Math.hypot(moveX, moveY);
         if (magnitude > 0) {
             this.updateDirection(moveX, moveY);
@@ -125,6 +126,11 @@ export class Player {
         this.gridY = Math.max(0, Math.min(MAP_SIZE - 1, this.gridY));
 
         this.syncSpritePosition();
+
+        if (this.hittimer > 0) {
+            this.hittimer = Math.max(0, this.hittimer - deltaSeconds);
+        }
+        if (this.hittimer == 0) this.sprite.tint = 0xffffff;
     }
 
     private updateDirection(moveX: number, moveY: number) {
@@ -146,6 +152,12 @@ export class Player {
         }
     }
 
+    hasarmor() {
+        return this.Armor;
+    }
+    setarmor(newarmor: boolean) {
+        this.Armor = newarmor;
+    }
     private setWalkAnimation() {
         const animations = {
             down: [this.textures.playerDown1, this.textures.playerDown2],
@@ -188,9 +200,11 @@ export class Player {
         }
     }
 
-    attackanimation(): boolean {
-        if (!this.weapon) return false;
+    attackanimation() {
         this.weapon?.attack(this.direction);
-        return true;
+    }
+    hitanimation() {
+        this.hittimer = 0.2;
+        this.sprite.tint = 0xff9999;
     }
 }

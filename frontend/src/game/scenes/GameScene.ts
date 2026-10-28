@@ -1,16 +1,18 @@
-import { Container } from 'pixi.js';
+import { Container, Sprite, TilingSprite } from 'pixi.js';
 import { Player, type InputState } from '../entities/Player';
 import { Castle } from '../entities/Castle';
+import { Catapult } from '../entities/catapult';
 import { Camera } from '../systems/Camera';
 import { GameMap } from '../world/GameMap';
 import type { HarvestableTile } from '../world/tileResource';
 import type { GameTextures } from '../assets/loadGameTextures';
 import { isoX, isoY } from '../world/iso';
-import type { JoinedPayload } from '../../types/game';
+import type { JoinedPayload, Vec2 } from '../../types/game';
 import { RemotePlayer } from '../entities/RemotePlayer';
 import type { Socket } from 'socket.io-client';
 
 import { Weapon } from '../entities/weapons/weapon';
+import type { CastleAttackStarted } from '../../types/game';
 
 export class GameScene {
     readonly world: Container;
@@ -18,13 +20,21 @@ export class GameScene {
     readonly player: Player;
     readonly castle: Castle;
     readonly castles = new Map<number, Castle>();
+    private readonly catapults = new Map<string, Catapult>();
     readonly camera: Camera;
     readonly joinedData: JoinedPayload;
     readonly remotePlayers = new Map<string, RemotePlayer>();
     readonly textures: GameTextures;
     readonly socket: Socket;
+    private readonly forestBackground: TilingSprite;
     private wasmoving = false;
     // private isSpectating = false;
+
+    private readonly boulders: {
+        sprite: Sprite;
+        shot: CastleAttackStarted;
+        elapsedMs: number;
+    }[] = [];
 
     constructor(
         textures: GameTextures,
@@ -38,6 +48,14 @@ export class GameScene {
 
         this.world = new Container();
         this.world.sortableChildren = true;
+
+        this.forestBackground = new TilingSprite({
+            texture: textures.forestBackground,
+            width: 1,
+            height: 1
+        });
+        this.forestBackground.zIndex = -1;
+        this.world.addChild(this.forestBackground);
 
         this.map = new GameMap(
             textures.grass,
@@ -65,8 +83,6 @@ export class GameScene {
         });
 
         this.player.placeAt(joinedData.player.x, joinedData.player.y);
-        const serverweapon = joinedData.player.equippedweapon;
-        if (serverweapon) this.player.equipWeapon(serverweapon);
         this.world.addChild(this.player.container);
 
         this.createRemotePlayers();
@@ -281,6 +297,11 @@ export class GameScene {
             deltaSeconds
         );
 
+        this.forestBackground.position.set(-this.camera.x, -this.camera.y);
+        this.forestBackground.width = screenWidth;
+        this.forestBackground.height = screenHeight;
+        this.forestBackground.tilePosition.set(this.camera.x, this.camera.y);
+
         /*
          * Visible map rendering is
          * client-side.
@@ -291,6 +312,7 @@ export class GameScene {
             this.camera.x,
             this.camera.y
         );
+        this.updateBoulders(deltaSeconds);
     }
 
     getCastlePointer() {
@@ -332,6 +354,22 @@ export class GameScene {
         const index = Math.round(degrees / 45) % directions.length;
 
         return directions[index];
+    }
+
+    spawnCatapult(catapultId: string, position: Vec2) {
+        if (this.catapults.has(catapultId)) return;
+
+        const catapult = new Catapult(
+            catapultId,
+            this.textures.catapult,
+            position
+        );
+        this.catapults.set(catapult.id, catapult);
+        catapult.spawn(this.world);
+    }
+
+    updateCatapult(catapultId: string, position: Vec2) {
+        this.catapults.get(catapultId)?.update(position);
     }
 
     updateRemoteCastle(socketId: string, level: number) {
@@ -389,6 +427,13 @@ export class GameScene {
         this.map.setResourceTile(Math.floor(x), Math.floor(y), type);
     }
 
+    isPlayerNearCastle(range: number): boolean {
+        const dx = this.player.gridX - this.castle.gridX;
+        const dy = this.player.gridY - this.castle.gridY;
+
+        return Math.hypot(dx, dy) <= range;
+    }
+
     configureweapontextures(): void {
         Weapon.configureWeaponTextures({
             sword: [
@@ -403,12 +448,6 @@ export class GameScene {
                 this.textures.axe3,
                 this.textures.axe4
             ],
-            bow: [
-                this.textures.bow1,
-                this.textures.bow2,
-                this.textures.bow3,
-                this.textures.bow4
-            ],
             dagger: [
                 this.textures.dagger1,
                 this.textures.dagger2,
@@ -420,27 +459,84 @@ export class GameScene {
                 this.textures.spear2,
                 this.textures.spear3,
                 this.textures.spear4
-            ],
-            staff: [
-                this.textures.staff1,
-                this.textures.staff2,
-                this.textures.staff3,
-                this.textures.staff4
             ]
         });
     }
     requestattack(): void {
-        if (this.player.attackanimation()) {
-            this.socket.emit('player_attack', {
-                direction: this.player.direction
-            });
-        }
+        this.socket.emit(
+            'player_attack',
+            { direction: this.player.direction },
+            (response: { ok: boolean }) => {
+                if (response.ok) {
+                    this.player.attackanimation();
+                }
+            }
+        );
     }
+
+    castleranged(): void {
+        this.socket.emit('castleattack');
+    }
+
     setPlayerDead(): void {
-        // this.isSpectating = true;
         this.player.container.visible = false;
         if (this.castle) {
             this.castle.container.visible = false;
         }
+    }
+
+    launchboulder(shot: CastleAttackStarted) {
+        if (shot.durationMs <= 0) return;
+
+        const sprite = new Sprite(this.textures.boulder);
+
+        sprite.anchor.set(0.5, 1);
+        sprite.width = 40;
+        sprite.height = 40;
+        sprite.zIndex = Number.MAX_SAFE_INTEGER;
+
+        sprite.position.set(
+            isoX(shot.start.x, shot.start.y),
+            isoY(shot.start.x, shot.start.y) - 90
+        );
+
+        this.world.addChild(sprite);
+        this.boulders.push({ sprite, shot, elapsedMs: 0 });
+    }
+    private updateBoulders(deltaSeconds: number): void {
+        for (let i = this.boulders.length - 1; i >= 0; i--) {
+            const boulder = this.boulders[i];
+            if (!boulder) continue;
+
+            const { sprite, shot } = boulder;
+
+            boulder.elapsedMs += deltaSeconds * 1000;
+
+            const t = Math.min(boulder.elapsedMs / shot.durationMs, 1);
+            const x = shot.start.x + (shot.target.x - shot.start.x) * t;
+            const y = shot.start.y + (shot.target.y - shot.start.y) * t;
+            const launchHeight = 90 * (1 - t);
+            const arcHeight = 4 * 160 * t * (1 - t);
+
+            sprite.position.set(
+                isoX(x, y),
+                isoY(x, y) - launchHeight - arcHeight
+            );
+
+            if (t >= 1) {
+                this.world.removeChild(sprite);
+                sprite.destroy();
+                this.boulders.splice(i, 1);
+            }
+        }
+    }
+
+    clearBoulders(): void {
+        for (const { sprite } of this.boulders) {
+            this.world.removeChild(sprite);
+            sprite.destroy();
+        }
+
+        this.boulders.length = 0;
     }
 }

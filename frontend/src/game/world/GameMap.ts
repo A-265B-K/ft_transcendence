@@ -136,6 +136,14 @@ export class GameMap {
                 grassTile.y = tileY;
                 grassTile.zIndex = x + y;
 
+                const edgeDistance = Math.min(
+                    x,
+                    y,
+                    this.width - x - 1,
+                    this.height - y - 1
+                );
+                grassTile.alpha = Math.min(1, (edgeDistance + 1) / 3);
+
                 /*
                     Resource layer
                 */
@@ -148,6 +156,7 @@ export class GameMap {
 
                     objectTile.visible = true;
                     objectTile.texture = this.textures[tileType];
+                    objectTile.alpha = 1;
                     objectTile.anchor.set(0.5, 0.6);
                     objectTile.scale.set(0.25);
                     objectTile.x = tileX + tileWidth / 2;

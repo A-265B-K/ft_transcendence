@@ -6,6 +6,7 @@ import castle4Url from '../../assets/castle4.png';
 import down1Url from '../../assets/down1.png';
 import down2Url from '../../assets/down2.png';
 import grassUrl from '../../assets/grass.png';
+import forestBackgroundUrl from '../../assets/forest-background.webp';
 import ironUrl from '../../assets/iron.png';
 import left1Url from '../../assets/left1.png';
 import left2Url from '../../assets/left2.png';
@@ -25,11 +26,6 @@ import axe2Url from '../../assets/weapons/axe/axe2.png';
 import axe3Url from '../../assets/weapons/axe/axe3.png';
 import axe4Url from '../../assets/weapons/axe/axe4.png';
 
-import bow1Url from '../../assets/weapons/bow/bow1.png';
-import bow2Url from '../../assets/weapons/bow/bow2.png';
-import bow3Url from '../../assets/weapons/bow/bow3.png';
-import bow4Url from '../../assets/weapons/bow/bow4.png';
-
 import dagger1Url from '../../assets/weapons/dagger/dagger1.png';
 import dagger2Url from '../../assets/weapons/dagger/dagger2.png';
 import dagger3Url from '../../assets/weapons/dagger/dagger3.png';
@@ -39,14 +35,12 @@ import spear1Url from '../../assets/weapons/spear/spear1.png';
 import spear2Url from '../../assets/weapons/spear/spear2.png';
 import spear3Url from '../../assets/weapons/spear/spear3.png';
 import spear4Url from '../../assets/weapons/spear/spear4.png';
-
-import staff1Url from '../../assets/weapons/staff/staff1.png';
-import staff2Url from '../../assets/weapons/staff/staff2.png';
-import staff3Url from '../../assets/weapons/staff/staff3.png';
-import staff4Url from '../../assets/weapons/staff/staff4.png';
+import BoulderUrl from '../../assets/boulder.png';
+import catapultUrl from '../../assets/catapult/down.png';
 
 export type GameTextures = {
     grass: Texture;
+    forestBackground: Texture;
     wood: Texture;
     iron: Texture;
     castle1: Texture;
@@ -78,11 +72,6 @@ export type GameTextures = {
     axe3: Texture;
     axe4: Texture;
 
-    bow1: Texture;
-    bow2: Texture;
-    bow3: Texture;
-    bow4: Texture;
-
     dagger1: Texture;
     dagger2: Texture;
     dagger3: Texture;
@@ -93,15 +82,14 @@ export type GameTextures = {
     spear3: Texture;
     spear4: Texture;
 
-    staff1: Texture;
-    staff2: Texture;
-    staff3: Texture;
-    staff4: Texture;
+    boulder: Texture;
+    catapult: Texture;
 };
 
 export async function loadGameTextures(): Promise<GameTextures> {
     const [
         grass,
+        forestBackground,
         wood,
         iron,
         castle1,
@@ -132,11 +120,6 @@ export async function loadGameTextures(): Promise<GameTextures> {
         axe3,
         axe4,
 
-        bow1,
-        bow2,
-        bow3,
-        bow4,
-
         dagger1,
         dagger2,
         dagger3,
@@ -146,13 +129,11 @@ export async function loadGameTextures(): Promise<GameTextures> {
         spear2,
         spear3,
         spear4,
-
-        staff1,
-        staff2,
-        staff3,
-        staff4
+        boulder,
+        catapult
     ] = await Promise.all([
         Assets.load(grassUrl),
+        Assets.load<Texture>(forestBackgroundUrl),
         Assets.load(woodUrl),
         Assets.load(ironUrl),
 
@@ -185,11 +166,6 @@ export async function loadGameTextures(): Promise<GameTextures> {
         Assets.load<Texture>(axe3Url),
         Assets.load<Texture>(axe4Url),
 
-        Assets.load<Texture>(bow1Url),
-        Assets.load<Texture>(bow2Url),
-        Assets.load<Texture>(bow3Url),
-        Assets.load<Texture>(bow4Url),
-
         Assets.load<Texture>(dagger1Url),
         Assets.load<Texture>(dagger2Url),
         Assets.load<Texture>(dagger3Url),
@@ -199,15 +175,13 @@ export async function loadGameTextures(): Promise<GameTextures> {
         Assets.load<Texture>(spear2Url),
         Assets.load<Texture>(spear3Url),
         Assets.load<Texture>(spear4Url),
-
-        Assets.load<Texture>(staff1Url),
-        Assets.load<Texture>(staff2Url),
-        Assets.load<Texture>(staff3Url),
-        Assets.load<Texture>(staff4Url)
+        Assets.load<Texture>(BoulderUrl),
+        Assets.load<Texture>(catapultUrl)
     ]);
 
     return {
         grass,
+        forestBackground,
         wood,
         iron,
         castle1,
@@ -238,11 +212,6 @@ export async function loadGameTextures(): Promise<GameTextures> {
         axe3,
         axe4,
 
-        bow1,
-        bow2,
-        bow3,
-        bow4,
-
         dagger1,
         dagger2,
         dagger3,
@@ -253,9 +222,7 @@ export async function loadGameTextures(): Promise<GameTextures> {
         spear3,
         spear4,
 
-        staff1,
-        staff2,
-        staff3,
-        staff4
+        boulder,
+        catapult
     };
 }

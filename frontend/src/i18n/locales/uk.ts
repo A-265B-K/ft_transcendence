@@ -118,6 +118,21 @@ export const uk = {
         confirmPassword: 'Підтвердіть пароль',
         iAgreeTo: 'Я погоджуюся з',
         privacyPolicy: 'Політикою конфіденційності',
-        termsOfService: 'Умовами використання'
+        termsOfService: 'Умовами використання',
+
+        enterEmail: 'Спочатку введіть адресу електронної пошти',
+        twoFactorSetupFailed:
+            'Не вдалося налаштувати двофакторну автентифікацію',
+        twoFactorScanQr:
+            'Відскануйте цей QR-код за допомогою застосунку-автентифікатора',
+        twoFactorEnabled: 'Двофакторну автентифікацію ввімкнено',
+        twoFactorDisableFailed:
+            'Не вдалося вимкнути двофакторну автентифікацію',
+        twoFactorDisabled: 'Двофакторну автентифікацію вимкнено',
+        generateQrCode: 'Згенерувати QR-код',
+        scanQrCode: 'Сканувати QR-код',
+        qrCodeAlt: 'QR-код для двофакторної автентифікації',
+        confirmTwoFactor: 'Підтвердити двофакторну автентифікацію',
+        disableTwoFactor: 'Вимкнути двофакторну автентифікацію'
     }
 };

@@ -1,5 +1,6 @@
 import { useState, type SubmitEvent } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { connectSocket } from '../socket';
 import type { LoginProps } from './loginProps';
 
@@ -9,6 +10,7 @@ export default function LogIn({
     onForgotPassword
 }: LoginProps) {
     const { t } = useTranslation();
+    const navigate = useNavigate();
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -39,8 +41,8 @@ export default function LogIn({
 
             const data = await response.json();
 
-            if (data.requireTwoFactor) {
-                window.location.href = '/verify-2fa';
+            if (response.ok && data.requireTwoFactor) {
+                navigate('/verify-2fa');
                 return;
             }
 

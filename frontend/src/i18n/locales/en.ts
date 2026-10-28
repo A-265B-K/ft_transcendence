@@ -18,7 +18,7 @@ export const en = {
 
         connectionLost: 'Connection lost',
         disconnectedSeverDown:
-            'You were disconnected because the server may have gone down or your connection latency became too high.',
+            'You were disconnected because the server may have gone down or your connection latency became too high.\nTrying to reconnect...',
         //forgot password
         forgotPassword: 'Forgot password',
         sendPasswordLink:
@@ -108,6 +108,30 @@ export const en = {
         confirmPassword: 'Confirm password',
         iAgreeTo: 'I agree to the',
         privacyPolicy: 'Privacy Policy',
-        termsOfService: 'Terms of Service'
+        termsOfService: 'Terms of Service',
+
+        settings: 'Settings',
+        twoFactorAuthentication: 'Two-Factor Authentication',
+        passwordReset: 'Password Reset',
+        passwordResetRequestSent:
+            'If an account exists for this email, a password reset link will be sent.',
+
+        authenticationCode: 'Authentication code',
+        verify: 'Verify',
+        twoFactorVerified: '2FA verified successfully. Redirecting...',
+        twoFactorVerificationFailed: '2FA verification failed',
+        loading: 'Loading...',
+
+        enterEmail: 'Enter your email first',
+        twoFactorSetupFailed: '2FA setup failed',
+        twoFactorScanQr: 'Scan this QR code with your authenticator app',
+        twoFactorEnabled: 'Two-factor authentication enabled',
+        twoFactorDisableFailed: 'Failed to disable 2FA',
+        twoFactorDisabled: 'Two-factor authentication disabled',
+        generateQrCode: '	Generate QR Code',
+        scanQrCode: 'Scan QR Code',
+        qrCodeAlt: 'Two-factor authentication QR code',
+        confirmTwoFactor: 'Confirm 2FA',
+        disableTwoFactor: 'Disable 2FA'
     }
 };
