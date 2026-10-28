@@ -6,6 +6,7 @@ import castle4Url from '../../assets/castle4.png';
 import down1Url from '../../assets/down1.png';
 import down2Url from '../../assets/down2.png';
 import grassUrl from '../../assets/grass.png';
+import forestBackgroundUrl from '../../assets/forest-background.webp';
 import ironUrl from '../../assets/iron.png';
 import left1Url from '../../assets/left1.png';
 import left2Url from '../../assets/left2.png';
@@ -37,6 +38,7 @@ import spear4Url from '../../assets/weapons/spear/spear4.png';
 
 export type GameTextures = {
     grass: Texture;
+    forestBackground: Texture;
     wood: Texture;
     iron: Texture;
     castle1: Texture;
@@ -82,6 +84,7 @@ export type GameTextures = {
 export async function loadGameTextures(): Promise<GameTextures> {
     const [
         grass,
+        forestBackground,
         wood,
         iron,
         castle1,
@@ -123,6 +126,7 @@ export async function loadGameTextures(): Promise<GameTextures> {
         spear4
     ] = await Promise.all([
         Assets.load(grassUrl),
+        Assets.load<Texture>(forestBackgroundUrl),
         Assets.load(woodUrl),
         Assets.load(ironUrl),
 
@@ -168,6 +172,7 @@ export async function loadGameTextures(): Promise<GameTextures> {
 
     return {
         grass,
+        forestBackground,
         wood,
         iron,
         castle1,
