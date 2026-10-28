@@ -7,7 +7,7 @@ export class catapult {
     private _origin: castle;
     private pos: Vec2;
     private nextpos: Vec2;
-    private lasmovement: number;
+    private lastmovement = 0;
 
     constructor(
         readonly target: castle,
@@ -16,6 +16,7 @@ export class catapult {
         this._target = target;
         this._origin = origin;
         this.pos = this.origin.getposition();
+        this.nextpos = this.pos;
     }
 
     private isnearpos() {
@@ -25,7 +26,9 @@ export class catapult {
     private moveToTarget() {
         //pathfinding algoritm
     }
-    private attack() {}
+    private attack() {
+        // return this.target.takedamage(20)
+    }
 
     loop() {
         if (this.isnearpos()) {
