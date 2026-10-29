@@ -9,7 +9,6 @@ import * as roomMovement from './roomMovement.js';
 import { getDistance } from '../util.js';
 
 export type Cost = { wood: number; iron: number };
-
 export class Room {
     private name: string;
     private hostId: string;
@@ -20,6 +19,7 @@ export class Room {
     private map: GameMap;
     private started: boolean;
     private timer: ReturnType<typeof setInterval> | null = null;
+    private ended = false;
 
     constructor(name: string, hostId: string, code: string) {
         this.name = name;
@@ -32,12 +32,13 @@ export class Room {
         console.log(`Room created: ${name} [${this.code}]`);
     }
 
-    private gameloop() {
+    private gameloop(socket: Socket) {
         this.timer = setInterval(() => {
             for (const player of this.players.values()) {
                 player.castlecheck();
             }
             this.bouldercheck();
+            this.winnercheck(socket);
         }, 250);
     }
 
@@ -59,6 +60,23 @@ export class Room {
 
             return false;
         });
+    }
+
+    winnercheck(socket: Socket) {
+        let playercount = 0;
+        let winner;
+        for (const player of this.players.values()) {
+            if (player.isAlive()) {
+                winner = player;
+                playercount++;
+            }
+        }
+        this.ended = playercount == 1;
+        if (this.ended && winner) {
+            socket.nsp
+                .to(this.roomId)
+                .emit('game_end', { winnerid: winner.getUserId() });
+        }
     }
 
     destroy(): void {
@@ -83,7 +101,7 @@ export class Room {
             roomId: this.roomId,
             players: Array.from(this.players.values())
         });
-        this.gameloop();
+        this.gameloop(socket);
     }
 
     isHost(userId: string): boolean {

@@ -1,4 +1,4 @@
-// backend/srcs/rooms/gameRoom.ts 
+// backend/srcs/rooms/gameRoom.ts
 export function getWinner(room: Room): Player | null {
     if (!room.gameStarted) {
         return null;
@@ -118,16 +118,16 @@ fastify.addHook('onClose', async () => {
     clearInterval(interval);
 });
 
-// backend/srcs/onConnection.ts 
-    socket.on(
-        'kick_player',
-        (roomId: string, targetSocketId: string, reason: string) => {
-            const wasKicked = kickFromRoom(roomId, targetSocketId, reason);
+// backend/srcs/onConnection.ts
+socket.on(
+    'kick_player',
+    (roomId: string, targetSocketId: string, reason: string) => {
+        const wasKicked = kickFromRoom(roomId, targetSocketId, reason);
 
-            if (!wasKicked) {
-                socket.emit('kick_failed', {
-                    reason: reason
-                });
-            }
+        if (!wasKicked) {
+            socket.emit('kick_failed', {
+                reason: reason
+            });
         }
-    );
+    }
+);

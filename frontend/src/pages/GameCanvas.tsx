@@ -265,6 +265,8 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             setArmorActive(data.armor);
         };
 
+        const handleGameEnd = (data: { winner: string }) => {};
+
         socket.on('player_joined', handlePlayerJoined);
         socket.on('player_move', handlePlayerMove);
         socket.on('player_left', handlePlayerLeft);
@@ -280,6 +282,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         socket.on('castle_attack_started', handleCastleAttackStarted);
         socket.on('catapult_spawn', handleCatapultSpawn);
         socket.on('catapult_move', handleCatapultMove);
+        socket.on('game_end', handleGameEnd);
 
         const intervalId = window.setInterval(() => {
             const snapshot = game.getInventorySnapshot();
@@ -310,6 +313,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             socket.off('castle_attack_started', handleCastleAttackStarted);
             socket.off('catapult_spawn', handleCatapultSpawn);
             socket.off('catapult_move', handleCatapultMove);
+            socket.off('game_end', handleGameEnd);
             window.clearInterval(intervalId);
 
             gameRef.current = null;
