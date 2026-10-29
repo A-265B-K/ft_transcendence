@@ -17,7 +17,8 @@ export class Room {
     private players: Map<string, Player>;
     private boulders: boulder[] = [];
     private map: GameMap;
-    private active: boolean;
+    private started: boolean;
+    private finished: boolean;
     private timer: ReturnType<typeof setInterval> | null = null;
 
     constructor(name: string, hostId: string, code: string) {
@@ -27,13 +28,14 @@ export class Room {
         this.code = code;
         this.players = new Map<string, Player>();
         this.map = new GameMap(ROOM_MAX_SIZE);
-        this.active = false;
+        this.started = false;
+        this.finished = false;
         console.log(`Room created: ${name} [${this.code}]`);
     }
 
     private gameloop(socket: Socket) {
         this.timer = setInterval(() => {
-            if (!this.hasStarted()) return;
+            if (!this.hasStarted() || this.hasFinished()) return;
             for (const player of this.players.values()) {
                 player.castlecheck();
             }
@@ -63,6 +65,8 @@ export class Room {
     }
 
     winnercheck(socket: Socket) {
+        if (!this.hasStarted() || this.hasFinished()) return;
+
         let playercount = 0;
         let winner;
         for (const player of this.players.values()) {
@@ -71,8 +75,8 @@ export class Room {
                 playercount++;
             }
         }
-        this.active = playercount > 1;
-        if (!this.active && winner) {
+        this.finished = playercount <= 1;
+        if (this.hasFinished() && winner) {
             socket.nsp
                 .to(this.roomId)
                 .emit('game_end', { winnerid: winner.getUserId() });
@@ -91,12 +95,16 @@ export class Room {
     }
 
     hasStarted(): boolean {
-        return this.active;
+        return this.started;
+    }
+
+    hasFinished(): boolean {
+        return this.finished;
     }
     startgame(userId: string, socket: Socket) {
         if (!this.isHost(userId) || this.hasStarted()) return;
 
-        this.active = true;
+        this.started = true;
         socket.nsp.to(this.roomId).emit('gamestart', {
             roomId: this.roomId,
             players: Array.from(this.players.values())
@@ -136,7 +144,7 @@ export class Room {
             playerCount: this.getPlayerCount(),
             maxPlayers: ROOM_MAX_SIZE,
             hostId: this.hostId,
-            started: this.active
+            started: this.started
         };
     }
 
@@ -284,7 +292,7 @@ export class Room {
         moving: boolean
     ) {
         const player = this.getPlayerByUserId(user.id);
-        if (!player || !this.hasStarted()) return;
+        if (!player || !this.hasStarted() || this.hasFinished()) return;
 
         return roomMovement.movePlayer(
             { map: this.map, players: this.players, roomId: this.roomId },
@@ -328,7 +336,7 @@ export class Room {
 
         const player = this.getPlayerByUserId(userId);
 
-        if (!player || !this.hasStarted()) {
+        if (!player || !this.hasStarted() || this.hasFinished()) {
             return null;
         }
 
@@ -341,13 +349,13 @@ export class Room {
         return player.craftWeapon(cost, weapon);
     }
     equiparmor(userId: string): boolean {
-        if (!this.hasStarted()) return false;
+        if (!this.hasStarted() || this.hasFinished()) return false;
 
         return this.getPlayerByUserId(userId)?.equiparmor() ?? false;
     }
 
     payForCatapult(userId: string) {
-        if (!this.hasStarted()) return null;
+        if (!this.hasStarted() || this.hasFinished()) return null;
 
         const player = this.getPlayerByUserId(userId);
         if (!player?.payForCatapult()) return null;
@@ -356,7 +364,7 @@ export class Room {
     }
 
     upgradecastle(userId: string) {
-        if (!this.hasStarted()) return null;
+        if (!this.hasStarted() || this.hasFinished()) return null;
         if (this.getPlayerByUserId(userId)?.upgradecastle())
             return this.getPlayerByUserId(userId)?.getInventory();
         else return null;
@@ -368,7 +376,7 @@ export class Room {
         socket: Socket
     ): boolean {
         const player = this.getPlayerByUserId(user.id);
-        if (!player || !this.hasStarted()) return false;
+        if (!player || !this.hasStarted() || this.hasFinished()) return false;
 
         return roomCombat.handleRoomAttack(
             player,
@@ -380,7 +388,13 @@ export class Room {
     }
     castleattack(user: SocketUser, socket: Socket) {
         const player = this.getPlayerByUserId(user.id);
-        if (!this.hasStarted() || !player || !player.isAlive()) return false;
+        if (
+            !this.hasStarted() ||
+            this.hasFinished() ||
+            !player ||
+            !player.isAlive()
+        )
+            return false;
 
         const shot = player.castleattack();
         if (shot === null) return;
