@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 import type { WeaponType } from '../game/entities/weapons/weapon';
 import healingIcon from '../assets/castleboons/healing.png';
 import shieldIcon from '../assets/castleboons/shield.png';
+import Endgame from './Endgame';
 
 const CASTLE_HEAL_RADIUS = 10;
 
@@ -39,6 +40,8 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
     const [withinHealingRange, setWithinHealingRange] = useState(false);
 
     const [paused, setPaused] = useState(false);
+
+    const [winner, setWinner] = useState('');
 
     const resumeGame = useCallback(() => {
         setPaused(false);
@@ -87,7 +90,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
     }
 
     useEffect(() => {
-        if (!joinedData || !gameContainer.current) return;
+        if (!joinedData || !gameContainer.current || winner) return;
 
         console.log('Starting game with:', joinedData);
 
@@ -265,7 +268,9 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             setArmorActive(data.armor);
         };
 
-        const handleGameEnd = (data: { winner: string }) => {};
+        const handleGameEnd = (data: { winnerid: string }) => {
+            if (data && data.winnerid) setWinner(data.winnerid);
+        };
 
         socket.on('player_joined', handlePlayerJoined);
         socket.on('player_move', handlePlayerMove);
@@ -319,7 +324,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             gameRef.current = null;
             game.destroy();
         };
-    }, [joinedData]);
+    }, [joinedData, winner]);
 
     useEffect(() => {
         function handleEscape(event: KeyboardEvent) {
@@ -346,6 +351,9 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         window.location.href = '/game-menu';
     }
 
+    if (winner) {
+        return <Endgame winner={joinedData.player.userId === winner} />;
+    }
     return (
         <div
             className="relative h-screen w-screen overflow-hidden"

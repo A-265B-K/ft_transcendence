@@ -17,9 +17,8 @@ export class Room {
     private players: Map<string, Player>;
     private boulders: boulder[] = [];
     private map: GameMap;
-    private started: boolean;
+    private active: boolean;
     private timer: ReturnType<typeof setInterval> | null = null;
-    private ended = false;
 
     constructor(name: string, hostId: string, code: string) {
         this.name = name;
@@ -28,12 +27,13 @@ export class Room {
         this.code = code;
         this.players = new Map<string, Player>();
         this.map = new GameMap(ROOM_MAX_SIZE);
-        this.started = false;
+        this.active = false;
         console.log(`Room created: ${name} [${this.code}]`);
     }
 
     private gameloop(socket: Socket) {
         this.timer = setInterval(() => {
+            if (!this.hasStarted()) return;
             for (const player of this.players.values()) {
                 player.castlecheck();
             }
@@ -71,8 +71,8 @@ export class Room {
                 playercount++;
             }
         }
-        this.ended = playercount == 1;
-        if (this.ended && winner) {
+        this.active = playercount > 1;
+        if (!this.active && winner) {
             socket.nsp
                 .to(this.roomId)
                 .emit('game_end', { winnerid: winner.getUserId() });
@@ -91,12 +91,12 @@ export class Room {
     }
 
     hasStarted(): boolean {
-        return this.started;
+        return this.active;
     }
     startgame(userId: string, socket: Socket) {
         if (!this.isHost(userId) || this.hasStarted()) return;
 
-        this.started = true;
+        this.active = true;
         socket.nsp.to(this.roomId).emit('gamestart', {
             roomId: this.roomId,
             players: Array.from(this.players.values())
@@ -136,7 +136,7 @@ export class Room {
             playerCount: this.getPlayerCount(),
             maxPlayers: ROOM_MAX_SIZE,
             hostId: this.hostId,
-            started: this.started
+            started: this.active
         };
     }
 
