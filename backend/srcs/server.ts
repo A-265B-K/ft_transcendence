@@ -12,8 +12,16 @@ import { registerEmailVerificationRoutes } from './server/emailVerification.js';
 import { registerPageRoutes } from './server/pages.js';
 import { registerSystemRoutes } from './server/system.js';
 import { registerSocketHandlers } from './server/sockets.js';
+import rateLimit from '@fastify/rate-limit';
 
-const fastify = Fastify();
+const fastify = Fastify({
+    logger: true,
+    trustProxy: (address, hop) => hop === 1
+});
+
+await fastify.register(rateLimit, {
+    global: false
+});
 
 await fastify.register(cookie);
 

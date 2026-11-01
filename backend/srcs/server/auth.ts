@@ -19,6 +19,23 @@ type SignInBody = {
 export function registerAuthRoutes(fastify: FastifyInstance) {
     fastify.post<{ Body: RegisterBody }>(
         '/api/auth/register',
+        {
+            config: {
+                rateLimit: {
+                    max: 3,
+                    timeWindow: '10 minutes',
+                    onExceeded: (request) => {
+                        request.log.warn(
+                            {
+                                event: 'auth.register.rate_limited',
+                                ip: request.ip
+                            },
+                            'Registration rate limit exceeded'
+                        );
+                    }
+                }
+            }
+        },
         async (request, reply) => {
             const result = await registerUser(request.body);
 
@@ -31,9 +48,68 @@ export function registerAuthRoutes(fastify: FastifyInstance) {
 
     fastify.post<{ Body: SignInBody }>(
         '/api/auth/signin',
+        {
+            config: {
+                rateLimit: {
+                    max: 5,
+                    timeWindow: '1 minute',
+                    onExceeded: (request) => {
+                        request.log.warn(
+                            {
+                                event: 'auth.login.rate_limited',
+                                ip: request.ip
+                            },
+                            'Login rate limit exceeded'
+                        );
+                    }
+                }
+            }
+        },
         async (request, reply) => {
             const result = await SignInUser(request.body);
 
+            // Log the authentication result
+            if (!result.ok) {
+                if (result.statusCode === 401) {
+                    request.log.warn(
+                        {
+                            event: 'auth.login.failed',
+                            ip: request.ip,
+                            reason: 'invalid_credentials'
+                        },
+                        'Login rejected'
+                    );
+                } else if (result.statusCode >= 500) {
+                    request.log.error(
+                        {
+                            event: 'auth.login.error',
+                            ip: request.ip,
+                            statusCode: result.statusCode
+                        },
+                        'Login failed due to an internal error'
+                    );
+                }
+            } else if (result.requireTwoFactor) {
+                request.log.info(
+                    {
+                        event: 'auth.login.2fa_required',
+                        ip: request.ip,
+                        userId: result.user.id
+                    },
+                    'Password accepted; awaiting 2FA'
+                );
+            } else {
+                request.log.info(
+                    {
+                        event: 'auth.login.success',
+                        ip: request.ip,
+                        userId: result.user.id
+                    },
+                    'Login successful'
+                );
+            }
+
+            // Handle the authentication result and send the appropriate response
             if (!result.ok) {
                 return reply.code(result.statusCode).send({
                     message: result.message
@@ -47,7 +123,6 @@ export function registerAuthRoutes(fastify: FastifyInstance) {
                     maxAge: 60 * 5,
                     path: '/'
                 });
-
                 return reply.code(200).send({
                     message: result.message,
                     requireTwoFactor: true
@@ -60,7 +135,6 @@ export function registerAuthRoutes(fastify: FastifyInstance) {
                 maxAge: 60 * 60 * 24,
                 path: '/'
             });
-
             return reply.code(result.statusCode).send({
                 message: result.message,
                 requireTwoFactor: false,

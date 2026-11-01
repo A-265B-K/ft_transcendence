@@ -3,7 +3,7 @@ import { getPostgresCredentials } from '../vault/client.js';
 
 const credentials = await getPostgresCredentials();
 
-const db = new Pool({
+export const db = new Pool({
     user: credentials.username,
     password: credentials.password,
     host: process.env.POSTGRES_HOST ?? 'postgres',

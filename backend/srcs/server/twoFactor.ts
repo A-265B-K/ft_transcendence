@@ -6,8 +6,8 @@ import {
     getCurrentUserByTemporary2FA
 } from '../security/session/session.js';
 import {
-    insertSessionById,
-    deleteTemporary2FA
+    recordFailedTemporary2FAAttempt,
+    consumeTemporary2FAAndCreateSession
 } from '../security/repository/sessionRepository.js';
 import { findUserByEmail } from '../security/repository/userRepository.js';
 import {
@@ -61,6 +61,23 @@ export function registerTwoFactorRoutes(fastify: FastifyInstance) {
 
     fastify.post<{ Body: TwoFAEnableBody }>(
         '/api/auth/2fa/setup',
+        {
+            config: {
+                rateLimit: {
+                    max: 5,
+                    timeWindow: '15 minutes',
+                    onExceeded: (request) => {
+                        request.log.warn(
+                            {
+                                event: 'auth.2fa.setup.rate_limited',
+                                ip: request.ip
+                            },
+                            '2FA setup rate limit exceeded'
+                        );
+                    }
+                }
+            }
+        },
         async (request, reply) => {
             const session_id = request.cookies.session_id;
             if (!session_id) {
@@ -116,6 +133,23 @@ export function registerTwoFactorRoutes(fastify: FastifyInstance) {
 
     fastify.post<{ Body: TwoFAConfirmBody }>(
         '/api/auth/2fa/confirm',
+        {
+            config: {
+                rateLimit: {
+                    max: 5,
+                    timeWindow: '5 minutes',
+                    onExceeded: (request) => {
+                        request.log.warn(
+                            {
+                                event: 'auth.2fa.confirm.rate_limited',
+                                ip: request.ip
+                            },
+                            '2FA confirmation rate limit exceeded'
+                        );
+                    }
+                }
+            }
+        },
         async (request, reply) => {
             const session_id = request.cookies.session_id;
             if (!session_id) {
@@ -148,6 +182,23 @@ export function registerTwoFactorRoutes(fastify: FastifyInstance) {
 
     fastify.post<{ Body: TwoFADisableBody }>(
         '/api/auth/2fa/disable',
+        {
+            config: {
+                rateLimit: {
+                    max: 5,
+                    timeWindow: '15 minutes',
+                    onExceeded: (request) => {
+                        request.log.warn(
+                            {
+                                event: 'auth.2fa.disable.rate_limited',
+                                ip: request.ip
+                            },
+                            '2FA disable rate limit exceeded'
+                        );
+                    }
+                }
+            }
+        },
         async (request, reply) => {
             const session_id = request.cookies.session_id;
 
@@ -202,6 +253,23 @@ export function registerTwoFactorRoutes(fastify: FastifyInstance) {
 
     fastify.post<{ Body: TwoFALoginBody }>(
         '/api/auth/2fa/verify',
+        {
+            config: {
+                rateLimit: {
+                    max: 5,
+                    timeWindow: '1 minute',
+                    onExceeded: (request) => {
+                        request.log.warn(
+                            {
+                                event: 'auth.2fa.rate_limited',
+                                ip: request.ip
+                            },
+                            '2FA verification rate limit exceeded'
+                        );
+                    }
+                }
+            }
+        },
         async (request, reply) => {
             const temporary_auth = request.cookies.temporary_auth;
 
@@ -227,6 +295,41 @@ export function registerTwoFactorRoutes(fastify: FastifyInstance) {
 
             const result = await verify2FALogin(user.email, token);
             if (!result.ok) {
+                if (
+                    result.statusCode === 401 &&
+                    result.message === 'Invalid code'
+                ) {
+                    const attempts =
+                        await recordFailedTemporary2FAAttempt(
+                            temporary_auth_hash
+                        );
+
+                    if (attempts == null || attempts >= 5) {
+                        if (attempts === 5) {
+                            request.log.warn(
+                                {
+                                    event: 'auth.2fa.temporary_auth_locked',
+                                    ip: request.ip,
+                                    attempts
+                                },
+                                'Temporary 2FA authentication locked'
+                            );
+                        }
+                        reply.clearCookie('temporary_auth', {
+                            httpOnly: true,
+                            secure: true,
+                            sameSite: 'strict',
+                            path: '/'
+                        });
+
+                        return reply.code(401).send({
+                            ok: false,
+                            message:
+                                '2FA authentication expired. Please sign in again.'
+                        });
+                    }
+                }
+
                 return reply.code(result.statusCode).send({
                     ok: false,
                     message: result.message
@@ -237,8 +340,24 @@ export function registerTwoFactorRoutes(fastify: FastifyInstance) {
             const session_id_hash = createHash('sha256')
                 .update(session_id)
                 .digest('hex');
-            await insertSessionById(session_id_hash, user.id);
-            await deleteTemporary2FA(temporary_auth_hash);
+            const sessionCreated = await consumeTemporary2FAAndCreateSession(
+                temporary_auth_hash,
+                session_id_hash
+            );
+
+            if (!sessionCreated) {
+                reply.clearCookie('temporary_auth', {
+                    httpOnly: true,
+                    secure: true,
+                    sameSite: 'strict',
+                    path: '/'
+                });
+
+                return reply.code(401).send({
+                    ok: false,
+                    message: '2FA authentication expired. Please sign in again.'
+                });
+            }
 
             reply.setCookie('session_id', session_id, {
                 httpOnly: true,
