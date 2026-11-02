@@ -99,6 +99,9 @@ export class Player {
         return this.hp;
     }
 
+    getcatapults() {
+        return this.catapults;
+    }
     getPosition(): { x: number; y: number } {
         return {
             x: this.x,
