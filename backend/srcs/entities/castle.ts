@@ -121,6 +121,5 @@ export class castle {
     }
     takedamage(/*damage: number*/) {
         //to be implemented
-        
     }
 }
