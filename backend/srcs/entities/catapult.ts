@@ -77,13 +77,11 @@ export class catapult {
 
         this.health -= damage;
         if (this.health <= 0) {
-
             this.onDestroyed(this.id);
             this.namespace.to(this.roomId).emit('catapult_broken', {
                 catapultId: this.id
             });
         }
-
     }
     getpos() {
         return this.position;

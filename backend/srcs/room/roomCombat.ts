@@ -11,19 +11,35 @@ function handlecastledamage() {
 }
 */
 
-function handlecatapultdamage(players: MapIterator<Player>, player: Player, attackStats: WeaponAttackStats, direction: Direction) {
+function handlecatapultdamage(
+    players: MapIterator<Player>,
+    player: Player,
+    attackStats: WeaponAttackStats,
+    direction: Direction
+) {
     for (const catapultowner of players) {
-      let catapults = catapultowner.getcatapults();
-      for (const catapult of catapults) {
-        if (istargethit(player.getPosition(), catapult.getpos(), attackStats, direction, PLAYER_RADIUS))
-            catapult.takedamage(attackStats.damage)
-      }
+        let catapults = catapultowner.getcatapults();
+        for (const catapult of catapults) {
+            if (
+                istargethit(
+                    player.getPosition(),
+                    catapult.getpos(),
+                    attackStats,
+                    direction,
+                    PLAYER_RADIUS
+                )
+            )
+                catapult.takedamage(attackStats.damage);
+        }
     }
-
 }
 
-
-function handleplayerdamage(players: MapIterator<Player>, player: Player, attackStats: WeaponAttackStats, direction: Direction) {
+function handleplayerdamage(
+    players: MapIterator<Player>,
+    player: Player,
+    attackStats: WeaponAttackStats,
+    direction: Direction
+) {
     for (const target of players) {
         if (target.getUserId() === player.getUserId() || !target.isAlive()) {
             continue;
@@ -52,9 +68,7 @@ function handleplayerdamage(players: MapIterator<Player>, player: Player, attack
             'damage'
         );
     }
-
 }
-
 
 export function handleRoomAttack(
     player: Player,

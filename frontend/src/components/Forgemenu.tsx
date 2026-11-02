@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { WeaponType } from '../game/entities/weapons/weapon';
 import { getSocket } from '../socket';
 import daggerIcon from '../assets/weapons/dagger/dagger1.png';
 import swordIcon from '../assets/weapons/sword/sword1.png';
 import spearIcon from '../assets/weapons/spear/spear1.png';
 import axeIcon from '../assets/weapons/axe/axe1.png';
+import catapultIcon from '../assets/catapult/down.png';
+import type { PlayerData, PlayerInventory } from '../types/game';
 
 const weaponrecipes = {
     dagger: { wood: 15, iron: 15, icon: daggerIcon },
@@ -26,7 +28,9 @@ export function Forgemenu({
     castleLevel,
     inventory,
     onUpgrade,
-    upgrading
+    upgrading,
+    opponents,
+    onInventoryChange
 }: {
     onEquip: (
         weapon: WeaponType,
@@ -36,8 +40,13 @@ export function Forgemenu({
     inventory: { wood: number; iron: number };
     onUpgrade: () => void;
     upgrading: boolean;
+    opponents: PlayerData[];
+    onInventoryChange: (inventory: { wood: number; iron: number }) => void;
 }) {
     const [open, setOpen] = useState(false);
+    const targetDialog = useRef<HTMLDialogElement>(null);
+    const purchasePending = useRef(false);
+    const [purchasingCatapult, setPurchasingCatapult] = useState(false);
     const [equippingArmor, setEquippingArmor] = useState(false);
     const upgradeCost = castleUpgradeRecipes[castleLevel + 1];
     const atMaxLevel = castleLevel >= 4;
@@ -45,6 +54,7 @@ export function Forgemenu({
         !!upgradeCost &&
         inventory.wood >= upgradeCost.wood &&
         inventory.iron >= upgradeCost.iron;
+    const canAffordCatapult = inventory.wood >= 50 && inventory.iron >= 50;
 
     function craftweapon(weapon: WeaponType) {
         type craftresult =
@@ -76,6 +86,29 @@ export function Forgemenu({
         });
     }
 
+    function buyCatapult(targetUserId: string) {
+        targetDialog.current?.close();
+        if (purchasePending.current) return;
+        const socket = getSocket();
+        if (!socket?.connected) return;
+
+        purchasePending.current = true;
+        setPurchasingCatapult(true);
+        socket.emit(
+            'new_catapult',
+            { targetUserId },
+            (
+                result: { ok: false } | { ok: true; inventory: PlayerInventory }
+            ) => {
+                purchasePending.current = false;
+                setPurchasingCatapult(false);
+                if (!result?.ok) return;
+
+                onInventoryChange(result.inventory);
+            }
+        );
+    }
+
     return (
         <div>
             <div className="absolute bottom-24 right-4 z-50 text-white">
@@ -91,7 +124,7 @@ export function Forgemenu({
                 {open && (
                     <section
                         aria-label="Forge"
-                        className="mt-2 w-64 rounded-xl bg-slate-900 p-4"
+                        className="mt-2 max-h-[calc(100dvh-10rem)] w-64 overflow-y-auto rounded-xl bg-slate-900 p-4"
                     >
                         <h2 className="mb-3 text-lg font-bold">Forge</h2>
                         <p>Choose a weapon to craft.</p>
@@ -129,6 +162,28 @@ export function Forgemenu({
                                     </button>
                                 )
                             )}
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    targetDialog.current?.showModal()
+                                }
+                                disabled={!canAffordCatapult || castleLevel < 2}
+                                className="flex items-center gap-3 rounded-lg bg-slate-700 px-3 py-2 text-left hover:bg-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                <img
+                                    src={catapultIcon}
+                                    alt=""
+                                    className="h-10 w-10 shrink-0 object-contain"
+                                />
+                                <span>
+                                    <span className="block font-bold capitalize">
+                                        Buy catapult
+                                    </span>
+                                    <span className="block text-sm text-slate-300">
+                                        50 wood · 50 iron
+                                    </span>
+                                </span>
+                            </button>
                         </div>
                         <section
                             aria-label="Armor"
@@ -185,6 +240,41 @@ export function Forgemenu({
                                 )}
                             </button>
                         </section>
+                        <dialog
+                            ref={targetDialog}
+                            aria-labelledby="catapult-target-title"
+                            onKeyDown={(event) => event.stopPropagation()}
+                            className="fixed m-auto w-80 max-w-[calc(100%-2rem)] rounded-xl bg-slate-900 p-4 text-white backdrop:bg-black/60"
+                        >
+                            <h2
+                                id="catapult-target-title"
+                                className="text-lg font-bold"
+                            >
+                                Choose a target
+                            </h2>
+                            <div className="mt-3 flex flex-col gap-2">
+                                {opponents.map((player) => (
+                                    <button
+                                        key={player.userId}
+                                        type="button"
+                                        onClick={() =>
+                                            buyCatapult(player.userId)
+                                        }
+                                        disabled={purchasingCatapult}
+                                        className="rounded-lg bg-slate-700 px-3 py-2 text-left hover:bg-slate-600 disabled:opacity-50"
+                                    >
+                                        {player.username}
+                                    </button>
+                                ))}
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => targetDialog.current?.close()}
+                                className="mt-4 rounded-lg bg-slate-700 px-3 py-2 hover:bg-slate-600 disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                        </dialog>
                     </section>
                 )}
             </div>

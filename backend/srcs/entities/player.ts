@@ -282,7 +282,7 @@ export class Player {
             inventory: { wood: this.inventory.wood, iron: this.inventory.iron }
         };
     }
-    payForCatapult(): boolean {
+    payForCatapult(target: Player): boolean {
         if (!this.alive || !this.pay(CATAPULT_COST)) return false;
 
         const newCatapult = new catapult(
@@ -293,7 +293,8 @@ export class Player {
                 this.catapults = this.catapults.filter(
                     (catapult) => catapult.id !== catapultId
                 );
-            }
+            },
+            target.castle
         );
         this.catapults.push(newCatapult);
         newCatapult.spawn();

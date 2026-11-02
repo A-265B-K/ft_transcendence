@@ -455,6 +455,18 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
                     inventory={inventory}
                     onUpgrade={upgradeCastle}
                     upgrading={upgrading}
+                    opponents={joinedData.players.filter(
+                        (player) =>
+                            player.userId !== joinedData.player.userId &&
+                            player.hp > 0
+                    )}
+                    onInventoryChange={(updatedInventory) => {
+                        gameRef.current?.syncInventory(
+                            updatedInventory.wood,
+                            updatedInventory.iron
+                        );
+                        setInventory(updatedInventory);
+                    }}
                     onEquip={(weapon, updatedInventory) => {
                         gameRef.current?.equipWeapon(weapon);
                         gameRef.current?.syncInventory(
