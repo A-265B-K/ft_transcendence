@@ -30,6 +30,12 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
     });
 
     const [hp, setHp] = useState(joinedData.player.hp);
+    const [opponents, setOpponents] = useState(() =>
+        joinedData.players.filter(
+            (player) =>
+                player.userId !== joinedData.player.userId && player.hp > 0
+        )
+    );
     const [armorActive, setArmorActive] = useState(false);
     const [spectating, setSpectating] = useState(false);
     const [castlePointer, setCastlePointer] = useState<CastlePointer | null>(
@@ -111,6 +117,9 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         function handlePlayerLeft(player: JoinedPayload['players'][number]) {
             console.log('Player left:', player);
 
+            setOpponents((current) =>
+                current.filter((opponent) => opponent.userId !== player.userId)
+            );
             game.removeRemotePlayer(player);
             game.removeRemoteCastle(player);
         }
@@ -168,6 +177,11 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         function handlePlayerDied(data: {
             player: JoinedPayload['players'][number];
         }) {
+            setOpponents((current) =>
+                current.filter(
+                    (opponent) => opponent.userId !== data.player.userId
+                )
+            );
             if (data.player.userId === joinedData.player.userId) {
                 game.setPlayerDead();
                 setSpectating(true);
@@ -455,11 +469,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
                     inventory={inventory}
                     onUpgrade={upgradeCastle}
                     upgrading={upgrading}
-                    opponents={joinedData.players.filter(
-                        (player) =>
-                            player.userId !== joinedData.player.userId &&
-                            player.hp > 0
-                    )}
+                    opponents={opponents}
                     onInventoryChange={(updatedInventory) => {
                         gameRef.current?.syncInventory(
                             updatedInventory.wood,
