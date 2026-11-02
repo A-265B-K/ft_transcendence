@@ -13,7 +13,6 @@ export class catapult {
         readonly origin: castle,
         private readonly namespace: Socket['nsp'],
         private readonly roomId: string,
-        private readonly onDestroyed: (catapultId: string) => void,
         readonly target?: castle
     ) {
         this.position = origin.getposition();
@@ -27,8 +26,6 @@ export class catapult {
     }
 
     update(position: Vec2) {
-        if (this.health <= 0) return;
-
         this.position = { ...position };
         this.namespace.to(this.roomId).emit('catapult_move', {
             catapultId: this.id,
@@ -61,28 +58,15 @@ export class catapult {
     }
 
     loop() {
-        if (this.health <= 0) return;
         if (!this.target) {
-            this.takedamage(this.health);
+            this.health = 0;
             return;
         }
+
         if (this.isnearpos()) {
             this.attack();
         } else {
             this.moveToTarget();
         }
-    }
-    takedamage(damage: number) {
-        if (this.health <= 0) return;
-
-        this.health -= damage;
-        if (this.health <= 0) {
-            
-            this.onDestroyed(this.id);
-            this.namespace.to(this.roomId).emit('catapult_broken', {
-                catapultId: this.id
-            });
-        }
-
     }
 }

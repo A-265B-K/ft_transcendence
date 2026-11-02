@@ -27,7 +27,7 @@ export class Player {
     private readonly roomId: string;
     private readonly username: string;
     private readonly slot: number;
-    private catapults: catapult[] = [];
+    private readonly catapults: catapult[] = [];
     private hp: number;
     private alive: boolean;
     private x: number;
@@ -285,12 +285,7 @@ export class Player {
         const newCatapult = new catapult(
             this.castle,
             this.namespace,
-            this.roomId,
-            (catapultId) => {
-                this.catapults = this.catapults.filter(
-                    (catapult) => catapult.id !== catapultId
-                );
-            }
+            this.roomId
         );
         this.catapults.push(newCatapult);
         newCatapult.spawn();
