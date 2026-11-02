@@ -27,7 +27,7 @@ export class Player {
     private readonly roomId: string;
     private readonly username: string;
     private readonly slot: number;
-    private readonly catapults: catapult[] = [];
+    private catapults: catapult[] = [];
     private hp: number;
     private alive: boolean;
     private x: number;
@@ -99,6 +99,9 @@ export class Player {
         return this.hp;
     }
 
+    getcatapults() {
+        return this.catapults;
+    }
     getPosition(): { x: number; y: number } {
         return {
             x: this.x,
@@ -279,13 +282,19 @@ export class Player {
             inventory: { wood: this.inventory.wood, iron: this.inventory.iron }
         };
     }
-    payForCatapult(): boolean {
+    payForCatapult(target: Player): boolean {
         if (!this.alive || !this.pay(CATAPULT_COST)) return false;
 
         const newCatapult = new catapult(
             this.castle,
             this.namespace,
-            this.roomId
+            this.roomId,
+            (catapultId) => {
+                this.catapults = this.catapults.filter(
+                    (catapult) => catapult.id !== catapultId
+                );
+            },
+            target.castle
         );
         this.catapults.push(newCatapult);
         newCatapult.spawn();

@@ -1,8 +1,74 @@
 import type { Player } from '../entities/player.js';
 import type { Socket } from '../types.js';
 import { isvaliddirection } from '../util.js';
-import { istargethit } from '../combat/Detection.js';
-import { getattackstats } from '../combat/Weapon.js';
+import { istargethit, type Direction } from '../combat/Detection.js';
+import { getattackstats, type WeaponAttackStats } from '../combat/Weapon.js';
+import { PLAYER_RADIUS } from '../constants.js';
+
+/* 
+function handlecastledamage() {
+    
+}
+*/
+
+function handlecatapultdamage(
+    players: MapIterator<Player>,
+    player: Player,
+    attackStats: WeaponAttackStats,
+    direction: Direction
+) {
+    for (const catapultowner of players) {
+        const catapults = catapultowner.getcatapults();
+        for (const catapult of catapults) {
+            if (
+                istargethit(
+                    player.getPosition(),
+                    catapult.getpos(),
+                    attackStats,
+                    direction,
+                    PLAYER_RADIUS
+                )
+            )
+                catapult.takedamage(attackStats.damage);
+        }
+    }
+}
+
+function handleplayerdamage(
+    players: MapIterator<Player>,
+    player: Player,
+    attackStats: WeaponAttackStats,
+    direction: Direction
+) {
+    for (const target of players) {
+        if (target.getUserId() === player.getUserId() || !target.isAlive()) {
+            continue;
+        }
+
+        if (
+            !istargethit(
+                player.getPosition(),
+                target.getPosition(),
+                attackStats,
+                direction,
+                PLAYER_RADIUS
+            )
+        ) {
+            continue;
+        }
+
+        target.takeDamage(attackStats.damage);
+
+        console.log(
+            player.getUsername(),
+            'hit',
+            target.getUsername(),
+            'for',
+            attackStats.damage,
+            'damage'
+        );
+    }
+}
 
 export function handleRoomAttack(
     player: Player,
@@ -32,33 +98,8 @@ export function handleRoomAttack(
         direction
     });
 
-    for (const target of players.values()) {
-        if (target.getUserId() === player.getUserId() || !target.isAlive()) {
-            continue;
-        }
-
-        if (
-            !istargethit(
-                player.getPosition(),
-                target.getPosition(),
-                attackStats,
-                direction
-            )
-        ) {
-            continue;
-        }
-
-        target.takeDamage(attackStats.damage);
-
-        console.log(
-            player.getUsername(),
-            'hit',
-            target.getUsername(),
-            'for',
-            attackStats.damage,
-            'damage'
-        );
-    }
+    handleplayerdamage(players.values(), player, attackStats, direction);
+    handlecatapultdamage(players.values(), player, attackStats, direction);
     player.attackNow(player.getEquippedWeapon());
     return true;
 }

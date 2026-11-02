@@ -30,6 +30,12 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
     });
 
     const [hp, setHp] = useState(joinedData.player.hp);
+    const [opponents, setOpponents] = useState(() =>
+        joinedData.players.filter(
+            (player) =>
+                player.userId !== joinedData.player.userId && player.hp > 0
+        )
+    );
     const [armorActive, setArmorActive] = useState(false);
     const [spectating, setSpectating] = useState(false);
     const [castlePointer, setCastlePointer] = useState<CastlePointer | null>(
@@ -111,6 +117,9 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         function handlePlayerLeft(player: JoinedPayload['players'][number]) {
             console.log('Player left:', player);
 
+            setOpponents((current) =>
+                current.filter((opponent) => opponent.userId !== player.userId)
+            );
             game.removeRemotePlayer(player);
             game.removeRemoteCastle(player);
         }
@@ -168,6 +177,11 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         function handlePlayerDied(data: {
             player: JoinedPayload['players'][number];
         }) {
+            setOpponents((current) =>
+                current.filter(
+                    (opponent) => opponent.userId !== data.player.userId
+                )
+            );
             if (data.player.userId === joinedData.player.userId) {
                 game.setPlayerDead();
                 setSpectating(true);
@@ -244,6 +258,10 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             game.spawnCatapult(catapultId, position);
         }
 
+        function handlecatapultbroken({ catapultId }: { catapultId: string }) {
+            game.deleteCatapult(catapultId);
+        }
+
         function handleCatapultMove({
             catapultId,
             position
@@ -287,6 +305,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         socket.on('castle_attack_started', handleCastleAttackStarted);
         socket.on('catapult_spawn', handleCatapultSpawn);
         socket.on('catapult_move', handleCatapultMove);
+        socket.on('catapult_broken', handlecatapultbroken);
         socket.on('game_end', handleGameEnd);
 
         const intervalId = window.setInterval(() => {
@@ -318,6 +337,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             socket.off('castle_attack_started', handleCastleAttackStarted);
             socket.off('catapult_spawn', handleCatapultSpawn);
             socket.off('catapult_move', handleCatapultMove);
+            socket.off('catapult_broken', handlecatapultbroken);
             socket.off('game_end', handleGameEnd);
             window.clearInterval(intervalId);
 
@@ -449,6 +469,14 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
                     inventory={inventory}
                     onUpgrade={upgradeCastle}
                     upgrading={upgrading}
+                    opponents={opponents}
+                    onInventoryChange={(updatedInventory) => {
+                        gameRef.current?.syncInventory(
+                            updatedInventory.wood,
+                            updatedInventory.iron
+                        );
+                        setInventory(updatedInventory);
+                    }}
                     onEquip={(weapon, updatedInventory) => {
                         gameRef.current?.equipWeapon(weapon);
                         gameRef.current?.syncInventory(

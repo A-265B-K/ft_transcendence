@@ -7,12 +7,20 @@ export const registerCatapultHandlers = (context: ConnectionContext) => {
     socket.on(
         'new_catapult',
         (
+            data: unknown,
             callback: (
                 response: { ok: false } | { ok: true; inventory: Inventory }
             ) => void
         ) => {
             if (typeof callback !== 'function') return;
-            if (!context.currentRoomId) {
+            if (
+                !context.currentRoomId ||
+                typeof data !== 'object' ||
+                data === null ||
+                !('targetUserId' in data) ||
+                typeof data.targetUserId !== 'string' ||
+                data.targetUserId.trim().length === 0
+            ) {
                 callback({ ok: false });
                 return;
             }
@@ -23,7 +31,7 @@ export const registerCatapultHandlers = (context: ConnectionContext) => {
                 return;
             }
 
-            const inventory = room.payForCatapult(user.id);
+            const inventory = room.payForCatapult(user.id, data.targetUserId);
             if (!inventory) {
                 callback({ ok: false });
                 return;

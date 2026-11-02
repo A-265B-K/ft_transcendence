@@ -354,11 +354,18 @@ export class Room {
         return this.getPlayerByUserId(userId)?.equiparmor() ?? false;
     }
 
-    payForCatapult(userId: string) {
+    payForCatapult(userId: string, targetUserId: string) {
         if (!this.hasStarted() || this.hasFinished()) return null;
 
         const player = this.getPlayerByUserId(userId);
-        if (!player?.payForCatapult()) return null;
+        const target = this.getPlayerByUserId(targetUserId);
+        if (
+            !target ||
+            targetUserId === userId ||
+            !target.isAlive() ||
+            !player?.payForCatapult(target)
+        )
+            return null;
 
         return player.getInventory();
     }
