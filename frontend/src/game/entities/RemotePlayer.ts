@@ -85,6 +85,7 @@ export class RemotePlayer {
     }
 
     private updateDirection(deltaX: number, deltaY: number) {
+        [deltaX, deltaY] = [deltaX - deltaY, deltaX + deltaY];
         let newDirection: Direction;
 
         if (Math.abs(deltaX) > Math.abs(deltaY)) {
@@ -93,7 +94,7 @@ export class RemotePlayer {
             newDirection = deltaY < 0 ? 'up' : 'down';
         }
 
-        if (newDirection === this.direction) {
+        if (newDirection === this.direction && this.sprite.playing) {
             return;
         }
 
