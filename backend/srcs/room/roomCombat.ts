@@ -18,7 +18,7 @@ function handlecatapultdamage(
     direction: Direction
 ) {
     for (const catapultowner of players) {
-        let catapults = catapultowner.getcatapults();
+        const catapults = catapultowner.getcatapults();
         for (const catapult of catapults) {
             if (
                 istargethit(
