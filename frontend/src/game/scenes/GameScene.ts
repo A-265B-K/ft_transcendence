@@ -372,6 +372,15 @@ export class GameScene {
         this.catapults.get(catapultId)?.update(position);
     }
 
+    deleteCatapult(catapultId: string) {
+        const catapult = this.catapults.get(catapultId);
+        if (catapult) {
+            this.world.removeChild(catapult.sprite);
+            catapult.sprite.destroy();
+            this.catapults.delete(catapultId);
+        }
+    }
+
     updateRemoteCastle(socketId: string, level: number) {
         const player = this.joinedData.players.find(
             (p) => p.socketId === socketId

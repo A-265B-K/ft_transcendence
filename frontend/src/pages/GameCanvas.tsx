@@ -244,6 +244,10 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             game.spawnCatapult(catapultId, position);
         }
 
+        function handlecatapultbroken({ catapultId }: { catapultId: string }) {
+            game.deleteCatapult(catapultId);
+        }
+
         function handleCatapultMove({
             catapultId,
             position
@@ -287,6 +291,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         socket.on('castle_attack_started', handleCastleAttackStarted);
         socket.on('catapult_spawn', handleCatapultSpawn);
         socket.on('catapult_move', handleCatapultMove);
+        socket.on('catapult_broken', handlecatapultbroken);
         socket.on('game_end', handleGameEnd);
 
         const intervalId = window.setInterval(() => {
@@ -318,6 +323,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             socket.off('castle_attack_started', handleCastleAttackStarted);
             socket.off('catapult_spawn', handleCatapultSpawn);
             socket.off('catapult_move', handleCatapultMove);
+            socket.off('catapult_broken', handlecatapultbroken);
             socket.off('game_end', handleGameEnd);
             window.clearInterval(intervalId);
 
