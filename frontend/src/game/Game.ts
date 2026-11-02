@@ -99,6 +99,10 @@ export class Game {
         this.scene?.spawnCatapult(catapultId, position);
     }
 
+    deleteCatapult(catapultId: string) {
+        this.scene?.deleteCatapult(catapultId);
+    }
+
     updateCatapult(catapultId: string, position: Vec2) {
         this.scene?.updateCatapult(catapultId, position);
     }
