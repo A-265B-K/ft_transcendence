@@ -57,7 +57,7 @@ export class catapult {
         }
     }
     private attack() {
-        // return this.target.takedamage(20)
+        return this.target?.takedamage(20);
     }
 
     loop() {

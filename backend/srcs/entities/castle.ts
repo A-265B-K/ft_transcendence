@@ -119,4 +119,7 @@ export class castle {
                 throw new Error('invalid upgrade lvl');
         }
     }
+    takedamage(damage : number) {
+        //to be implemented
+    }
 }
