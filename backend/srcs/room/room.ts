@@ -52,6 +52,9 @@ export class Room {
 
             for (const player of this.players.values()) {
                 player.castlecheck();
+                for (const catapult of player.getcatapults()) {
+                    catapult.loop();
+                }
             }
             this.bouldercheck();
             this.winnercheck(socket);
@@ -380,7 +383,7 @@ export class Room {
             !target ||
             targetUserId === userId ||
             !target.isAlive() ||
-            !player?.payForCatapult(target)
+            !player?.payForCatapult(target, this.map)
         )
             return null;
 

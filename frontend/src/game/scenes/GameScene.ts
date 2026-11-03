@@ -312,6 +312,9 @@ export class GameScene {
             this.camera.x,
             this.camera.y
         );
+        for (const catapult of this.catapults.values()) {
+            catapult.update(deltaSeconds);
+        }
         this.updateBoulders(deltaSeconds);
     }
 
@@ -369,7 +372,7 @@ export class GameScene {
     }
 
     updateCatapult(catapultId: string, position: Vec2) {
-        this.catapults.get(catapultId)?.update(position);
+        this.catapults.get(catapultId)?.setTargetPosition(position);
     }
 
     deleteCatapult(catapultId: string) {

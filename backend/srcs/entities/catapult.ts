@@ -2,21 +2,36 @@ import { randomUUID } from 'crypto';
 import type { castle } from './castle.js';
 import type { Socket, Vec2 } from '../types.js';
 import { getDistance } from '../util.js';
+import type { GameMap } from '../map.js';
+import { CATAPULT_ATTACK_RANGE, CATAPULT_MOVE_SPEED } from '../constants.js';
 
 export class catapult {
     readonly id = randomUUID();
     private position: Vec2;
     private health: number = 100;
-    private lastmovement = 0;
+    private lastmovement = Date.now();
+    private path: Vec2[];
+    private nextWaypoint: Vec2 | null = null;
+    private pathExhaustedLogged = false;
 
     constructor(
         readonly origin: castle,
         private readonly namespace: Socket['nsp'],
         private readonly roomId: string,
         private readonly onDestroyed: (catapultId: string) => void,
+        private readonly map: GameMap,
         readonly target?: castle
     ) {
-        this.position = origin.getposition();
+        this.position =
+            map.getSpawnPoint(origin.playerSlot)?.pos ?? origin.getposition();
+        this.path = target
+            ? map.findCatapultPath(
+                  this.position,
+                  target.getposition(),
+                  origin,
+                  target
+              )
+            : [];
     }
 
     spawn() {
@@ -39,21 +54,70 @@ export class catapult {
     private isnearpos() {
         return (
             this.target !== undefined &&
-            getDistance(this.position, this.target.getposition()) <= 3
+            getDistance(this.position, this.target.getposition()) <=
+                CATAPULT_ATTACK_RANGE
         );
     }
 
     private pathfinder() {
-        return this.position;
+        const nextPosition = this.path.shift();
+        if (!nextPosition) {
+            if (!this.pathExhaustedLogged) {
+                console.info(`[catapult ${this.id}] no waypoint available`, {
+                    position: this.position,
+                    target: this.target?.getposition()
+                });
+                this.pathExhaustedLogged = true;
+            }
+            return null;
+        }
+
+        console.info(`[catapult ${this.id}] moving`, {
+            from: this.position,
+            to: nextPosition
+        });
+        return nextPosition;
     }
 
     private moveToTarget() {
-        if (Date.now() >= this.lastmovement) {
-            const newlocation = this.pathfinder();
-            if (newlocation != this.position) {
-                this.update(newlocation);
+        const now = Date.now();
+        const elapsedSeconds = Math.min((now - this.lastmovement) / 1000, 0.25);
+        this.lastmovement = now;
+
+        let movementRemaining = CATAPULT_MOVE_SPEED * elapsedSeconds;
+        const startingPosition = { ...this.position };
+
+        while (movementRemaining > 0) {
+            if (!this.nextWaypoint) {
+                this.nextWaypoint = this.pathfinder();
             }
-            this.lastmovement = Date.now() + 500;
+            if (!this.nextWaypoint) break;
+
+            const distance = getDistance(this.position, this.nextWaypoint);
+            if (distance <= movementRemaining) {
+                this.position = { ...this.nextWaypoint };
+                movementRemaining -= distance;
+                this.nextWaypoint = null;
+                continue;
+            }
+
+            const progress = movementRemaining / distance;
+            this.position = {
+                x:
+                    this.position.x +
+                    (this.nextWaypoint.x - this.position.x) * progress,
+                y:
+                    this.position.y +
+                    (this.nextWaypoint.y - this.position.y) * progress
+            };
+            movementRemaining = 0;
+        }
+
+        if (
+            this.position.x !== startingPosition.x ||
+            this.position.y !== startingPosition.y
+        ) {
+            this.update(this.position);
         }
     }
     private attack() {
