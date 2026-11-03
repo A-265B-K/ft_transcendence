@@ -106,19 +106,22 @@ export default function JoinRoom({ onBack, onJoined }: JoinRoomProps) {
 
         const socket = connectSocket();
 
-        socket.once('room_info', (room: LobbyRoom) => {
-            console.log('Room found:', room);
-
+        const handleJoined = (data: JoinedPayload) => {
+            socket.off('join_error', handleJoinError);
             setLoading(false);
-            setRooms([room]);
-        });
+            onJoined(data);
+        };
 
-        socket.once('join_error', ({ message }: { message: string }) => {
+        const handleJoinError = ({ message }: { message: string }) => {
+            socket.off('joined', handleJoined);
             setError(message);
             setLoading(false);
-        });
+        };
 
-        socket.emit('get_room_by_code', {
+        socket.once('joined', handleJoined);
+        socket.once('join_error', handleJoinError);
+
+        socket.emit('join_room_code', {
             code
         });
     }
