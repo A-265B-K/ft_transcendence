@@ -5,8 +5,8 @@ export const CASTLE_HEAL = 10;
 export const CASTLE_HEAL_INTERVAL = 3;
 export const CASTLE_HEAL_RADIUS = 10;
 
-export const PLAYER_DEFAULT_IRON = 1000;
-export const PLAYER_DEFAULT_WOOD = 1000;
+export const PLAYER_DEFAULT_IRON = 0;
+export const PLAYER_DEFAULT_WOOD = 0;
 export const PLAYER_DEFAULT_CASTLE_LEVEL = 1;
 
 export const CATAPULT_COST = { wood: 50, iron: 50 } as const;

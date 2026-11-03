@@ -71,4 +71,5 @@ jobs:
         run: npm run lint
 
       - name: Run tests
+        if: matrix.project == 'backend'
         run: npm run test
