@@ -12,7 +12,7 @@ import {
 import type { Cost } from '../room/room.js';
 import type { Socket, SocketUser, Spawn, Vec2 } from '../types.js';
 import { getDistance } from '../util.js';
-import { type Resource } from '../map.js';
+import { type GameMap, type Resource } from '../map.js';
 import type { castle as Castle } from './castle.js';
 
 import { getattackstats, type WeaponType } from '../combat/Weapon.js';
@@ -282,7 +282,7 @@ export class Player {
             inventory: { wood: this.inventory.wood, iron: this.inventory.iron }
         };
     }
-    payForCatapult(target: Player): boolean {
+    payForCatapult(target: Player, map: GameMap): boolean {
         if (!this.alive || !this.pay(CATAPULT_COST)) return false;
 
         const newCatapult = new catapult(
@@ -294,6 +294,7 @@ export class Player {
                     (catapult) => catapult.id !== catapultId
                 );
             },
+            map,
             target.castle
         );
         this.catapults.push(newCatapult);
