@@ -92,7 +92,7 @@ export const registerRoomsHandlers = (context: ConnectionContext) => {
             return null;
         }
         const temp = roomManager.joinRoomByCode(socket, user, code);
-        if (temp) context.currentRoomId;
+        if (temp !== null) context.currentRoomId = temp ;
     });
 
     socket.on('leave_room', () => {
