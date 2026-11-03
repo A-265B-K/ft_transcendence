@@ -103,7 +103,10 @@ export class Game {
         this.scene?.breakCatapult(catapultId);
     }
 
-    fireCatapult(catapultId: string, direction: 'up' | 'down' | 'left' | 'right') {
+    fireCatapult(
+        catapultId: string,
+        direction: 'up' | 'down' | 'left' | 'right'
+    ) {
         this.scene?.fireCatapult(catapultId, direction);
     }
 

@@ -375,7 +375,10 @@ export class GameScene {
         this.catapults.get(catapultId)?.setTargetPosition(position);
     }
 
-    fireCatapult(catapultId: string, direction: 'up' | 'down' | 'left' | 'right') {
+    fireCatapult(
+        catapultId: string,
+        direction: 'up' | 'down' | 'left' | 'right'
+    ) {
         this.catapults.get(catapultId)?.fire(direction);
     }
 

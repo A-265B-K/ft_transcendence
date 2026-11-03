@@ -26,11 +26,7 @@ export class Catapult {
     private readonly firingDurationSeconds = 0.45;
     private readonly brokenDurationSeconds = 0.7;
 
-    constructor(
-        id: string,
-        textures: CatapultTextures,
-        position: Vec2
-    ) {
+    constructor(id: string, textures: CatapultTextures, position: Vec2) {
         this.id = id;
         this.textures = textures;
         this.position = { ...position };
@@ -105,7 +101,9 @@ export class Catapult {
                     (this.targetPosition.y - this.segmentStart.y) * progress
             };
             this.renderPosition();
-            if (this.interpolationElapsed === this.interpolationDurationSeconds) {
+            if (
+                this.interpolationElapsed === this.interpolationDurationSeconds
+            ) {
                 this.updateTexture();
             }
         }
@@ -128,11 +126,12 @@ export class Catapult {
 
     private updateTexture() {
         if (this.brokenElapsed !== null) return;
-                this.sprite.texture = this.firingElapsed > 0
-                        ? this.textures.firing[this.direction]
-                        : this.interpolationElapsed < this.interpolationDurationSeconds
-                            ? this.textures.moving[this.direction]
-                            : this.textures.idle;
+        this.sprite.texture =
+            this.firingElapsed > 0
+                ? this.textures.firing[this.direction]
+                : this.interpolationElapsed < this.interpolationDurationSeconds
+                  ? this.textures.moving[this.direction]
+                  : this.textures.idle;
         this.sprite.tint = this.firingElapsed > 0 ? 0xffd27a : 0xffffff;
     }
 
