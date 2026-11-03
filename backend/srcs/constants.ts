@@ -10,6 +10,8 @@ export const PLAYER_DEFAULT_WOOD = 0;
 export const PLAYER_DEFAULT_CASTLE_LEVEL = 1;
 
 export const CATAPULT_COST = { wood: 50, iron: 50 } as const;
+export const CATAPULT_MOVE_SPEED = 1;
+export const CATAPULT_ATTACK_RANGE = 5;
 
 export const MAP_SIZE = 100;
 export const MAP_WIDTH = MAP_SIZE;
