@@ -5,7 +5,8 @@ import {
     CASTLE_RADIUS,
     MIN_DIST_CASTLE,
     PLAYER_RADIUS,
-    CATAPULT_ATTACK_RANGE
+    CATAPULT_ATTACK_RANGE,
+    CATAPULT_RADIUS
 } from './constants.js';
 import type { Socket, Spawn, Vec2 } from './types.js';
 import { getDistance, randomPos } from './util.js';
@@ -22,6 +23,7 @@ export class GameMap {
     private spawnPoints: Map<number, Spawn>;
     private obstacles: ReturnType<typeof this.generateObstacles>;
     private resourceSpawns: ReturnType<typeof this.generateResourceSpawns>;
+    private catapultPositions = new Map<string, Vec2>();
 
     constructor(maxPlayers: number) {
         this.mapId = randomUUID();
@@ -242,11 +244,95 @@ export class GameMap {
         );
     }
 
+    reserveCatapultPosition(
+        catapultId: string,
+        preferredPosition: Vec2,
+        originCastle: Castle
+    ): Vec2 | null {
+        const spacing = CATAPULT_RADIUS * 2 + 0.25;
+        const maxRadius = Math.ceil(Math.max(this.width, this.height) / spacing);
+
+        for (let radius = 0; radius <= maxRadius; radius++) {
+            for (let offsetX = -radius; offsetX <= radius; offsetX++) {
+                for (let offsetY = -radius; offsetY <= radius; offsetY++) {
+                    if (
+                        radius > 0 &&
+                        Math.max(Math.abs(offsetX), Math.abs(offsetY)) !==
+                            radius
+                    ) {
+                        continue;
+                    }
+
+                    const candidate = {
+                        x: preferredPosition.x + offsetX * spacing,
+                        y: preferredPosition.y + offsetY * spacing
+                    };
+
+                    if (
+                        candidate.x < 0 ||
+                        candidate.x > this.width ||
+                        candidate.y < 0 ||
+                        candidate.y > this.height ||
+                        this.obstacles.some(
+                            (obstacle) =>
+                                getDistance(candidate, obstacle) <=
+                                obstacle.radius + CATAPULT_RADIUS
+                        ) ||
+                        this.castleZones.some(
+                            (castle) =>
+                                castle !== originCastle &&
+                                getDistance(candidate, castle.getposition()) <=
+                                castle.radius + CATAPULT_RADIUS
+                        ) ||
+                        this.hasCatapultCollision(candidate, catapultId)
+                    ) {
+                        continue;
+                    }
+
+                    this.catapultPositions.set(catapultId, candidate);
+                    return { ...candidate };
+                }
+            }
+        }
+
+        return null;
+    }
+
+    canCatapultMoveTo(catapultId: string, position: Vec2): boolean {
+        return !this.hasCatapultCollision(position, catapultId);
+    }
+
+    updateCatapultPosition(catapultId: string, position: Vec2): boolean {
+        if (!this.catapultPositions.has(catapultId)) return false;
+        if (!this.canCatapultMoveTo(catapultId, position)) return false;
+
+        this.catapultPositions.set(catapultId, { ...position });
+        return true;
+    }
+
+    removeCatapultPosition(catapultId: string): void {
+        this.catapultPositions.delete(catapultId);
+    }
+
+    private hasCatapultCollision(position: Vec2, catapultId: string): boolean {
+        for (const [otherId, otherPosition] of this.catapultPositions) {
+            if (
+                otherId !== catapultId &&
+                getDistance(position, otherPosition) < CATAPULT_RADIUS * 2
+            ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     findCatapultPath(
         start: Vec2,
         target: Vec2,
         originCastle: Castle,
-        targetCastle: Castle
+        targetCastle: Castle,
+        catapultId: string
     ): Vec2[] {
         const directions = [
             { x: 1, y: 0 },
@@ -280,6 +366,13 @@ export class GameMap {
                 this.obstacles.some(
                     (obstacle) => getDistance(node, obstacle) <= obstacle.radius
                 )
+            ) {
+                return true;
+            }
+
+            if (
+                nodeKey(node) !== nodeKey(startNode) &&
+                this.hasCatapultCollision(node, catapultId)
             ) {
                 return true;
             }

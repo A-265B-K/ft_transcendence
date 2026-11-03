@@ -123,7 +123,12 @@ export class Player {
     }
 
     equiparmor() {
-        if (!this.alive || !this.isnearcastle() || !this.castle.canAddarmor()) {
+        if (
+            !this.alive ||
+            this.castle.isDestroyed() ||
+            !this.isnearcastle() ||
+            !this.castle.canAddarmor()
+        ) {
             return false;
         }
 
@@ -144,6 +149,7 @@ export class Player {
             username: this.username,
             slot: this.slot,
             hp: this.hp,
+            castleHp: this.castle.gethealth(),
             isDead: !this.alive,
             x: this.x,
             y: this.y,
@@ -256,21 +262,24 @@ export class Player {
     }
 
     private pay(cost: Cost): boolean {
-        if (
-            this.inventory.wood < cost.wood ||
-            this.inventory.iron < cost.iron
-        ) {
-            return false;
-        }
+        if (!this.canPay(cost)) return false;
 
         this.inventory.wood -= cost.wood;
         this.inventory.iron -= cost.iron;
         return true;
     }
 
+    private canPay(cost: Cost): boolean {
+        return (
+            this.inventory.wood >= cost.wood &&
+            this.inventory.iron >= cost.iron
+        );
+    }
+
     craftWeapon(cost: Cost, weapon: WeaponType) {
         if (
             !this.alive ||
+            this.castle.isDestroyed() ||
             getDistance(this.getPosition(), this.castle.getposition()) > 7
         )
             return null;
@@ -283,7 +292,12 @@ export class Player {
         };
     }
     payForCatapult(target: Player, map: GameMap): boolean {
-        if (!this.alive || !this.pay(CATAPULT_COST)) return false;
+        if (
+            !this.alive ||
+            this.castle.isDestroyed() ||
+            !this.canPay(CATAPULT_COST)
+        )
+            return false;
 
         const newCatapult = new catapult(
             this.castle,
@@ -297,6 +311,9 @@ export class Player {
             map,
             target.castle
         );
+        if (!newCatapult.canSpawn()) return false;
+
+        this.pay(CATAPULT_COST);
         this.catapults.push(newCatapult);
         newCatapult.spawn();
         return true;
@@ -305,6 +322,7 @@ export class Player {
     upgradecastle(): boolean {
         if (
             !this.alive ||
+            this.castle.isDestroyed() ||
             getDistance(this.getPosition(), this.castle.getposition()) > 7 ||
             this.castle.getlevel() >= 4
         )

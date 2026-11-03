@@ -30,19 +30,32 @@ export class catapult {
         private readonly map: GameMap,
         readonly target?: castle
     ) {
-        this.position =
+        const preferredPosition =
             map.getSpawnPoint(origin.playerSlot)?.pos ?? origin.getposition();
-        this.path = target
+        const reservedPosition = map.reserveCatapultPosition(
+            this.id,
+            preferredPosition,
+            origin
+        );
+        this.hasSpawnPosition = reservedPosition !== null;
+        this.position = reservedPosition ?? preferredPosition;
+        this.path = target && reservedPosition
             ? map.findCatapultPath(
                   this.position,
                   target.getposition(),
                   origin,
-                  target
+                  target,
+                  this.id
               )
             : [];
     }
 
+    canSpawn(): boolean {
+        return this.hasSpawnPosition;
+    }
+
     spawn() {
+        if (!this.hasSpawnPosition) return;
         this.namespace.to(this.roomId).emit('catapult_spawn', {
             catapultId: this.id,
             position: this.position
@@ -51,6 +64,7 @@ export class catapult {
 
     update(position: Vec2) {
         if (this.health <= 0) return;
+        if (!this.map.updateCatapultPosition(this.id, position)) return;
 
         this.position = { ...position };
         this.namespace.to(this.roomId).emit('catapult_move', {
@@ -80,11 +94,24 @@ export class catapult {
             return null;
         }
 
-        console.info(`[catapult ${this.id}] moving`, {
-            from: this.position,
-            to: nextPosition
-        });
+        // console.info(`[catapult ${this.id}] moving`, {
+        //     from: this.position,
+        //     to: nextPosition
+        // });
         return nextPosition;
+    }
+
+    private replanPath() {
+        if (!this.target) return;
+
+        this.path = this.map.findCatapultPath(
+            this.position,
+            this.target.getposition(),
+            this.origin,
+            this.target,
+            this.id
+        );
+        this.nextWaypoint = null;
     }
 
     private moveToTarget() {
@@ -103,6 +130,12 @@ export class catapult {
 
             const distance = getDistance(this.position, this.nextWaypoint);
             if (distance <= movementRemaining) {
+                if (
+                    !this.map.canCatapultMoveTo(this.id, this.nextWaypoint)
+                ) {
+                    this.replanPath();
+                    break;
+                }
                 this.position = { ...this.nextWaypoint };
                 movementRemaining -= distance;
                 this.nextWaypoint = null;
@@ -110,7 +143,7 @@ export class catapult {
             }
 
             const progress = movementRemaining / distance;
-            this.position = {
+            const nextPosition = {
                 x:
                     this.position.x +
                     (this.nextWaypoint.x - this.position.x) * progress,
@@ -118,6 +151,11 @@ export class catapult {
                     this.position.y +
                     (this.nextWaypoint.y - this.position.y) * progress
             };
+            if (!this.map.canCatapultMoveTo(this.id, nextPosition)) {
+                this.replanPath();
+                break;
+            }
+            this.position = nextPosition;
             movementRemaining = 0;
         }
 
@@ -129,7 +167,28 @@ export class catapult {
         }
     }
     private attack() {
-        return this.target?.takedamage(20);
+        if (!this.target || Date.now() < this.nextAttackAt) return;
+        if (this.target.isDestroyed()) return;
+
+        this.nextAttackAt = Date.now() + CATAPULT_ATTACK_INTERVAL;
+        this.namespace.to(this.roomId).emit('catapult_attack', {
+            catapultId: this.id,
+            start: this.position,
+            target: this.target.getposition(),
+            durationMs: 600
+        });
+        const health = this.target.takedamage(CATAPULT_ATTACK_DAMAGE);
+        this.namespace.to(this.roomId).emit('castle_damaged', {
+            playerSlot: this.target.playerSlot,
+            health,
+            level: this.target.getlevel()
+        });
+        console.info(`[catapult ${this.id}] hit castle`, {
+            playerSlot: this.target.playerSlot,
+            position: this.target.getposition(),
+            damage: CATAPULT_ATTACK_DAMAGE,
+            health
+        });
     }
 
     loop() {
@@ -144,16 +203,35 @@ export class catapult {
             this.moveToTarget();
         }
     }
-    takedamage(damage: number) {
-        if (this.health <= 0) return;
+    takedamage(damage: number): number {
+        if (this.health <= 0 || !Number.isFinite(damage) || damage <= 0) {
+            return this.health;
+        }
 
-        this.health -= damage;
+        this.health = Math.max(0, this.health - damage);
+        this.namespace.to(this.roomId).emit('catapult_damaged', {
+            catapultId: this.id,
+            health: this.health,
+            maxHealth: CATAPULT_MAX_HP
+        });
+        console.info(`[catapult ${this.id}] took damage`, {
+            damage,
+            health: this.health,
+            maxHealth: CATAPULT_MAX_HP
+        });
+
         if (this.health <= 0) {
+            this.map.removeCatapultPosition(this.id);
             this.onDestroyed(this.id);
             this.namespace.to(this.roomId).emit('catapult_broken', {
                 catapultId: this.id
             });
         }
+        return this.health;
+    }
+
+    gethealth() {
+        return this.health;
     }
     getpos() {
         return this.position;

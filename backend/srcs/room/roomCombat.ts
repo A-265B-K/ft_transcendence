@@ -3,7 +3,7 @@ import type { Socket } from '../types.js';
 import { isvaliddirection } from '../util.js';
 import { istargethit, type Direction } from '../combat/Detection.js';
 import { getattackstats, type WeaponAttackStats } from '../combat/Weapon.js';
-import { PLAYER_RADIUS } from '../constants.js';
+import { CATAPULT_RADIUS, PLAYER_RADIUS } from '../constants.js';
 
 /* 
 function handlecastledamage() {
@@ -26,7 +26,7 @@ function handlecatapultdamage(
                     catapult.getpos(),
                     attackStats,
                     direction,
-                    PLAYER_RADIUS
+                    CATAPULT_RADIUS
                 )
             )
                 catapult.takedamage(attackStats.damage);
