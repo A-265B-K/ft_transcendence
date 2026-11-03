@@ -7,8 +7,8 @@ export type CatapultDirection = 'up' | 'down' | 'left' | 'right';
 export type CatapultTextures = {
     idle: Texture;
     moving: Record<CatapultDirection, Texture>;
-    firing?: Texture;
-    broken?: Texture;
+    firing: Record<CatapultDirection, Texture>;
+    broken: Texture;
 };
 
 export class Catapult {
@@ -71,7 +71,7 @@ export class Catapult {
         if (this.brokenElapsed !== null) return;
         this.brokenElapsed = 0;
         this.sprite.tint = 0x999999;
-        if (this.textures.broken) this.sprite.texture = this.textures.broken;
+        this.sprite.texture = this.textures.broken;
     }
 
     update(deltaSeconds: number): boolean {
@@ -128,12 +128,11 @@ export class Catapult {
 
     private updateTexture() {
         if (this.brokenElapsed !== null) return;
-        this.sprite.texture =
-            this.firingElapsed > 0 && this.textures.firing
-                ? this.textures.firing
-                : this.interpolationElapsed < this.interpolationDurationSeconds
-                  ? this.textures.moving[this.direction]
-                  : this.textures.idle;
+                this.sprite.texture = this.firingElapsed > 0
+                        ? this.textures.firing[this.direction]
+                        : this.interpolationElapsed < this.interpolationDurationSeconds
+                            ? this.textures.moving[this.direction]
+                            : this.textures.idle;
         this.sprite.tint = this.firingElapsed > 0 ? 0xffd27a : 0xffffff;
     }
 
