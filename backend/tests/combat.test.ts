@@ -3,7 +3,7 @@ import test from 'node:test';
 import { istargethit, type Direction } from '../srcs/combat/Detection.js';
 import { SWORD_ATTACK } from '../srcs/combat/Weapon.js';
 import { handleRoomAttack } from '../srcs/room/roomCombat.js';
-import type { Player } from '../srcs/entities/player.js';
+import type { Player, WeaponType } from '../srcs/entities/player.js';
 import type { Socket, Vec2 } from '../srcs/types.js';
 
 const directions: Array<{ direction: Direction; target: Vec2 }> = [
@@ -51,7 +51,7 @@ function makePlayer(options: {
     alive?: boolean;
     canAttack?: boolean;
     takeDamage?: (damage: number) => void;
-    attackNow?: () => void;
+    attackNow?: (weapon: WeaponType) => void;
 }): Player {
     return {
         getUserId: () => options.id,
