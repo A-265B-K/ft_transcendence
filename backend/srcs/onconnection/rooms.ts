@@ -50,6 +50,12 @@ export const registerRoomsHandlers = (context: ConnectionContext) => {
             });
             return;
         }
+        if (roomManager.nameExists(trimmedName)) {
+            socket.emit('join_error', {
+                message: 'Room name is taken'
+            });
+            return;
+        }
 
         const roomId = roomManager.createRoom(trimmedName, user.id);
 

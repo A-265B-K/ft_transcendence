@@ -84,6 +84,14 @@ export class RoomManager {
         }
         return null;
     }
+    nameExists(name: string) {
+        if (name) {
+            for (const room of Object.values(this.rooms)) {
+                if (room.getName() === name) return true;
+            }
+        }
+        return false;
+    }
 
     getActiveRoomCount(): number {
         return Object.keys(this.rooms).length;
