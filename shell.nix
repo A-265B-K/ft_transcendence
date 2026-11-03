@@ -5,5 +5,6 @@ pkgs.mkShell {
     gnumake
     docker_29
     docker-compose
+    openssl
   ];
 }
