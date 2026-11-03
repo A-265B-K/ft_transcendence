@@ -99,8 +99,12 @@ export class Game {
         this.scene?.spawnCatapult(catapultId, position);
     }
 
-    deleteCatapult(catapultId: string) {
-        this.scene?.deleteCatapult(catapultId);
+    breakCatapult(catapultId: string) {
+        this.scene?.breakCatapult(catapultId);
+    }
+
+    fireCatapult(catapultId: string, direction: 'up' | 'down' | 'left' | 'right') {
+        this.scene?.fireCatapult(catapultId, direction);
     }
 
     updateCatapult(catapultId: string, position: Vec2) {

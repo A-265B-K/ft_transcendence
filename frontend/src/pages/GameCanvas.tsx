@@ -259,7 +259,17 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         }
 
         function handlecatapultbroken({ catapultId }: { catapultId: string }) {
-            game.deleteCatapult(catapultId);
+            game.breakCatapult(catapultId);
+        }
+
+        function handleCatapultFire({
+            catapultId,
+            direction
+        }: {
+            catapultId: string;
+            direction: 'up' | 'down' | 'left' | 'right';
+        }) {
+            game.fireCatapult(catapultId, direction);
         }
 
         function handleCatapultMove({
@@ -305,6 +315,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         socket.on('castle_attack_started', handleCastleAttackStarted);
         socket.on('catapult_spawn', handleCatapultSpawn);
         socket.on('catapult_move', handleCatapultMove);
+        socket.on('catapult_fire', handleCatapultFire);
         socket.on('catapult_broken', handlecatapultbroken);
         socket.on('game_end', handleGameEnd);
 
@@ -337,6 +348,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             socket.off('castle_attack_started', handleCastleAttackStarted);
             socket.off('catapult_spawn', handleCatapultSpawn);
             socket.off('catapult_move', handleCatapultMove);
+            socket.off('catapult_fire', handleCatapultFire);
             socket.off('catapult_broken', handlecatapultbroken);
             socket.off('game_end', handleGameEnd);
             window.clearInterval(intervalId);

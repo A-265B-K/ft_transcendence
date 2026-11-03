@@ -121,6 +121,25 @@ export class catapult {
         }
     }
     private attack() {
+        const targetPosition = this.target?.getposition();
+        if (targetPosition) {
+            const deltaX = targetPosition.x - this.position.x;
+            const deltaY = targetPosition.y - this.position.y;
+            const screenDeltaX = deltaX - deltaY;
+            const screenDeltaY = deltaX + deltaY;
+            const direction =
+                Math.abs(screenDeltaX) > Math.abs(screenDeltaY)
+                    ? screenDeltaX < 0
+                        ? 'left'
+                        : 'right'
+                    : screenDeltaY < 0
+                      ? 'up'
+                      : 'down';
+            this.namespace.to(this.roomId).emit('catapult_fire', {
+                catapultId: this.id,
+                direction
+            });
+        }
         return this.target?.takedamage(20);
     }
 
