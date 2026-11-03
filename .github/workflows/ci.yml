@@ -70,10 +70,6 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Run tests
-        if: matrix.project == 'backend'
-        run: npm run test
-
   unit-tests:
     runs-on: ubuntu-latest
     needs: [Codequality]
