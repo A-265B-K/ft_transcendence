@@ -316,4 +316,15 @@ export class Player {
     castleattack() {
         return this.castle.castleattack(this);
     }
+    async poll(): Promise<boolean> {
+        const socket = this.namespace.sockets.get(this.socketId);
+        if (!socket) return false;
+
+        try {
+            await socket.timeout(2000).emitWithAck('poll');
+            return true;
+        } catch {
+            return false;
+        }
+    }
 }
