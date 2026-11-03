@@ -10,6 +10,6 @@ export const onDisconnection = (
     const room = roomManager.getRoomById(roomId);
 
     if (!room) return;
-
-    if (room.leave(socket, user.id)) roomManager.deleteRoomById(roomId);
+    room.leave(socket, user.id);
+    if (room.getPlayerCount() == 0) roomManager.deleteRoomById(roomId);
 };
