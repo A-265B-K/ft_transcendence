@@ -17,8 +17,8 @@ export class RoomManager {
         this.cleanupTimer.unref();
     }
 
-    createRoom(name: string, hostId: string): string {
-        const room = new Room(name, hostId, this.getUniqueRoomCode());
+    createRoom(name: string, hostId: string, socket: Socket): string {
+        const room = new Room(name, hostId, this.getUniqueRoomCode(), socket);
 
         this.rooms[room.getRoomId()] = room;
 

@@ -51,7 +51,7 @@ export const registerRoomsHandlers = (context: ConnectionContext) => {
             return;
         }
 
-        const roomId = roomManager.createRoom(trimmedName, user.id);
+        const roomId = roomManager.createRoom(trimmedName, user.id, socket);
 
         context.currentRoomId = roomManager.joinRoomById(socket, user, roomId);
     });
