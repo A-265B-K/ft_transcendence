@@ -207,6 +207,10 @@ export class Player {
         );
     }
 
+    hasCastle(): boolean {
+        return this.castle.isDestroyed() === false;
+    }
+
     castlecheck() {
         this.checkarmor();
         if (!this.alive) return;

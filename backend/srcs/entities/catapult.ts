@@ -4,6 +4,8 @@ import type { Socket, Vec2 } from '../types.js';
 import { getDistance } from '../util.js';
 import type { GameMap } from '../map.js';
 import {
+    CATAPULT_ATTACK_DAMAGE,
+    CATAPULT_ATTACK_INTERVAL,
     CATAPULT_ATTACK_RANGE,
     CATAPULT_MAX_HP,
     CATAPULT_MOVE_SPEED
