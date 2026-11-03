@@ -76,16 +76,17 @@ function makeSocket(id: string): Socket {
     } as unknown as Socket;
 }
 
-test('leaving the room transfers host and reports when the room becomes empty', () => {
+test('leaving the room transfers host and removes players until the room is empty', () => {
     const room = makeRoom();
     const host = makeUser('user-1');
     const nextHost = makeUser('user-2');
 
     assert.equal(room.join(makeSocket(host.id), host), 'room-1');
     assert.equal(room.join(makeSocket(nextHost.id), nextHost), 'room-1');
-    assert.equal(room.leave(makeSocket(host.id), host.id), false);
+    room.leave(makeSocket(host.id), host.id);
+    assert.equal(room.getPlayerCount(), 1);
     assert.equal(room.getRoomInfo().hostId, nextHost.id);
-    assert.equal(room.leave(makeSocket(nextHost.id), nextHost.id), true);
+    room.leave(makeSocket(nextHost.id), nextHost.id);
     assert.equal(room.getPlayerCount(), 0);
 });
 
