@@ -107,7 +107,11 @@ export class Game {
         this.scene?.updateCatapult(catapultId, position);
     }
 
-    updateCatapultHealth(catapultId: string, health: number, maxHealth: number) {
+    updateCatapultHealth(
+        catapultId: string,
+        health: number,
+        maxHealth: number
+    ) {
         this.scene?.updateCatapultHealth(catapultId, health, maxHealth);
     }
 
