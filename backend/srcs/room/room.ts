@@ -38,6 +38,7 @@ export class Room {
         this.timer = setInterval(() => {
             for (const player of this.players.values()) {
                 player.poll().then((responsive) => {
+                    if (this.players.get(player.getUserId()) !== player) return;
                     if (!responsive) {
                         this.leave(
                             socket.nsp.sockets.get(player.getSocketId()) ??
