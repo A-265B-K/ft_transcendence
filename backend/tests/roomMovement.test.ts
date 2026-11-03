@@ -27,8 +27,10 @@ function makePlayer(
 function makeMap(): GameMap {
     return {
         isOutOfBounds: (position: Vec2) =>
-            position.x < 0 || position.x > 100 ||
-            position.y < 0 || position.y > 100,
+            position.x < 0 ||
+            position.x > 100 ||
+            position.y < 0 ||
+            position.y > 100,
         getCastleZones: () => [],
         collectResource: () => null
     } as unknown as GameMap;
@@ -45,10 +47,18 @@ test('position occupancy ignores the same player and dead players', () => {
     const dead = makePlayer('dead', 2, false, { x: 10, y: 10 });
 
     assert.equal(
-        isPositionOccupied(new Map([['self', self], ['dead', dead]]), 'self', {
-            x: 10,
-            y: 10
-        }, 2),
+        isPositionOccupied(
+            new Map([
+                ['self', self],
+                ['dead', dead]
+            ]),
+            'self',
+            {
+                x: 10,
+                y: 10
+            },
+            2
+        ),
         false
     );
 });
@@ -57,10 +67,15 @@ test('position occupancy detects another live player within the radius', () => {
     const other = makePlayer('other', 2, true, { x: 11, y: 10 });
 
     assert.equal(
-        isPositionOccupied(new Map([['other', other]]), 'self', {
-            x: 10,
-            y: 10
-        }, 2),
+        isPositionOccupied(
+            new Map([['other', other]]),
+            'self',
+            {
+                x: 10,
+                y: 10
+            },
+            2
+        ),
         true
     );
 });
@@ -76,7 +91,10 @@ test('slot occupancy counts living players but not dead players', () => {
 test('position validation rejects out-of-bounds and occupied positions', () => {
     const self = makePlayer('self', 1, true, { x: 10, y: 10 });
     const other = makePlayer('other', 2, true, { x: 11, y: 10 });
-    const players = new Map<string, Player>([['self', self], ['other', other]]);
+    const players = new Map<string, Player>([
+        ['self', self],
+        ['other', other]
+    ]);
 
     assert.equal(
         positionIsAllowed(makeMap(), players, self, user, { x: 101, y: 10 }),
@@ -145,6 +163,9 @@ test('speed-rejected movement emits the authoritative current position', () => {
 
     assert.deepEqual(currentPosition, { x: 10, y: 10 });
     assert.deepEqual(emitted, [
-        { event: 'player_move', payload: { socketId: 'socket-self', x: 10, y: 10 } }
+        {
+            event: 'player_move',
+            payload: { socketId: 'socket-self', x: 10, y: 10 }
+        }
     ]);
 });

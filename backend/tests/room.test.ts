@@ -130,7 +130,11 @@ test('weapon crafting preserves insufficient resources and deducts recipe cost',
     assert.ok(player);
 
     assert.equal(room.craftWeapon(user.id, 'dagger'), null);
-    assert.deepEqual(player.getInventory(), { iron: 0, wood: 0, castleLevel: 1 });
+    assert.deepEqual(player.getInventory(), {
+        iron: 0,
+        wood: 0,
+        castleLevel: 1
+    });
 
     player.addResources({ type: 'wood', amount: 15 } as Resource);
     player.addResources({ type: 'iron', amount: 15 } as Resource);

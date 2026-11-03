@@ -67,7 +67,9 @@ function makePlayer(options: {
     } as unknown as Player;
 }
 
-function makeSocket(events: Array<{ event: string; payload: unknown }>): Socket {
+function makeSocket(
+    events: Array<{ event: string; payload: unknown }>
+): Socket {
     return {
         to: () => ({
             emit: (event: string, payload: unknown) => {

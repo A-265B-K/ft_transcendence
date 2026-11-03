@@ -17,7 +17,8 @@ const resource: Resource = {
 
 function makeMap(resources: Resource[] = []): GameMap {
     const map = Object.create(GameMap.prototype) as GameMap;
-    (map as unknown as { resourceSpawns: Resource[] }).resourceSpawns = resources;
+    (map as unknown as { resourceSpawns: Resource[] }).resourceSpawns =
+        resources;
     return map;
 }
 
@@ -46,7 +47,10 @@ test('living players receive collected resources', () => {
         addResources: (value: Resource) => collected.push(value)
     } as unknown as Player;
 
-    assert.deepEqual(tryCollectResource(map, player, { x: 10, y: 10 }), resource);
+    assert.deepEqual(
+        tryCollectResource(map, player, { x: 10, y: 10 }),
+        resource
+    );
     assert.deepEqual(collected, [resource]);
 });
 
