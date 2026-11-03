@@ -271,8 +271,7 @@ export class Player {
 
     private canPay(cost: Cost): boolean {
         return (
-            this.inventory.wood >= cost.wood &&
-            this.inventory.iron >= cost.iron
+            this.inventory.wood >= cost.wood && this.inventory.iron >= cost.iron
         );
     }
 

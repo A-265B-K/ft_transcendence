@@ -250,7 +250,9 @@ export class GameMap {
         originCastle: Castle
     ): Vec2 | null {
         const spacing = CATAPULT_RADIUS * 2 + 0.25;
-        const maxRadius = Math.ceil(Math.max(this.width, this.height) / spacing);
+        const maxRadius = Math.ceil(
+            Math.max(this.width, this.height) / spacing
+        );
 
         for (let radius = 0; radius <= maxRadius; radius++) {
             for (let offsetX = -radius; offsetX <= radius; offsetX++) {
@@ -282,7 +284,7 @@ export class GameMap {
                             (castle) =>
                                 castle !== originCastle &&
                                 getDistance(candidate, castle.getposition()) <=
-                                castle.radius + CATAPULT_RADIUS
+                                    castle.radius + CATAPULT_RADIUS
                         ) ||
                         this.hasCatapultCollision(candidate, catapultId)
                     ) {

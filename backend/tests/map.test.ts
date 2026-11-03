@@ -77,7 +77,6 @@ test('dead players cannot collect resources', () => {
 test('catapult spawn reservations and movement keep catapults separated', () => {
     const map = makeMap();
     const origin = new castle(1, { x: 10, y: 10 });
-    const target = new castle(2, { x: 90, y: 90 });
     const preferredPosition = { x: 50, y: 50 };
     const first = map.reserveCatapultPosition(
         'first',
@@ -122,8 +121,7 @@ test('catapult pathfinding routes around other catapults', () => {
     assert.ok(path.length > 0);
     assert.ok(
         path.every(
-            (position) =>
-                getDistance(position, blocker) >= CATAPULT_RADIUS * 2
+            (position) => getDistance(position, blocker) >= CATAPULT_RADIUS * 2
         )
     );
 });

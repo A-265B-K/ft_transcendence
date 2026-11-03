@@ -378,7 +378,11 @@ export class GameScene {
         this.catapults.get(catapultId)?.setTargetPosition(position);
     }
 
-    updateCatapultHealth(catapultId: string, health: number, maxHealth: number) {
+    updateCatapultHealth(
+        catapultId: string,
+        health: number,
+        maxHealth: number
+    ) {
         this.catapults.get(catapultId)?.setHealth(health, maxHealth);
     }
 

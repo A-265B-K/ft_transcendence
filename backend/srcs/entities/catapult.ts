@@ -39,15 +39,16 @@ export class catapult {
         );
         this.hasSpawnPosition = reservedPosition !== null;
         this.position = reservedPosition ?? preferredPosition;
-        this.path = target && reservedPosition
-            ? map.findCatapultPath(
-                  this.position,
-                  target.getposition(),
-                  origin,
-                  target,
-                  this.id
-              )
-            : [];
+        this.path =
+            target && reservedPosition
+                ? map.findCatapultPath(
+                      this.position,
+                      target.getposition(),
+                      origin,
+                      target,
+                      this.id
+                  )
+                : [];
     }
 
     canSpawn(): boolean {
@@ -130,9 +131,7 @@ export class catapult {
 
             const distance = getDistance(this.position, this.nextWaypoint);
             if (distance <= movementRemaining) {
-                if (
-                    !this.map.canCatapultMoveTo(this.id, this.nextWaypoint)
-                ) {
+                if (!this.map.canCatapultMoveTo(this.id, this.nextWaypoint)) {
                     this.replanPath();
                     break;
                 }
