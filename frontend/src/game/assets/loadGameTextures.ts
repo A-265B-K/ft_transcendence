@@ -3,6 +3,7 @@ import castle1Url from '../../assets/castle1.png';
 import castle2Url from '../../assets/castle2.png';
 import castle3Url from '../../assets/castle3.png';
 import castle4Url from '../../assets/castle4.png';
+import destroyedCastleUrl from '../../assets/castle-destroyed.svg';
 import down1Url from '../../assets/down1.png';
 import down2Url from '../../assets/down2.png';
 import grassUrl from '../../assets/grass.png';
@@ -47,6 +48,7 @@ export type GameTextures = {
     castle2: Texture;
     castle3: Texture;
     castle4: Texture;
+    destroyedCastle: Texture;
 
     playerDown1: Texture;
     playerDown2: Texture;
@@ -96,6 +98,7 @@ export async function loadGameTextures(): Promise<GameTextures> {
         castle2,
         castle3,
         castle4,
+        destroyedCastle,
 
         playerDown1,
         playerDown2,
@@ -141,6 +144,7 @@ export async function loadGameTextures(): Promise<GameTextures> {
         Assets.load(castle2Url),
         Assets.load(castle3Url),
         Assets.load(castle4Url),
+        Assets.load<Texture>(destroyedCastleUrl),
 
         Assets.load(down1Url),
         Assets.load(down2Url),
@@ -188,6 +192,7 @@ export async function loadGameTextures(): Promise<GameTextures> {
         castle2,
         castle3,
         castle4,
+        destroyedCastle,
 
         playerDown1,
         playerDown2,

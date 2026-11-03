@@ -21,6 +21,7 @@ export interface PlayerData {
     username: string;
     slot: number;
     hp: number;
+    castleHp?: number;
     x: number;
     y: number;
     inventory: PlayerInventory;

@@ -1,6 +1,7 @@
 import {
     CASTLE_HEAL,
     CASTLE_HEAL_INTERVAL,
+    CASTLE_MAX_HP,
     CASTLE_RADIUS,
     PLAYER_DEFAULT_CASTLE_LEVEL,
     PLAYER_MAX_HP
@@ -15,6 +16,7 @@ export type upgradecost = {
 
 export class castle {
     private level = PLAYER_DEFAULT_CASTLE_LEVEL;
+    private health = CASTLE_MAX_HP;
     private readonly position: Vec2;
     private nextcastleheal = 0;
     private boulderlandtime = 0;
@@ -40,17 +42,29 @@ export class castle {
         return this.level;
     }
 
+    gethealth(): number {
+        return this.health;
+    }
+
+    isDestroyed(): boolean {
+        return this.health <= 0;
+    }
+
     setlevel(newlevel: number) {
         this.level = newlevel;
     }
     canHeal(Player: Player): boolean {
-        return Player.isnearcastle() && this.level >= 2;
+        return !this.isDestroyed() && Player.isnearcastle() && this.level >= 2;
     }
     canAddarmor(): boolean {
-        return this.level >= 3;
+        return !this.isDestroyed() && this.level >= 3;
     }
     canAttack(): boolean {
-        return this.level == 4 && Date.now() >= this.boulderlandtime;
+        return (
+            !this.isDestroyed() &&
+            this.level == 4 &&
+            Date.now() >= this.boulderlandtime
+        );
     }
     resetHealingCooldown(): void {
         this.nextcastleheal = 0;
@@ -120,7 +134,14 @@ export class castle {
         }
     }
     takedamage(damage: number) {
-        //to be implemented
-        void damage;
+        if (!Number.isFinite(damage) || damage <= 0) return this.health;
+        if (this.isDestroyed()) return this.health;
+
+        this.health = Math.max(0, this.health - damage);
+        if (this.health === 0 && this.level > 1) {
+            this.level -= 1;
+            this.health = CASTLE_MAX_HP;
+        }
+        return this.health;
     }
 }
