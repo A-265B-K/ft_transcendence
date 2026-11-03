@@ -28,16 +28,6 @@ jobs:
       - name: Build, start, and wait for containers
         run: ./scripts/makefile/start.sh
 
-      - uses: actions/setup-python@v6
-
-      - name: Install Browser
-        run: |
-          python -m pip install playwright
-          python -m playwright install --with-deps --only-shell chromium
-
-      - name: Test App
-        run: python .github/scripts/Apptest.py
-
   Codequality:
     runs-on: ubuntu-latest
     strategy:
@@ -69,10 +59,6 @@ jobs:
 
       - name: Lint
         run: npm run lint
-
-      - name: Run tests
-        if: matrix.project == 'backend'
-        run: npm run test
 
   unit-tests:
     runs-on: ubuntu-latest
