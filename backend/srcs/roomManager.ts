@@ -5,9 +5,16 @@ import type { Socket, SocketUser } from './types.js';
 export class RoomManager {
     private rooms: Record<string, Room> = {};
     private code_characters: string;
+    private readonly cleanupTimer: ReturnType<typeof setInterval>;
 
     constructor() {
         this.code_characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        this.cleanupTimer = setInterval(() => {
+            for (const [roomId, room] of Object.entries(this.rooms)) {
+                if (room.getPlayerCount() === 0) this.deleteRoomById(roomId);
+            }
+        }, 2000);
+        this.cleanupTimer.unref();
     }
 
     createRoom(name: string, hostId: string): string {
@@ -26,6 +33,13 @@ export class RoomManager {
         }
         room.destroy();
         delete this.rooms[roomId];
+    }
+
+    destroy(): void {
+        clearInterval(this.cleanupTimer);
+        for (const roomId of Object.keys(this.rooms)) {
+            this.deleteRoomById(roomId);
+        }
     }
 
     private getUniqueRoomCode(): string {
