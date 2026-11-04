@@ -3,16 +3,21 @@ import type { castle } from './castle.js';
 import type { Socket, Vec2 } from '../types.js';
 import { getDistance } from '../util.js';
 import type { GameMap } from '../map.js';
-import { CATAPULT_ATTACK_RANGE, CATAPULT_MOVE_SPEED } from '../constants.js';
+import {
+    CATAPULT_ATTACK_RANGE,
+    CATAPULT_MAX_HP,
+    CATAPULT_MOVE_SPEED
+} from '../constants.js';
 
 export class catapult {
     readonly id = randomUUID();
     private position: Vec2;
-    private health: number = 100;
+    private health = CATAPULT_MAX_HP;
     private lastmovement = Date.now();
     private path: Vec2[];
     private nextWaypoint: Vec2 | null = null;
     private pathExhaustedLogged = false;
+    private nextAttackAt = 0;
 
     constructor(
         readonly origin: castle,

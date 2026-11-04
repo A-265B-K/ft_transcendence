@@ -22,6 +22,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
     const [castlelvl, setcastlelvl] = useState(
         joinedData.player.inventory.castleLevel
     );
+    const [castleHp, setCastleHp] = useState(joinedData.player.castleHp ?? 100);
     const [upgrading, setUpgrading] = useState(false);
     const upgradePending = useRef(false);
     const [inventory, setInventory] = useState({
@@ -262,6 +263,18 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             game.deleteCatapult(catapultId);
         }
 
+        function handleCatapultDamaged(data: {
+            catapultId: string;
+            health: number;
+            maxHealth: number;
+        }) {
+            game.updateCatapultHealth(
+                data.catapultId,
+                data.health,
+                data.maxHealth
+            );
+        }
+
         function handleCatapultMove({
             catapultId,
             position
@@ -279,6 +292,26 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             durationMs: number;
         }) {
             game.launchboulder(data);
+        }
+
+        function handleCatapultAttack(data: {
+            start: Vec2;
+            target: Vec2;
+            durationMs: number;
+        }) {
+            game.launchCatapultShot(data);
+        }
+
+        function handleCastleDamaged(data: {
+            playerSlot: number;
+            health: number;
+            level: number;
+        }) {
+            game.updateCastleHealth(data.playerSlot, data.health, data.level);
+            if (data.playerSlot === joinedData.player.slot) {
+                setCastleHp(data.health);
+                setcastlelvl(data.level);
+            }
         }
 
         const handlearmor = (data: { armor: boolean }) => {
@@ -307,8 +340,11 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         socket.on('player_weapon_equipped', handlePlayerWeaponEquipped);
         socket.on('armor', handlearmor);
         socket.on('castle_attack_started', handleCastleAttackStarted);
+        socket.on('catapult_attack', handleCatapultAttack);
+        socket.on('castle_damaged', handleCastleDamaged);
         socket.on('catapult_spawn', handleCatapultSpawn);
         socket.on('catapult_move', handleCatapultMove);
+        socket.on('catapult_damaged', handleCatapultDamaged);
         socket.on('catapult_broken', handlecatapultbroken);
         socket.on('game_end', handleGameEnd);
         socket.on('poll', replyToPoll);
@@ -340,8 +376,11 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             socket.off('player_weapon_equipped', handlePlayerWeaponEquipped);
             socket.off('armor', handlearmor);
             socket.off('castle_attack_started', handleCastleAttackStarted);
+            socket.off('catapult_attack', handleCatapultAttack);
+            socket.off('castle_damaged', handleCastleDamaged);
             socket.off('catapult_spawn', handleCatapultSpawn);
             socket.off('catapult_move', handleCatapultMove);
+            socket.off('catapult_damaged', handleCatapultDamaged);
             socket.off('catapult_broken', handlecatapultbroken);
             socket.off('game_end', handleGameEnd);
             socket.off('poll', replyToPoll);
@@ -469,7 +508,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
                 </div>
             </div>
 
-            {nearCastle && !spectating && (
+            {nearCastle && !spectating && castleHp > 0 && (
                 <Forgemenu
                     castleLevel={castlelvl}
                     inventory={inventory}
