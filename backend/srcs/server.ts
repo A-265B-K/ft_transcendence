@@ -27,6 +27,7 @@ await fastify.register(staticFiles, {
 
 async function server() {
     const roomManager = new RoomManager();
+    fastify.addHook('onClose', async () => roomManager.destroy());
 
     registerAuthRoutes(fastify);
     registerTwoFactorRoutes(fastify);

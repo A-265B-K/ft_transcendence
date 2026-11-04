@@ -33,6 +33,10 @@ export default function Room({ joinedData, onStartGame }: RoomProps) {
 
         const socket = connectSocket();
 
+        const replyToPoll = (ack: () => void) => {
+            ack();
+        };
+
         const handleJoined = (data: JoinedPayload) => {
             if (data.roomId !== roomId) {
                 return;
@@ -88,6 +92,7 @@ export default function Room({ joinedData, onStartGame }: RoomProps) {
         socket.on('join_error', handleJoinError);
         socket.on('room_update', handleRoomUpdate);
         socket.on('gamestart', handleGameStart);
+        socket.on('poll', replyToPoll);
 
         if (!joinedData) {
             socket.emit('join_room', {
@@ -100,6 +105,7 @@ export default function Room({ joinedData, onStartGame }: RoomProps) {
             socket.off('join_error', handleJoinError);
             socket.off('room_update', handleRoomUpdate);
             socket.off('gamestart', handleGameStart);
+            socket.off('poll', replyToPoll);
         };
     }, [roomId, joinedData, currentJoinedData, navigate, onStartGame]);
 
