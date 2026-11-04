@@ -300,6 +300,10 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             if (data && data.winnerid) setWinner(data.winnerid);
         };
 
+        const replyToPoll = (ack: () => void) => {
+            ack();
+        };
+
         socket.on('player_joined', handlePlayerJoined);
         socket.on('player_move', handlePlayerMove);
         socket.on('player_left', handlePlayerLeft);
@@ -318,6 +322,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         socket.on('catapult_fire', handleCatapultFire);
         socket.on('catapult_broken', handlecatapultbroken);
         socket.on('game_end', handleGameEnd);
+        socket.on('poll', replyToPoll);
 
         const intervalId = window.setInterval(() => {
             const snapshot = game.getInventorySnapshot();
@@ -351,6 +356,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             socket.off('catapult_fire', handleCatapultFire);
             socket.off('catapult_broken', handlecatapultbroken);
             socket.off('game_end', handleGameEnd);
+            socket.off('poll', replyToPoll);
             window.clearInterval(intervalId);
 
             gameRef.current = null;
