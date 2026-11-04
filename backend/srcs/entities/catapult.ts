@@ -21,6 +21,7 @@ export class catapult {
     private nextWaypoint: Vec2 | null = null;
     private pathExhaustedLogged = false;
     private nextAttackAt = 0;
+    private hasSpawnPosition: boolean;
 
     constructor(
         readonly origin: castle,
