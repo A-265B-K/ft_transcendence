@@ -297,6 +297,10 @@ function AppContent() {
                     user ? (
                         <JoinRoom
                             onBack={() => {
+                                connectSocket().emit('leave_room');
+                                localStorage.removeItem('gameRoomId');
+                                setJoinedData(null);
+                                setRestoringGame(false);
                                 navigate('/game-menu');
                             }}
                             onJoined={(data) => {
