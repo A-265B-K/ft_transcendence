@@ -183,31 +183,31 @@ export class catapult {
                     : screenDeltaY < 0
                       ? 'up'
                       : 'down';
-                this.namespace.to(this.roomId).emit('catapult_fire', {
-                    catapultId: this.id,
-                    direction
-                });
-            }
-
-            this.nextAttackAt = Date.now() + CATAPULT_ATTACK_INTERVAL;
-            this.namespace.to(this.roomId).emit('catapult_attack', {
+            this.namespace.to(this.roomId).emit('catapult_fire', {
                 catapultId: this.id,
-                start: this.position,
-                target: this.target.getposition(),
-                durationMs: 600
+                direction
             });
-            const health = this.target.takedamage(CATAPULT_ATTACK_DAMAGE);
-            this.namespace.to(this.roomId).emit('castle_damaged', {
-                playerSlot: this.target.playerSlot,
-                health,
-                level: this.target.getlevel()
-            });
-            console.info(`[catapult ${this.id}] hit castle`, {
-                playerSlot: this.target.playerSlot,
-                position: this.target.getposition(),
-                damage: CATAPULT_ATTACK_DAMAGE,
-                health
-            });
+        }
+
+        this.nextAttackAt = Date.now() + CATAPULT_ATTACK_INTERVAL;
+        this.namespace.to(this.roomId).emit('catapult_attack', {
+            catapultId: this.id,
+            start: this.position,
+            target: this.target.getposition(),
+            durationMs: 600
+        });
+        const health = this.target.takedamage(CATAPULT_ATTACK_DAMAGE);
+        this.namespace.to(this.roomId).emit('castle_damaged', {
+            playerSlot: this.target.playerSlot,
+            health,
+            level: this.target.getlevel()
+        });
+        console.info(`[catapult ${this.id}] hit castle`, {
+            playerSlot: this.target.playerSlot,
+            position: this.target.getposition(),
+            damage: CATAPULT_ATTACK_DAMAGE,
+            health
+        });
     }
 
     loop() {
