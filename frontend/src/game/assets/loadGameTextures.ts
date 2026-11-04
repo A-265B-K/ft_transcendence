@@ -3,7 +3,7 @@ import castle1Url from '../../assets/castle1.png';
 import castle2Url from '../../assets/castle2.png';
 import castle3Url from '../../assets/castle3.png';
 import castle4Url from '../../assets/castle4.png';
-import destroyedCastleUrl from '../../assets/castle-destroyed.svg';
+import destroyedCastleUrl from '../../assets/castle0.png';
 import down1Url from '../../assets/down1.png';
 import down2Url from '../../assets/down2.png';
 import grassUrl from '../../assets/grass.png';

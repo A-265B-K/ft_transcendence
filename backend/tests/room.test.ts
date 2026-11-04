@@ -131,6 +131,11 @@ test('weapon crafting preserves insufficient resources and deducts recipe cost',
     const player = state.players.get(user.id);
     assert.ok(player);
 
+    const playerState = player as unknown as {
+        inventory: { wood: number; iron: number };
+    };
+    playerState.inventory = { wood: 0, iron: 0 };
+
     assert.equal(room.craftWeapon(user.id, 'dagger'), null);
     assert.deepEqual(player.getInventory(), {
         iron: 0,
