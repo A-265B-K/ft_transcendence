@@ -114,6 +114,14 @@ export class Game {
         this.scene?.updateCatapult(catapultId, position);
     }
 
+    updateCatapultHealth(
+        catapultId: string,
+        health: number,
+        maxHealth: number
+    ) {
+        this.scene?.updateCatapultHealth(catapultId, health, maxHealth);
+    }
+
     updateRemoteCastle(socketId: string, level: number) {
         this.scene?.updateRemoteCastle(socketId, level);
     }
@@ -183,5 +191,13 @@ export class Game {
     }
     launchboulder(shot: CastleAttackStarted) {
         this.scene?.launchboulder(shot);
+    }
+    launchCatapultShot(
+        shot: Pick<CastleAttackStarted, 'start' | 'target' | 'durationMs'>
+    ) {
+        this.scene?.launchCatapultShot(shot);
+    }
+    updateCastleHealth(playerSlot: number, health: number, level: number) {
+        this.scene?.updateCastleHealth(playerSlot, health, level);
     }
 }

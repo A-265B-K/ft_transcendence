@@ -32,7 +32,7 @@ export class GameScene {
 
     private readonly boulders: {
         sprite: Sprite;
-        shot: CastleAttackStarted;
+        shot: Pick<CastleAttackStarted, 'start' | 'target' | 'durationMs'>;
         elapsedMs: number;
     }[] = [];
 
@@ -132,6 +132,7 @@ export class GameScene {
              * The frontend only displays it.
              */
             castle.setLevel(player.inventory.castleLevel);
+            castle.setHealth(player.castleHp ?? 100);
 
             this.map.clearTile(castle.gridX, castle.gridY);
 
@@ -156,7 +157,8 @@ export class GameScene {
             castle1: this.textures.castle1,
             castle2: this.textures.castle2,
             castle3: this.textures.castle3,
-            castle4: this.textures.castle4
+            castle4: this.textures.castle4,
+            destroyedCastle: this.textures.destroyedCastle
         });
     }
 
@@ -216,6 +218,7 @@ export class GameScene {
          * authoritative castle level.
          */
         castle.setLevel(player.inventory.castleLevel);
+        castle.setHealth(player.castleHp ?? 100);
 
         this.map.clearTile(castle.gridX, castle.gridY);
 
@@ -386,11 +389,21 @@ export class GameScene {
         this.catapults.get(catapultId)?.break();
     }
 
+    updateCatapultHealth(
+        catapultId: string,
+        health: number,
+        maxHealth: number
+    ) {
+        this.catapults.get(catapultId)?.setHealth(health, maxHealth);
+    }
+
     private deleteCatapult(catapultId: string) {
         const catapult = this.catapults.get(catapultId);
         if (catapult) {
             this.world.removeChild(catapult.sprite);
+            this.world.removeChild(catapult.healthBar);
             catapult.sprite.destroy();
+            catapult.healthBar.destroy();
             this.catapults.delete(catapultId);
         }
     }
@@ -414,6 +427,14 @@ export class GameScene {
          * the visual representation.
          */
         castle.setLevel(level);
+    }
+
+    updateCastleHealth(playerSlot: number, health: number, level: number) {
+        const castle = this.castles.get(playerSlot);
+        if (!castle) return;
+
+        castle.setLevel(level);
+        castle.setHealth(health);
     }
 
     updateRemotePlayer(
@@ -509,6 +530,18 @@ export class GameScene {
     }
 
     launchboulder(shot: CastleAttackStarted) {
+        this.launchProjectile(shot);
+    }
+
+    launchCatapultShot(
+        shot: Pick<CastleAttackStarted, 'start' | 'target' | 'durationMs'>
+    ) {
+        this.launchProjectile(shot);
+    }
+
+    private launchProjectile(
+        shot: Pick<CastleAttackStarted, 'start' | 'target' | 'durationMs'>
+    ) {
         if (shot.durationMs <= 0) return;
 
         const sprite = new Sprite(this.textures.boulder);

@@ -30,6 +30,7 @@ function makeRoom(started = false): Room {
                     playerSlot: slot,
                     setlevel: () => undefined,
                     getlevel: () => 1,
+                    isDestroyed: () => false,
                     getposition: () => ({ x: slot * 10, y: 10 })
                 }
             ];
@@ -130,6 +131,11 @@ test('weapon crafting preserves insufficient resources and deducts recipe cost',
     const player = state.players.get(user.id);
     assert.ok(player);
 
+    const playerState = player as unknown as {
+        inventory: { wood: number; iron: number };
+    };
+    playerState.inventory = { wood: 0, iron: 0 };
+
     assert.equal(room.craftWeapon(user.id, 'dagger'), null);
     assert.deepEqual(player.getInventory(), {
         iron: 0,
@@ -144,4 +150,21 @@ test('weapon crafting preserves insufficient resources and deducts recipe cost',
         weapon: 'dagger',
         inventory: { wood: 0, iron: 0 }
     });
+});
+
+test('destroyed castles block forge operations', () => {
+    const room = makeRoom(true);
+    const user = makeUser('user-1');
+
+    room.join(makeSocket(user.id), user);
+    const state = room as unknown as RoomState;
+    const castle = state.map.getCastle(1) as unknown as {
+        isDestroyed: () => boolean;
+    };
+    castle.isDestroyed = () => true;
+
+    assert.equal(room.craftWeapon(user.id, 'dagger'), null);
+    assert.equal(room.upgradecastle(user.id), null);
+    assert.equal(room.equiparmor(user.id), false);
+    assert.equal(room.payForCatapult(user.id, 'user-2'), null);
 });

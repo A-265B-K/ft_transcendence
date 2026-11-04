@@ -1,4 +1,4 @@
-import { Container, Sprite, Text, TextStyle, Texture } from 'pixi.js';
+import { Container, Graphics, Sprite, Text, TextStyle, Texture } from 'pixi.js';
 import { MAP_SIZE } from '../config/constants';
 import { isoX, isoY } from '../world/iso';
 
@@ -7,16 +7,19 @@ export type CastleTextures = {
     castle2: Texture;
     castle3: Texture;
     castle4: Texture;
+    destroyedCastle: Texture;
 };
 
 export class Castle {
     readonly container: Container;
     readonly sprite: Sprite;
     readonly levelLabel: Text;
+    private readonly healthBar: Graphics;
 
     gridX = 0;
     gridY = 0;
     level = 1;
+    private health = 100;
 
     private readonly textures: CastleTextures;
 
@@ -43,8 +46,12 @@ export class Castle {
 
         this.levelLabel.anchor.set(0.5, 2);
         this.levelLabel.y = -76;
+        this.healthBar = new Graphics();
+        this.healthBar.position.set(-24, -98);
         this.container.addChild(this.sprite);
+        this.container.addChild(this.healthBar);
         this.container.addChild(this.levelLabel);
+        this.setHealth(100);
         this.refreshLabel();
     }
 
@@ -65,7 +72,23 @@ export class Castle {
         this.refreshLabel();
     }
 
+    setHealth(health: number) {
+        const width = 48;
+        this.health = Math.max(0, Math.min(100, health));
+        const ratio = Math.max(0, Math.min(1, health / 100));
+        this.healthBar.clear();
+        this.healthBar.rect(0, 0, width, 5).fill('#222b33');
+        this.healthBar.rect(0, 0, width * ratio, 5).fill('#e65b47');
+        this.updateTexture();
+        this.refreshLabel();
+    }
+
     private updateTexture() {
+        if (this.health <= 0) {
+            this.sprite.texture = this.textures.destroyedCastle;
+            return;
+        }
+
         const textures: Record<number, Texture> = {
             1: this.textures.castle1,
             2: this.textures.castle2,
@@ -77,6 +100,11 @@ export class Castle {
     }
 
     private refreshLabel() {
+        if (this.health <= 0) {
+            this.levelLabel.text = 'Destroyed';
+            return;
+        }
+
         if (this.level >= 4) {
             this.levelLabel.text = `Lv. ${this.level}\nMax level`;
             return;

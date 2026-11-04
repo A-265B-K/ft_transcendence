@@ -1,4 +1,4 @@
-import { PLAYER_RADIUS } from '../constants.js';
+import { CATAPULT_RADIUS, PLAYER_RADIUS } from '../constants.js';
 import type { GameMap } from '../map.js';
 import type { Player } from '../entities/player.js';
 import type { Socket, SocketUser, Vec2 } from '../types.js';
@@ -59,8 +59,27 @@ export function positionIsAllowed(
         map.isOutOfBounds(pos) ||
         (player.isAlive() &&
             (isCollidingWithOtherPlayer(players, user.id, pos) ||
-                isCollidingWithCastle(map, players, pos)))
+                isCollidingWithCastle(map, players, pos) ||
+                isCollidingWithCatapult(players, pos)))
     );
+}
+
+function isCollidingWithCatapult(
+    players: ReadonlyMap<string, Player>,
+    pos: Vec2
+): boolean {
+    for (const owner of players.values()) {
+        for (const catapult of owner.getcatapults()) {
+            if (
+                getDistance(pos, catapult.getpos()) <
+                PLAYER_RADIUS + CATAPULT_RADIUS
+            ) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 function isCollidingWithCastle(
