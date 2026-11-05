@@ -14,13 +14,15 @@ function makePlayer(
     id: string,
     slot: number,
     alive: boolean,
-    position: Vec2
+    position: Vec2,
+    catapults: Array<{ getpos: () => Vec2 }> = []
 ): Player {
     return {
         getUserId: () => id,
         getSlot: () => slot,
         isAlive: () => alive,
-        getPosition: () => position
+        getPosition: () => position,
+        getcatapults: () => catapults
     } as unknown as Player;
 }
 
@@ -127,6 +129,27 @@ test('position validation blocks an occupied castle zone', () => {
             player,
             user,
             { x: 20, y: 20 }
+        ),
+        false
+    );
+});
+
+test('position validation blocks movement into a catapult', () => {
+    const player = makePlayer('self', 1, true, { x: 10, y: 10 });
+    const owner = makePlayer('owner', 2, true, { x: 30, y: 30 }, [
+        { getpos: () => ({ x: 20, y: 20 }) }
+    ]);
+
+    assert.equal(
+        positionIsAllowed(
+            makeMap(),
+            new Map([
+                ['self', player],
+                ['owner', owner]
+            ]),
+            player,
+            user,
+            { x: 22, y: 20 }
         ),
         false
     );
