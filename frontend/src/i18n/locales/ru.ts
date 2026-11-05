@@ -4,11 +4,12 @@ export const ru = {
         youDied: 'Вы погибли',
         spectating: 'Теперь вы наблюдаете за игрой.',
         leaveGame: 'Выйти из игры',
-        youWon: 'Вы победили!',
+        youWon: 'Вы победили! 🏆',
+        youLost: 'Вы проиграли...',
 
         // castle component
         castle: 'Замок',
-        tilesAway: 'клеток',
+        tilesAway: 'клеток отсюда',
         youAreHere: 'Вы здесь',
         castleDirection: 'Направление к замку',
 
@@ -23,7 +24,7 @@ export const ru = {
             'Вы были отключены, поскольку сервер мог перестать работать или задержка вашего соединения стала слишком высокой.',
 
         // forgot password
-        forgotPassword: 'Забыли пароль',
+        forgotPassword: 'Забыли пароль?',
         sendPasswordLink:
             'Введите свой адрес электронной почты, и мы отправим вам ссылку для сброса пароля.',
         backToLogin: 'Назад ко входу',
