@@ -6,7 +6,7 @@ export const en = {
         leaveGame: 'Leave Game',
         youWon: 'You Won! 🏆',
         youLost: 'You lost...',
-        
+
         //castle component
         castle: 'Castle',
         tilesAway: 'tiles away',
@@ -134,6 +134,6 @@ export const en = {
         scanQrCode: 'Scan QR Code',
         qrCodeAlt: 'Two-factor authentication QR code',
         confirmTwoFactor: 'Confirm 2FA',
-        disableTwoFactor: 'Disable 2FA',
+        disableTwoFactor: 'Disable 2FA'
     }
 };
