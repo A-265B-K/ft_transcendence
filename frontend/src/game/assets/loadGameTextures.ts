@@ -38,6 +38,15 @@ import spear3Url from '../../assets/weapons/spear/spear3.png';
 import spear4Url from '../../assets/weapons/spear/spear4.png';
 import BoulderUrl from '../../assets/boulder.png';
 import catapultUrl from '../../assets/catapult/down.png';
+import catapultUpUrl from '../../assets/catapult/up.png';
+import catapultLeftUrl from '../../assets/catapult/left.png';
+import catapultRightUrl from '../../assets/catapult/right.png';
+import catapultDownFireUrl from '../../assets/catapult/down-fire.png';
+import catapultUpFireUrl from '../../assets/catapult/up-fire.png';
+import catapultLeftFireUrl from '../../assets/catapult/left-fire.png';
+import catapultRightFireUrl from '../../assets/catapult/right-fire.png';
+import catapultDestroyedUrl from '../../assets/catapult/destroyed.png';
+import type { CatapultTextures } from '../entities/catapult';
 
 export type GameTextures = {
     grass: Texture;
@@ -85,7 +94,7 @@ export type GameTextures = {
     spear4: Texture;
 
     boulder: Texture;
-    catapult: Texture;
+    catapult: CatapultTextures;
 };
 
 export async function loadGameTextures(): Promise<GameTextures> {
@@ -133,7 +142,15 @@ export async function loadGameTextures(): Promise<GameTextures> {
         spear3,
         spear4,
         boulder,
-        catapult
+        catapultDown,
+        catapultUp,
+        catapultLeft,
+        catapultRight,
+        catapultDownFire,
+        catapultUpFire,
+        catapultLeftFire,
+        catapultRightFire,
+        catapultDestroyed
     ] = await Promise.all([
         Assets.load(grassUrl),
         Assets.load<Texture>(forestBackgroundUrl),
@@ -180,7 +197,15 @@ export async function loadGameTextures(): Promise<GameTextures> {
         Assets.load<Texture>(spear3Url),
         Assets.load<Texture>(spear4Url),
         Assets.load<Texture>(BoulderUrl),
-        Assets.load<Texture>(catapultUrl)
+        Assets.load<Texture>(catapultUrl),
+        Assets.load<Texture>(catapultUpUrl),
+        Assets.load<Texture>(catapultLeftUrl),
+        Assets.load<Texture>(catapultRightUrl),
+        Assets.load<Texture>(catapultDownFireUrl),
+        Assets.load<Texture>(catapultUpFireUrl),
+        Assets.load<Texture>(catapultLeftFireUrl),
+        Assets.load<Texture>(catapultRightFireUrl),
+        Assets.load<Texture>(catapultDestroyedUrl)
     ]);
 
     return {
@@ -228,6 +253,21 @@ export async function loadGameTextures(): Promise<GameTextures> {
         spear4,
 
         boulder,
-        catapult
+        catapult: {
+            idle: catapultDown,
+            moving: {
+                up: catapultUp,
+                down: catapultDown,
+                left: catapultLeft,
+                right: catapultRight
+            },
+            firing: {
+                up: catapultUpFire,
+                down: catapultDownFire,
+                left: catapultLeftFire,
+                right: catapultRightFire
+            },
+            broken: catapultDestroyed
+        }
     };
 }

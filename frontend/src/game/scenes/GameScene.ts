@@ -315,8 +315,8 @@ export class GameScene {
             this.camera.x,
             this.camera.y
         );
-        for (const catapult of this.catapults.values()) {
-            catapult.update(deltaSeconds);
+        for (const [catapultId, catapult] of this.catapults) {
+            if (catapult.update(deltaSeconds)) this.deleteCatapult(catapultId);
         }
         this.updateBoulders(deltaSeconds);
     }
@@ -378,6 +378,17 @@ export class GameScene {
         this.catapults.get(catapultId)?.setTargetPosition(position);
     }
 
+    fireCatapult(
+        catapultId: string,
+        direction: 'up' | 'down' | 'left' | 'right'
+    ) {
+        this.catapults.get(catapultId)?.fire(direction);
+    }
+
+    breakCatapult(catapultId: string) {
+        this.catapults.get(catapultId)?.break();
+    }
+
     updateCatapultHealth(
         catapultId: string,
         health: number,
@@ -386,7 +397,7 @@ export class GameScene {
         this.catapults.get(catapultId)?.setHealth(health, maxHealth);
     }
 
-    deleteCatapult(catapultId: string) {
+    private deleteCatapult(catapultId: string) {
         const catapult = this.catapults.get(catapultId);
         if (catapult) {
             this.world.removeChild(catapult.sprite);

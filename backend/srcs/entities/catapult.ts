@@ -15,12 +15,12 @@ export class catapult {
     readonly id = randomUUID();
     private position: Vec2;
     private health = CATAPULT_MAX_HP;
+    private hasSpawnPosition: boolean;
     private lastmovement = Date.now();
     private path: Vec2[];
     private nextWaypoint: Vec2 | null = null;
     private pathExhaustedLogged = false;
     private nextAttackAt = 0;
-    private hasSpawnPosition: boolean;
 
     constructor(
         readonly origin: castle,
@@ -168,6 +168,26 @@ export class catapult {
     private attack() {
         if (!this.target || Date.now() < this.nextAttackAt) return;
         if (this.target.isDestroyed()) return;
+
+        const targetPosition = this.target?.getposition();
+        if (targetPosition) {
+            const deltaX = targetPosition.x - this.position.x;
+            const deltaY = targetPosition.y - this.position.y;
+            const screenDeltaX = deltaX - deltaY;
+            const screenDeltaY = deltaX + deltaY;
+            const direction =
+                Math.abs(screenDeltaX) > Math.abs(screenDeltaY)
+                    ? screenDeltaX < 0
+                        ? 'left'
+                        : 'right'
+                    : screenDeltaY < 0
+                      ? 'up'
+                      : 'down';
+            this.namespace.to(this.roomId).emit('catapult_fire', {
+                catapultId: this.id,
+                direction
+            });
+        }
 
         this.nextAttackAt = Date.now() + CATAPULT_ATTACK_INTERVAL;
         this.namespace.to(this.roomId).emit('catapult_attack', {

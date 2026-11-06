@@ -262,7 +262,7 @@ test('catapult fires and damages its target castle when in range', () => {
     assert.equal(target.gethealth(), CASTLE_MAX_HP - 20);
     assert.deepEqual(
         events.map(({ event }) => event),
-        ['catapult_attack', 'castle_damaged']
+        ['catapult_fire', 'catapult_attack', 'castle_damaged']
     );
 });
 
