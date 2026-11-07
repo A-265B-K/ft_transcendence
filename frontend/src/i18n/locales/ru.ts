@@ -148,6 +148,28 @@ export const ru = {
         scanQrCode: 'Сканировать QR-код',
         qrCodeAlt: 'QR-код для двухфакторной аутентификации',
         confirmTwoFactor: 'Подтвердить двухфакторную аутентификацию',
-        disableTwoFactor: 'Отключить двухфакторную аутентификацию'
+        disableTwoFactor: 'Отключить двухфакторную аутентификацию',
+
+        forge: 'Кузница',
+        armor: 'Броня',
+        equipArmor: 'Надеть броню',
+        equippingArmor: 'Надевание брони…',
+        requiresCastleLevel: 'Требуется уровень замка {{level}}',
+        armorDamageReduction:
+            'Снижение получаемого урона на 20% в течение 20 секунд',
+        upgrading: 'Улучшение…',
+        maxLevel: 'Максимальный уровень',
+        upgradeCastle: 'Улучшить замок',
+        chooseTarget: 'Выберите цель',
+
+        dagger: 'Кинжал',
+        sword: 'Меч',
+        spear: 'Копьё',
+        axe: 'Топор',
+        buyCatapult: 'Купить катапульту',
+        chooseWeaponToCraft: 'Выберите оружие для создания.',
+
+        closeForge: 'Закрыть кузницу',
+        openForge: 'Открыть кузницу'
     }
 };

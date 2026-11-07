@@ -145,6 +145,27 @@ export const nl = {
         scanQrCode: 'QR-code scannen',
         qrCodeAlt: 'QR-code voor tweestapsverificatie',
         confirmTwoFactor: 'Tweestapsverificatie bevestigen',
-        disableTwoFactor: 'Tweestapsverificatie uitschakelen'
+        disableTwoFactor: 'Tweestapsverificatie uitschakelen',
+
+        forge: 'Smidse',
+        armor: 'Pantser',
+        equipArmor: 'Pantser uitrusten',
+        equippingArmor: 'Pantser uitrusten…',
+        requiresCastleLevel: 'Vereist kasteelniveau {{level}}',
+        armorDamageReduction: '20% minder schade gedurende 20 seconden',
+        upgrading: 'Upgraden…',
+        maxLevel: 'Maximaal niveau',
+        upgradeCastle: 'Kasteel upgraden',
+        chooseTarget: 'Kies een doel',
+
+        dagger: 'Dolk',
+        sword: 'Zwaard',
+        spear: 'Speer',
+        axe: 'Bijl',
+        buyCatapult: 'Katapult kopen',
+        chooseWeaponToCraft: 'Kies een wapen om te maken.',
+
+        closeForge: 'Smidse sluiten',
+        openForge: 'Smidse openen'
     }
 };

@@ -134,6 +134,28 @@ export const en = {
         scanQrCode: 'Scan QR Code',
         qrCodeAlt: 'Two-factor authentication QR code',
         confirmTwoFactor: 'Confirm 2FA',
-        disableTwoFactor: 'Disable 2FA'
+        disableTwoFactor: 'Disable 2FA',
+
+        //Forgemenu
+
+        forge: 'Forge',
+        armor: 'Armor',
+        equipArmor: 'Equip armor',
+        equippingArmor: 'Equipping armor…',
+        requiresCastleLevel: 'Requires castle level {{level}}',
+        armorDamageReduction: '20% damage reduction for 20 seconds',
+        upgrading: 'Upgrading…',
+        maxLevel: 'Max level',
+        upgradeCastle: 'Upgrade castle',
+        chooseTarget: 'Choose a target',
+
+        dagger: 'Dagger',
+        sword: 'Sword',
+        spear: 'Spear',
+        axe: 'Axe',
+        buyCatapult: 'Buy catapult',
+        chooseWeaponToCraft: 'Choose a weapon to craft.',
+        closeForge: 'Close forge',
+        openForge: 'Open forge'
     }
 };
