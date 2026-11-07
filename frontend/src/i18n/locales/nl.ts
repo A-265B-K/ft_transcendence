@@ -4,7 +4,8 @@ export const nl = {
         youDied: 'Je bent dood',
         spectating: 'Je kijkt nu mee.',
         leaveGame: 'Spel verlaten',
-        youWon: 'Je hebt gewonnen!',
+        youWon: 'Je hebt gewonnen! 🏆',
+        youLost: 'Je hebt verloren...',
 
         // castle component
         castle: 'Kasteel',
@@ -23,7 +24,7 @@ export const nl = {
             'Je bent verbroken omdat de server mogelijk offline is gegaan of je verbinding een te hoge latentie heeft.',
 
         // forgot password
-        forgotPassword: 'Wachtwoord vergeten',
+        forgotPassword: 'Wachtwoord vergeten?',
         sendPasswordLink:
             'Voer je e-mailadres in en we sturen je een link om je wachtwoord opnieuw in te stellen.',
         backToLogin: 'Terug naar inloggen',

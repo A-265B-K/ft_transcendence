@@ -4,34 +4,33 @@ export const uk = {
         youDied: 'Ви загинули',
         spectating: 'Тепер ви спостерігаєте за грою.',
         leaveGame: 'Вийти з гри',
-        youWon: 'Ви перемогли!',
-
+        youWon: 'Ви перемогли! 🏆',
+        youLost: 'Вы програли...',
         // castle component
         castle: 'Замок',
-        tilesAway: 'клітинок',
+        tilesAway: 'клітинок звідси',
         youAreHere: 'Ви тут',
         castleDirection: 'Напрямок до замку',
-
         // inventory component
         inventory: 'Інвентар',
-        wood: 'Дерево',
+        wood: 'Деревина',
         iron: 'Залізо',
         playerInventory: 'Інвентар гравця',
 
-        connectionLost: "З'єднання втрачено",
+        connectionLost: 'З’єднання втрачено',
         disconnectedSeverDown:
-            "Вас відключено, оскільки сервер міг припинити роботу або затримка вашого з'єднання стала надто високою.",
-
+            'Вас було відключено, оскільки сервер міг припинити роботу або затримка вашого з’єднання стала надто високою.\nСпроба повторного підключення...',
         // forgot password
-        forgotPassword: 'Забули пароль',
+        forgotPassword: 'Забули пароль?',
         sendPasswordLink:
             'Введіть свою електронну адресу, і ми надішлемо вам посилання для скидання пароля.',
-        backToLogin: 'Назад до входу',
-        forgotPasswordEmailRequired: 'Введіть свою електронну адресу.',
+        backToLogin: 'Повернутися до входу',
+        forgotPasswordEmailRequired:
+            'Будь ласка, введіть свою електронну адресу.',
         passwordResetRequestFailed:
             'Не вдалося надіслати запит на скидання пароля.',
         passwordResetEmailSent:
-            'Якщо для цієї електронної адреси існує обліковий запис, посилання для скидання пароля було надіслано.',
+            'Якщо обліковий запис із цією електронною адресою існує, посилання для скидання пароля було надіслано.',
         sending: 'Надсилання...',
         sendResetLink: 'Надіслати посилання для скидання',
 
@@ -43,10 +42,10 @@ export const uk = {
         copied: 'Скопійовано!',
         copyCode: 'Копіювати код',
         players: 'гравців',
-        waitingForFriends: 'Очікування приєднання ваших друзів...',
+        waitingForFriends: 'Очікування на приєднання друзів...',
         startGame: 'Почати гру',
-        backToLobby: 'Назад до лобі',
-        welcome: 'Вітаємо',
+        backToLobby: 'Повернутися до лобі',
+        welcome: 'Ласкаво просимо',
         gameLobby: 'Ігрове лобі',
         createRoom: 'Створити кімнату',
         creating: 'Створення...',
@@ -55,7 +54,7 @@ export const uk = {
         availableRooms: 'Доступні кімнати',
         refresh: 'Оновити',
         noRooms: 'Немає доступних кімнат.',
-        inviteFriends: 'Створіть кімнату та запросіть своїх друзів.',
+        inviteFriends: 'Створіть кімнату та запросіть друзів.',
         code: 'Код',
         join: 'Приєднатися',
         joinRoom: 'Приєднатися до кімнати',
@@ -65,14 +64,12 @@ export const uk = {
         enterRoomName: 'Введіть назву кімнати.',
         enterRoomCode: 'Введіть код кімнати.',
         copyError: 'Не вдалося скопіювати код кімнати.',
-
         // menu button
         gameMenu: 'Ігрове меню',
         gamePaused: 'Гру призупинено',
         invitationCode: 'Код запрошення',
         resumeGame: 'Продовжити гру',
         pressEscToResume: 'Натисніть ESC, щоб продовжити',
-
         // create a profile
         signIn: 'Увійти',
         signInContinue: 'Увійдіть, щоб продовжити гру.',
@@ -80,19 +77,16 @@ export const uk = {
         password: 'Пароль',
         forgotYourPassword: 'Забули пароль?',
         signInButton: 'Увійти',
-        backToMenu: 'Назад до меню',
-        fillAllFields: 'Заповніть усі поля.',
+        backToMenu: 'Повернутися до меню',
+        fillAllFields: 'Будь ласка, заповніть усі поля.',
         signingIn: 'Вхід...',
         loginFailed: 'Не вдалося увійти',
-        loginSuccessful: 'Вхід виконано успішно',
-        backendSignInError:
-            'Не вдалося підключитися до маршруту входу на сервері.',
-
+        loginSuccessful: 'Вхід успішний',
+        backendSignInError: 'Не вдалося зв’язатися з сервером для входу.',
         // lobby
         readyToPlay: 'Готові грати?',
         createOrSignIn: 'Створіть обліковий запис або увійдіть.',
         createAccount: 'Створити обліковий запис',
-
         // reset password
         resetPassword: 'Скинути пароль',
         enterNewPassword: 'Введіть новий пароль нижче.',
@@ -103,29 +97,42 @@ export const uk = {
         invalidResetToken: 'Недійсний або відсутній токен для скидання пароля.',
         passwordResetFailed: 'Не вдалося скинути пароль.',
         passwordResetSuccessful: 'Пароль успішно скинуто.',
-        backendError: 'Не вдалося підключитися до сервера.',
-        backToMainMenu: 'Назад до головного меню',
+        backendError: 'Не вдалося зв’язатися із сервером.',
+        backToMainMenu: 'Повернутися до головного меню',
 
         acceptPrivacyPolicy: 'Ви повинні прийняти Політику конфіденційності.',
-        acceptTerms: 'Ви повинні прийняти Умови використання.',
+        acceptTerms: 'Ви повинні прийняти Умови надання послуг.',
         creatingAccount: 'Створення облікового запису...',
-        signupFailed: 'Не вдалося створити обліковий запис',
+        signupFailed: 'Не вдалося зареєструватися',
         accountCreated: 'Обліковий запис створено',
-        backendRegisterError:
-            'Не вдалося підключитися до маршруту реєстрації на сервері.',
+        backendRegisterError: 'Не вдалося зв’язатися із сервером реєстрації.',
         createAccountToPlay: 'Створіть обліковий запис, щоб почати грати.',
-        username: "Ім'я користувача",
+        username: 'Ім’я користувача',
         confirmPassword: 'Підтвердіть пароль',
         iAgreeTo: 'Я погоджуюся з',
         privacyPolicy: 'Політикою конфіденційності',
-        termsOfService: 'Умовами використання',
+        termsOfService: 'Умовами надання послуг',
 
-        enterEmail: 'Спочатку введіть адресу електронної пошти',
+        settings: 'Налаштування',
+        twoFactorAuthentication: 'Двофакторна автентифікація',
+        passwordReset: 'Скидання пароля',
+        passwordResetRequestSent:
+            'Якщо обліковий запис із цією електронною адресою існує, посилання для скидання пароля буде надіслано.',
+
+        authenticationCode: 'Код автентифікації',
+        verify: 'Підтвердити',
+        twoFactorVerified:
+            'Двофакторну автентифікацію успішно підтверджено. Перенаправлення...',
+        twoFactorVerificationFailed:
+            'Не вдалося підтвердити двофакторну автентифікацію',
+        loading: 'Завантаження...',
+
+        enterEmail: 'Спочатку введіть електронну адресу',
         twoFactorSetupFailed:
             'Не вдалося налаштувати двофакторну автентифікацію',
         twoFactorScanQr:
             'Відскануйте цей QR-код за допомогою застосунку-автентифікатора',
-        twoFactorEnabled: 'Двофакторну автентифікацію ввімкнено',
+        twoFactorEnabled: 'Двофакторну автентифікацію увімкнено',
         twoFactorDisableFailed:
             'Не вдалося вимкнути двофакторну автентифікацію',
         twoFactorDisabled: 'Двофакторну автентифікацію вимкнено',

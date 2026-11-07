@@ -4,7 +4,9 @@ export const en = {
         youDied: 'You Died',
         spectating: 'You are now spectating.',
         leaveGame: 'Leave Game',
-        youWon: 'You Won!',
+        youWon: 'You Won! 🏆',
+        youLost: 'You lost...',
+
         //castle component
         castle: 'Castle',
         tilesAway: 'tiles away',
