@@ -1,7 +1,5 @@
 import { randomUUID } from 'crypto';
 import {
-    MAP_WIDTH,
-    MAP_HEIGHT,
     CASTLE_RADIUS,
     MIN_DIST_CASTLE,
     PLAYER_RADIUS,
@@ -15,6 +13,20 @@ import { castle as Castle } from './entities/castle.js';
 
 export type Resource = Room['map']['resourceSpawns'][number];
 
+function getMapSize(playerCount: number): number {
+    const sizes: Record<number, number> = {
+        1: 75,
+        2: 90,
+        3: 100,
+        4: 120
+    };
+    const size = sizes[playerCount];
+    if (!size) {
+        throw new Error(`Invalid player count: ${playerCount}`);
+    }
+    return size;
+}
+
 export class GameMap {
     private mapId: string;
     private width: number;
@@ -25,14 +37,24 @@ export class GameMap {
     private resourceSpawns: ReturnType<typeof this.generateResourceSpawns>;
     private catapultPositions = new Map<string, Vec2>();
 
-    constructor(maxPlayers: number) {
+    constructor(playerSlots: number[]) {
         this.mapId = randomUUID();
-        this.width = MAP_WIDTH;
-        this.height = MAP_HEIGHT;
-        this.castleZones = this.generateCastleZones(maxPlayers);
+        const mapSize = getMapSize(playerSlots.length);
+        this.width = mapSize;
+        this.height = mapSize;
+        this.castleZones = this.generateCastleZones(playerSlots);
         this.spawnPoints = this.generateSpawnPoints(this.castleZones);
-        this.obstacles = this.generateObstacles();
-        this.resourceSpawns = this.generateResourceSpawns(this.obstacles);
+        this.obstacles = this.generateObstacles(this.getMapDensityCount(15));
+        this.resourceSpawns = this.generateResourceSpawns(
+            this.obstacles,
+            this.getMapDensityCount(20)
+        );
+    }
+
+    private getMapDensityCount(baseCount: number): number {
+        return Math.round(
+            (baseCount * (this.width * this.height)) / (100 * 100)
+        );
     }
 
     private generateSpawnPoints(castleZones: Castle[]) {
@@ -58,38 +80,41 @@ export class GameMap {
         return spawnPoints;
     }
 
-    private generateCastleZones(maxPlayers: number) {
+    private generateCastleZones(playerSlots: number[]) {
         const minDistBetweenCastles = MIN_DIST_CASTLE;
-
         const castleZones: Castle[] = [];
         let attempts = 0;
-        const maxAttempts = maxPlayers * 100;
+        const maxAttempts = playerSlots.length * 100;
 
-        while (castleZones.length < maxPlayers && attempts < maxAttempts) {
+        while (
+            castleZones.length < playerSlots.length &&
+            attempts < maxAttempts
+        ) {
             attempts++;
-            const pos = randomPos();
-
+            const pos = randomPos(this.width, this.height);
             let tooClose = castleZones.some(
                 (c) => getDistance(pos, c.getposition()) < minDistBetweenCastles
             );
 
             if (
                 pos.x - CASTLE_RADIUS / 2 < 0 ||
-                pos.x + CASTLE_RADIUS / 2 > MAP_WIDTH ||
+                pos.x + CASTLE_RADIUS / 2 >= this.width ||
                 pos.y - CASTLE_RADIUS / 2 < 0 ||
-                pos.y + CASTLE_RADIUS / 2 > MAP_HEIGHT
+                pos.y + CASTLE_RADIUS / 2 >= this.height
             ) {
                 tooClose = true;
             }
 
             if (!tooClose) {
-                castleZones.push(new Castle(castleZones.length + 1, pos));
+                castleZones.push(
+                    new Castle(playerSlots[castleZones.length]!, pos)
+                );
             }
         }
 
-        if (castleZones.length < maxPlayers) {
-            console.warn(
-                `Could only place ${castleZones.length}/${maxPlayers} castles — map too small or minDistBetweenCastles too high`
+        if (castleZones.length < playerSlots.length) {
+            throw new Error(
+                `Could only place ${castleZones.length}/${playerSlots.length} castles`
             );
         }
 
@@ -106,7 +131,7 @@ export class GameMap {
         let attempts = 0;
         while (obstacles.length < count && attempts < count * 20) {
             attempts++;
-            const pos = randomPos();
+            const pos = randomPos(this.width, this.height);
 
             if (!this.isValidPosition(pos, 5, 4, obstacles)) continue;
 
@@ -170,7 +195,7 @@ export class GameMap {
 
         while (resources.length < count && attempts < count * 20) {
             attempts++;
-            const pos = randomPos();
+            const pos = randomPos(this.width, this.height);
 
             if (!this.isValidPosition(pos, 6, 5, obstacles)) continue;
 
@@ -272,9 +297,9 @@ export class GameMap {
 
                     if (
                         candidate.x < 0 ||
-                        candidate.x > this.width ||
+                        candidate.x >= this.width ||
                         candidate.y < 0 ||
-                        candidate.y > this.height ||
+                        candidate.y >= this.height ||
                         this.obstacles.some(
                             (obstacle) =>
                                 getDistance(candidate, obstacle) <=
@@ -357,9 +382,9 @@ export class GameMap {
         const isBlocked = (node: Vec2) => {
             if (
                 node.x < 0 ||
-                node.x > this.width ||
+                node.x >= this.width ||
                 node.y < 0 ||
-                node.y > this.height
+                node.y >= this.height
             ) {
                 return true;
             }
@@ -484,10 +509,12 @@ export class GameMap {
     }
 
     isOutOfBounds(pos: Vec2): boolean {
-        if (pos.x < 0 || pos.x > MAP_WIDTH || pos.y < 0 || pos.y > MAP_HEIGHT) {
-            return true;
-        }
-        return false;
+        return (
+            pos.x < 0 ||
+            pos.x >= this.width ||
+            pos.y < 0 ||
+            pos.y >= this.height
+        );
     }
 
     collectResource(pos: Vec2): Resource | null {
@@ -500,5 +527,12 @@ export class GameMap {
             return resource;
         }
         return null;
+    }
+
+    getDimensions() {
+        return {
+            width: this.width,
+            height: this.height
+        };
     }
 }
