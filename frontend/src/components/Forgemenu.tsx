@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { t } from 'i18next';
 import type { WeaponType } from '../game/entities/weapons/weapon';
 import { getSocket } from '../socket';
 import daggerIcon from '../assets/weapons/dagger/dagger1.png';
@@ -9,10 +10,10 @@ import catapultIcon from '../assets/catapult/down.png';
 import type { PlayerData, PlayerInventory } from '../types/game';
 
 const weaponrecipes = {
-    dagger: { wood: 15, iron: 15, icon: daggerIcon },
-    sword: { wood: 30, iron: 20, icon: swordIcon },
-    spear: { wood: 30, iron: 20, icon: spearIcon },
-    axe: { wood: 20, iron: 30, icon: axeIcon }
+    dagger: { wood: 15, iron: 15, castle_level: 1, icon: daggerIcon },
+    sword: { wood: 30, iron: 20, castle_level: 2, icon: swordIcon },
+    spear: { wood: 30, iron: 20, castle_level: 3, icon: spearIcon },
+    axe: { wood: 20, iron: 30, castle_level: 4, icon: axeIcon }
 };
 
 const castleUpgradeRecipes: Partial<
@@ -118,16 +119,18 @@ export function Forgemenu({
                     aria-expanded={open}
                     className="rounded-lg bg-amber-600 px-3 py-2"
                 >
-                    {open ? 'Close forge' : 'Open forge'}
+                    {open ? t('closeForge') : t('openForge')}
                 </button>
 
                 {open && (
                     <section
-                        aria-label="Forge"
+                        aria-label={t('forge')}
                         className="mt-2 max-h-[calc(100dvh-10rem)] w-64 overflow-y-auto rounded-xl bg-slate-900 p-4"
                     >
-                        <h2 className="mb-3 text-lg font-bold">Forge</h2>
-                        <p>Choose a weapon to craft.</p>
+                        <h2 className="mb-3 text-lg font-bold">{t('forge')}</h2>
+
+                        <p>{t('chooseWeaponToCraft')}</p>
+
                         <div className="mt-3 flex flex-col gap-2">
                             {Object.entries(weaponrecipes).map(
                                 ([weapon, recipe]) => (
@@ -141,7 +144,8 @@ export function Forgemenu({
                                         }
                                         disabled={
                                             inventory.wood < recipe.wood ||
-                                            inventory.iron < recipe.iron
+                                            inventory.iron < recipe.iron ||
+                                            castleLevel < recipe.castle_level
                                         }
                                         className="flex items-center gap-3 rounded-lg bg-slate-700 px-3 py-2 text-left hover:bg-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
                                     >
@@ -152,11 +156,12 @@ export function Forgemenu({
                                         />
                                         <span>
                                             <span className="block font-bold capitalize">
-                                                {weapon}
+                                                {t(weapon)}
                                             </span>
+
                                             <span className="block text-sm text-slate-300">
-                                                {recipe.wood} wood ·{' '}
-                                                {recipe.iron} iron
+                                                {recipe.wood} {t('wood')} ·{' '}
+                                                {recipe.iron} {t('iron')}
                                             </span>
                                         </span>
                                     </button>
@@ -177,16 +182,16 @@ export function Forgemenu({
                                 />
                                 <span>
                                     <span className="block font-bold capitalize">
-                                        Buy catapult
+                                        {t('buyCatapult')}
                                     </span>
                                     <span className="block text-sm text-slate-300">
-                                        50 wood · 50 iron
+                                        50 {t('wood')} · 50 {t('iron')}
                                     </span>
                                 </span>
                             </button>
                         </div>
                         <section
-                            aria-label="Armor"
+                            aria-label={t('armor')}
                             className="mt-4 border-t border-slate-700 pt-4"
                         >
                             <button
@@ -202,18 +207,19 @@ export function Forgemenu({
                             >
                                 <span className="block font-bold">
                                     {equippingArmor
-                                        ? 'Equipping armor…'
-                                        : 'Equip armor'}
+                                        ? t('equippingArmor')
+                                        : t('equipArmor')}
                                 </span>
+
                                 <span className="block text-sm text-slate-300">
                                     {castleLevel < 3
-                                        ? 'Requires castle level 3'
-                                        : '20% damage reduction for 20 seconds'}
+                                        ? t('requiresCastleLevel', { level: 3 })
+                                        : t('armorDamageReduction')}
                                 </span>
                             </button>
                         </section>
                         <section
-                            aria-label="Castle"
+                            aria-label={t('castle')}
                             className="mt-4 border-t border-slate-700 pt-4"
                         >
                             <button
@@ -227,15 +233,15 @@ export function Forgemenu({
                             >
                                 <span className="block">
                                     {upgrading
-                                        ? 'Upgrading…'
+                                        ? t('upgrading')
                                         : atMaxLevel
-                                          ? 'Max level'
-                                          : 'Upgrade castle'}
+                                          ? t('maxLevel')
+                                          : t('upgradeCastle')}
                                 </span>
                                 {upgradeCost && (
                                     <span className="block text-sm font-normal">
-                                        {upgradeCost.wood} wood ·{' '}
-                                        {upgradeCost.iron} iron
+                                        {upgradeCost.wood} {t('wood')} ·{' '}
+                                        {upgradeCost.iron} {t('iron')}
                                     </span>
                                 )}
                             </button>
@@ -250,7 +256,7 @@ export function Forgemenu({
                                 id="catapult-target-title"
                                 className="text-lg font-bold"
                             >
-                                Choose a target
+                                {t('chooseTarget')}
                             </h2>
                             <div className="mt-3 flex flex-col gap-2">
                                 {opponents.map((player) => (
@@ -272,7 +278,7 @@ export function Forgemenu({
                                 onClick={() => targetDialog.current?.close()}
                                 className="mt-4 rounded-lg bg-slate-700 px-3 py-2 hover:bg-slate-600 disabled:opacity-50"
                             >
-                                Cancel
+                                {t('cancel')}
                             </button>
                         </dialog>
                     </section>

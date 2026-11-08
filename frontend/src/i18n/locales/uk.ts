@@ -140,6 +140,27 @@ export const uk = {
         scanQrCode: 'Сканувати QR-код',
         qrCodeAlt: 'QR-код для двофакторної автентифікації',
         confirmTwoFactor: 'Підтвердити двофакторну автентифікацію',
-        disableTwoFactor: 'Вимкнути двофакторну автентифікацію'
+        disableTwoFactor: 'Вимкнути двофакторну автентифікацію',
+
+        forge: 'Кузня',
+        armor: 'Броня',
+        equipArmor: 'Одягнути броню',
+        equippingArmor: 'Одягання броні…',
+        requiresCastleLevel: 'Потрібен рівень замку {{level}}',
+        armorDamageReduction: 'Зменшення шкоди на 20% протягом 20 секунд',
+        upgrading: 'Покращення…',
+        maxLevel: 'Максимальний рівень',
+        upgradeCastle: 'Покращити замок',
+        chooseTarget: 'Виберіть ціль',
+
+        dagger: 'Кинджал',
+        sword: 'Меч',
+        spear: 'Спис',
+        axe: 'Сокира',
+        buyCatapult: 'Купити катапульту',
+        chooseWeaponToCraft: 'Виберіть зброю для створення.',
+
+        closeForge: 'Закрити кузню',
+        openForge: 'Відкрити кузню'
     }
 };
