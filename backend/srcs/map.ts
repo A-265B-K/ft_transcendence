@@ -98,9 +98,9 @@ export class GameMap {
 
             if (
                 pos.x - CASTLE_RADIUS / 2 < 0 ||
-                pos.x + CASTLE_RADIUS / 2 >= this.width ||
+                pos.x + CASTLE_RADIUS / 2 > this.width ||
                 pos.y - CASTLE_RADIUS / 2 < 0 ||
-                pos.y + CASTLE_RADIUS / 2 >= this.height
+                pos.y + CASTLE_RADIUS / 2 > this.height
             ) {
                 tooClose = true;
             }
@@ -297,9 +297,9 @@ export class GameMap {
 
                     if (
                         candidate.x < 0 ||
-                        candidate.x >= this.width ||
+                        candidate.x > this.width ||
                         candidate.y < 0 ||
-                        candidate.y >= this.height ||
+                        candidate.y > this.height ||
                         this.obstacles.some(
                             (obstacle) =>
                                 getDistance(candidate, obstacle) <=
@@ -382,9 +382,9 @@ export class GameMap {
         const isBlocked = (node: Vec2) => {
             if (
                 node.x < 0 ||
-                node.x >= this.width ||
+                node.x > this.width ||
                 node.y < 0 ||
-                node.y >= this.height
+                node.y > this.height
             ) {
                 return true;
             }
@@ -510,10 +510,7 @@ export class GameMap {
 
     isOutOfBounds(pos: Vec2): boolean {
         return (
-            pos.x < 0 ||
-            pos.x >= this.width ||
-            pos.y < 0 ||
-            pos.y >= this.height
+            pos.x < 0 || pos.x > this.width || pos.y < 0 || pos.y > this.height
         );
     }
 
