@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS session_ (
 	temporary_auth_expires_at TIMESTAMPTZ
 );
 
-CREATE TABLE IF NOT EXISTS completedgames (c
+CREATE TABLE IF NOT EXISTS completedgames (
 	gameid INT NOT NULL,
 	winner TEXT NOT NULL
 );

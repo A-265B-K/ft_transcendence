@@ -38,7 +38,7 @@ GRANT USAGE ON SCHEMA public
 GRANT pg_monitor
 	TO postgres_exporter;
 
-GRANT SELECT ON TABLE users
+GRANT SELECT ON TABLE users, completedgames
 	TO postgres_exporter;
 SQL
 

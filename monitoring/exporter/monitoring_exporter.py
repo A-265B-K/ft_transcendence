@@ -69,8 +69,8 @@ def from_database():
             cursor.execute("SELECT COUNT(*) FROM users")
             databasedata["usercount"] = cursor.fetchone()[0]
         with database.cursor() as cursor:
-            cursor.execute("SELECT * FROM completedgames")
-            databasedata["gamehistory"] = cursor.fetch()
+            cursor.execute("SELECT COUNT(*) FROM completedgames")
+            databasedata["gamehistory"] = cursor.fetchone()[0]
     return databasedata
 
 def from_backend():
@@ -82,7 +82,7 @@ def from_backend():
 def to_prometheus(connection, databasedata, backend_data):
     playercount = databasedata["usercount"]
     active_rooms = int(backend_data["activeRooms"])
-    gamehistory = backend_data["gamehistory"]
+    gamehistory = databasedata["gamehistory"]
     body = (
         f"registered_players {playercount}\n"
         f"activerooms {active_rooms}\n"
