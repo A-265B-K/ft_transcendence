@@ -21,3 +21,8 @@ CREATE TABLE IF NOT EXISTS session_ (
 	temporary_auth_hash TEXT,
 	temporary_auth_expires_at TIMESTAMPTZ
 );
+
+CREATE TABLE IF NOT EXISTS completedgames (c
+	gameid INT NOT NULL,
+	winner TEXT NOT NULL
+);

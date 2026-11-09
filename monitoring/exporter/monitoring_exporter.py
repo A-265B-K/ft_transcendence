@@ -57,12 +57,21 @@ def connect_database():
     )
 
 
+
 def from_database():
+
+    databasedata = {
+        "usercount"     : 0,
+        "gamehistory"   : 0
+    }
     with connect_database() as database:
         with database.cursor() as cursor:
             cursor.execute("SELECT COUNT(*) FROM users")
-            return cursor.fetchone()[0]
-
+            databasedata["usercount"] = cursor.fetchone()[0]
+        with database.cursor() as cursor:
+            cursor.execute("SELECT * FROM completedgames")
+            databasedata["gamehistory"] = cursor.fetch()
+    return databasedata
 
 def from_backend():
     response = requests.get("http://backend:3000/stats", timeout=10)
@@ -70,11 +79,14 @@ def from_backend():
     return response.json()
 
 
-def to_prometheus(connection, player_count, backend_data):
+def to_prometheus(connection, databasedata, backend_data):
+    playercount = databasedata["usercount"]
     active_rooms = int(backend_data["activeRooms"])
+    gamehistory = backend_data["gamehistory"]
     body = (
-        f"registered_players {player_count}\n"
+        f"registered_players {playercount}\n"
         f"activerooms {active_rooms}\n"
+        f"gamehistory {gamehistory}\n"
     )
     response = (
         "HTTP/1.1 200 OK\r\n"
