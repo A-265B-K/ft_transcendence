@@ -14,10 +14,10 @@ import type { Cost } from '../room/room.js';
 import type { Socket, SocketUser, Spawn, Vec2 } from '../types.js';
 import { getDistance } from '../util.js';
 import { type GameMap, type Resource } from '../map.js';
-import type { castle as Castle } from './castle.js';
+import type { Castle } from './castle.js';
 
 import { getattackstats, type WeaponType } from '../combat/Weapon.js';
-import { catapult } from './catapult.js';
+import { Catapult } from './catapult.js';
 
 export type { WeaponType } from '../combat/Weapon.js';
 
@@ -28,7 +28,7 @@ export class Player {
     private readonly roomId: string;
     private readonly username: string;
     private readonly slot: number;
-    private catapults: catapult[] = [];
+    private catapults: Catapult[] = [];
     private hp: number;
     private alive: boolean;
     private x: number;
@@ -331,7 +331,7 @@ export class Player {
         )
             return false;
 
-        const newCatapult = new catapult(
+        const newCatapult = new Catapult(
             this.castle,
             this.namespace,
             this.roomId,
@@ -389,5 +389,9 @@ export class Player {
         this.alive = true;
         this.respawnAt = null;
         this.lastMoveAt = Date.now();
+    }
+
+    getCastle(): Castle {
+        return this.castle;
     }
 }
