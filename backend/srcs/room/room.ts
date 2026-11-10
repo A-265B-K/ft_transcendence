@@ -27,7 +27,7 @@ export class Room {
         this.roomId = randomUUID();
         this.code = code;
         this.players = new Map<string, Player>();
-        this.map = new GameMap(ROOM_MAX_SIZE);
+        this.map = new GameMap([1, 2, 3, 4]);
         this.started = false;
         this.finished = false;
         console.log(`Room created: ${name} [${this.code}]`);
@@ -126,10 +126,34 @@ export class Room {
     startgame(userId: string, socket: Socket) {
         if (!this.isHost(userId) || this.hasStarted()) return;
 
+        const players = Array.from(this.players.values());
+
+        if (players.length < 2) return;
+
+        const playerSlots = players.map((player) => player.getSlot());
+
+        const newMap = new GameMap(playerSlots);
+
+        for (const player of players) {
+            const slot = player.getSlot();
+            const spawn = newMap.getSpawnPoint(slot);
+            const castle = newMap.getCastle(slot);
+
+            if (!spawn || !castle) {
+                console.error(`Missing game setup for slot ${slot}`);
+                return;
+            }
+
+            player.setGameSetup(spawn, castle);
+        }
+
+        this.map = newMap;
         this.started = true;
+
         socket.nsp.to(this.roomId).emit('gamestart', {
             roomId: this.roomId,
-            players: Array.from(this.players.values())
+            players,
+            map: this.map
         });
     }
 

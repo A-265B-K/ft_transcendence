@@ -1,5 +1,4 @@
 import { AnimatedSprite, Texture, Container } from 'pixi.js';
-import { MAP_SIZE } from '../config/constants';
 import { isoX, isoY } from '../world/iso';
 import { Inventory } from './Inventory';
 import { Weapon, type WeaponType } from './weapons/weapon';
@@ -40,12 +39,16 @@ export class Player {
     speed = 10;
     direction: Direction = 'down';
     private readonly textures: PlayerTextures;
+    private readonly mapWidth: number;
+    private readonly mapHeight: number;
     weapon?: Weapon;
     private hittimer = 0;
     private Armor = false;
 
-    constructor(textures: PlayerTextures) {
+    constructor(textures: PlayerTextures, mapWidth: number, mapHeight: number) {
         this.textures = textures;
+        this.mapWidth = mapWidth;
+        this.mapHeight = mapHeight;
 
         this.sprite = new AnimatedSprite([
             textures.playerDown1,
@@ -122,15 +125,17 @@ export class Player {
             this.direction = 'down';
         }
 
-        this.gridX = Math.max(0, Math.min(MAP_SIZE - 1, this.gridX));
-        this.gridY = Math.max(0, Math.min(MAP_SIZE - 1, this.gridY));
+        this.gridX = Math.max(0, Math.min(this.mapWidth - 1, this.gridX));
+        this.gridY = Math.max(0, Math.min(this.mapHeight - 1, this.gridY));
 
         this.syncSpritePosition();
 
         if (this.hittimer > 0) {
             this.hittimer = Math.max(0, this.hittimer - deltaSeconds);
         }
-        if (this.hittimer == 0) this.sprite.tint = 0xffffff;
+        if (this.hittimer === 0) {
+            this.sprite.tint = 0xffffff;
+        }
     }
 
     private updateDirection(moveX: number, moveY: number) {

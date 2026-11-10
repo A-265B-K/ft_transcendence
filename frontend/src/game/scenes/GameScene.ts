@@ -66,21 +66,25 @@ export class GameScene {
 
         this.world.addChild(this.map.container);
 
-        this.player = new Player({
-            playerDown1: textures.playerDown1,
-            playerDown2: textures.playerDown2,
+        this.player = new Player(
+            {
+                playerDown1: textures.playerDown1,
+                playerDown2: textures.playerDown2,
 
-            playerUp1: textures.playerUp1,
-            playerUp2: textures.playerUp2,
+                playerUp1: textures.playerUp1,
+                playerUp2: textures.playerUp2,
 
-            playerLeft1: textures.playerLeft1,
-            playerLeft2: textures.playerLeft2,
+                playerLeft1: textures.playerLeft1,
+                playerLeft2: textures.playerLeft2,
 
-            playerRight1: textures.playerRight1,
-            playerRight2: textures.playerRight2,
+                playerRight1: textures.playerRight1,
+                playerRight2: textures.playerRight2,
 
-            playerStand: textures.playerStand
-        });
+                playerStand: textures.playerStand
+            },
+            this.map.width,
+            this.map.height
+        );
 
         this.player.placeAt(joinedData.player.x, joinedData.player.y);
         this.world.addChild(this.player.container);
@@ -89,7 +93,7 @@ export class GameScene {
 
         this.castle = this.createCastles();
 
-        this.camera = new Camera(this.world);
+        this.camera = new Camera(this.world, this.map.width, this.map.height);
     }
 
     RemotePlayerattack(
@@ -153,13 +157,17 @@ export class GameScene {
     }
 
     private createCastle() {
-        return new Castle({
-            castle1: this.textures.castle1,
-            castle2: this.textures.castle2,
-            castle3: this.textures.castle3,
-            castle4: this.textures.castle4,
-            destroyedCastle: this.textures.destroyedCastle
-        });
+        return new Castle(
+            {
+                castle1: this.textures.castle1,
+                castle2: this.textures.castle2,
+                castle3: this.textures.castle3,
+                castle4: this.textures.castle4,
+                destroyedCastle: this.textures.destroyedCastle
+            },
+            this.map.width,
+            this.map.height
+        );
     }
 
     addRemotePlayer(player: JoinedPayload['players'][number]) {

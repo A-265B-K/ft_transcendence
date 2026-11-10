@@ -37,7 +37,7 @@ export class Player {
         iron: number;
         wood: number;
     };
-    private readonly castle: Castle;
+    private castle: Castle;
 
     private lastMoveAt: number;
     private equippedWeapon: WeaponType;
@@ -344,5 +344,15 @@ export class Player {
         } catch {
             return false;
         }
+    }
+
+    setGameSetup(spawn: Spawn, castle: Castle): void {
+        this.castle = castle;
+        this.castle.setlevel(PLAYER_DEFAULT_CASTLE_LEVEL);
+        this.x = spawn.pos.x;
+        this.y = spawn.pos.y;
+        this.hp = PLAYER_MAX_HP;
+        this.alive = true;
+        this.lastMoveAt = Date.now();
     }
 }
