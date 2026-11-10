@@ -52,6 +52,7 @@ export class Room {
 
             for (const player of this.players.values()) {
                 player.castlecheck();
+                player.respawn();
                 for (const catapult of player.getcatapults()) {
                     catapult.loop();
                 }
@@ -84,16 +85,12 @@ export class Room {
     winnercheck(socket: Socket) {
         if (!this.active()) return;
 
-        let playercount = 0;
-        let winner;
-        for (const player of this.players.values()) {
-            if (player.isAlive()) {
-                winner = player;
-                playercount++;
-            }
-        }
-        this.finished = playercount <= 1;
-        if (this.hasFinished() && winner) {
+        const remainingPlayers = Array.from(this.players.values()).filter(
+            (player) => !player.isOutOfGame()
+        );
+        this.finished = remainingPlayers.length <= 1;
+        const winner = remainingPlayers[0];
+        if (this.hasFinished() && remainingPlayers.length === 1 && winner) {
             socket.nsp
                 .to(this.roomId)
                 .emit('game_end', { winnerid: winner.getUserId() });

@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { ROOM_MAX_SIZE } from '../srcs/constants.js';
+import {
+    PLAYER_MAX_HP,
+    PLAYER_RESPAWN_DELAY,
+    ROOM_MAX_SIZE
+} from '../srcs/constants.js';
 import type { Resource } from '../srcs/map.js';
 import { Room } from '../srcs/room/room.js';
 import type { GameMap } from '../srcs/map.js';
@@ -167,4 +171,85 @@ test('destroyed castles block forge operations', () => {
     assert.equal(room.upgradecastle(user.id), null);
     assert.equal(room.equiparmor(user.id), false);
     assert.equal(room.payForCatapult(user.id, 'user-2'), null);
+});
+
+test('a dead player respawns while their castle is standing', () => {
+    const room = makeRoom();
+    const user = makeUser('user-1');
+
+    room.join(makeSocket(user.id), user);
+    const state = room as unknown as RoomState;
+    const player = state.players.get(user.id);
+    assert.ok(player);
+
+    player.takeDamage(PLAYER_MAX_HP);
+    assert.equal(player.isOutOfGame(), false);
+    assert.equal(player.respawn(Date.now() + PLAYER_RESPAWN_DELAY), true);
+    assert.equal(player.isAlive(), true);
+    assert.equal(player.getHp(), PLAYER_MAX_HP);
+});
+
+test('a destroyed castle eliminates only its dead player', () => {
+    const room = makeRoom();
+    const user = makeUser('user-1');
+
+    room.join(makeSocket(user.id), user);
+    const state = room as unknown as RoomState;
+    state.started = true;
+    const player = state.players.get(user.id);
+    assert.ok(player);
+
+    const castle = state.map.getCastle(1) as unknown as {
+        destroyed: boolean;
+    };
+    castle.destroyed = true;
+
+    assert.equal(player.isOutOfGame(), false);
+    player.takeDamage(PLAYER_MAX_HP);
+    assert.equal(player.isOutOfGame(), true);
+});
+
+test('the winner is the sole player not eliminated by both conditions', () => {
+    const room = makeRoom();
+    const first = makeUser('user-1');
+    const second = makeUser('user-2');
+    room.join(makeSocket(first.id), first);
+    room.join(makeSocket(second.id), second);
+
+    const state = room as unknown as RoomState;
+    state.started = true;
+    const firstPlayer = state.players.get(first.id);
+    const secondPlayer = state.players.get(second.id);
+    assert.ok(firstPlayer);
+    assert.ok(secondPlayer);
+
+    const firstCastle = state.map.getCastle(1) as unknown as {
+        destroyed: boolean;
+    };
+    const secondCastle = state.map.getCastle(2) as unknown as {
+        destroyed: boolean;
+    };
+    firstCastle.destroyed = true;
+    secondPlayer.takeDamage(PLAYER_MAX_HP);
+
+    const events: Array<{ event: string; payload: unknown }> = [];
+    const socket = {
+        nsp: {
+            to: () => ({
+                emit: (event: string, payload: unknown) =>
+                    events.push({ event, payload })
+            })
+        }
+    } as unknown as Socket;
+
+    room.winnercheck(socket);
+    assert.equal(room.hasFinished(), false);
+
+    secondCastle.destroyed = true;
+    room.winnercheck(socket);
+
+    assert.equal(room.hasFinished(), true);
+    assert.deepEqual(events, [
+        { event: 'game_end', payload: { winnerid: first.id } }
+    ]);
 });

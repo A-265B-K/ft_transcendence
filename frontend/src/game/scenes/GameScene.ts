@@ -532,9 +532,11 @@ export class GameScene {
 
     setPlayerDead(): void {
         this.player.container.visible = false;
-        if (this.castle) {
-            this.castle.container.visible = false;
-        }
+    }
+
+    respawnLocalPlayer(x: number, y: number): void {
+        this.player.placeAt(x, y);
+        this.player.container.visible = true;
     }
 
     launchboulder(shot: CastleAttackStarted) {

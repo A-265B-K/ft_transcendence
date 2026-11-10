@@ -3,6 +3,7 @@ import {
     PLAYER_DEFAULT_IRON,
     PLAYER_DEFAULT_WOOD,
     PLAYER_DEFAULT_CASTLE_LEVEL,
+    PLAYER_RESPAWN_DELAY,
     MOVE_TOLERANCE_SECONDS,
     PLAYER_MAX_SPEED,
     MOVE_MAX_ELAPSED_SECONDS,
@@ -32,6 +33,8 @@ export class Player {
     private alive: boolean;
     private x: number;
     private y: number;
+    private spawn: Vec2;
+    private respawnAt: number | null = null;
 
     private inventory: {
         iron: number;
@@ -66,8 +69,9 @@ export class Player {
         this.hp = PLAYER_MAX_HP;
         this.alive = true;
 
-        this.x = spawn.pos.x;
-        this.y = spawn.pos.y;
+        this.spawn = spawn.pos;
+        this.x = this.spawn.x;
+        this.y = this.spawn.y;
 
         this.inventory = {
             iron: PLAYER_DEFAULT_IRON,
@@ -191,7 +195,10 @@ export class Player {
 
         this.hp = newHp;
         this.alive = this.hp > 0;
-        if (!this.alive) this.checkarmor();
+        if (!this.alive) {
+            this.respawnAt = Date.now() + PLAYER_RESPAWN_DELAY;
+            this.checkarmor();
+        }
         this.namespace.to(this.roomId).emit('player_hp', {
             socketId: this.socketId,
             hp: this.hp,
@@ -246,6 +253,32 @@ export class Player {
 
     isAlive(): boolean {
         return this.alive;
+    }
+
+    isOutOfGame(): boolean {
+        return !this.alive && this.castle.isDestroyed();
+    }
+
+    respawn(now = Date.now()): boolean {
+        if (
+            this.alive ||
+            this.respawnAt === null ||
+            now < this.respawnAt ||
+            this.castle.isDestroyed()
+        ) {
+            return false;
+        }
+
+        this.hp = PLAYER_MAX_HP;
+        this.alive = true;
+        this.x = this.spawn.x;
+        this.y = this.spawn.y;
+        this.lastMoveAt = now;
+        this.respawnAt = null;
+        this.namespace.to(this.roomId).emit('player_respawned', {
+            player: this
+        });
+        return true;
     }
 
     takeDamage(damage: number): void {
@@ -349,10 +382,12 @@ export class Player {
     setGameSetup(spawn: Spawn, castle: Castle): void {
         this.castle = castle;
         this.castle.setlevel(PLAYER_DEFAULT_CASTLE_LEVEL);
-        this.x = spawn.pos.x;
-        this.y = spawn.pos.y;
+        this.spawn = spawn.pos;
+        this.x = this.spawn.x;
+        this.y = this.spawn.y;
         this.hp = PLAYER_MAX_HP;
         this.alive = true;
+        this.respawnAt = null;
         this.lastMoveAt = Date.now();
     }
 }
