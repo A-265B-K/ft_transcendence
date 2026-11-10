@@ -10,7 +10,6 @@ import { Room } from '../srcs/room/room.js';
 import type { GameMap } from '../srcs/map.js';
 import type { Player } from '../srcs/entities/player.js';
 import type { Socket, SocketUser, Spawn } from '../srcs/types.js';
-import type { Castle } from '../srcs/entities/castle.js';
 
 type RoomState = {
     name: string;
