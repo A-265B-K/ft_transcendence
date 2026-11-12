@@ -1,5 +1,6 @@
 export const ROOM_MAX_SIZE = 4;
 export const PLAYER_MAX_HP = 100;
+export const PLAYER_RESPAWN_DELAY = 3000;
 
 export const CASTLE_HEAL = 10;
 export const CASTLE_HEAL_INTERVAL = 3;

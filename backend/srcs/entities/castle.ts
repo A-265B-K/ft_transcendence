@@ -14,7 +14,7 @@ export type upgradecost = {
     iron: number;
 };
 
-export class castle {
+export class Castle {
     private level = PLAYER_DEFAULT_CASTLE_LEVEL;
     private health = CASTLE_MAX_HP;
     private readonly position: Vec2;

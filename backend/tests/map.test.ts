@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { CATAPULT_RADIUS } from '../srcs/constants.js';
-import { castle } from '../srcs/entities/castle.js';
+import { Castle } from '../srcs/entities/castle.js';
 import { GameMap, type Resource } from '../srcs/map.js';
 import { tryCollectResource } from '../srcs/room/roomMovement.js';
 import type { Player } from '../srcs/entities/player.js';
@@ -76,7 +76,7 @@ test('dead players cannot collect resources', () => {
 
 test('catapult spawn reservations and movement keep catapults separated', () => {
     const map = makeMap();
-    const origin = new castle(1, { x: 10, y: 10 });
+    const origin = new Castle(1, { x: 10, y: 10 });
     const preferredPosition = { x: 50, y: 50 };
     const first = map.reserveCatapultPosition(
         'first',
@@ -101,8 +101,8 @@ test('catapult spawn reservations and movement keep catapults separated', () => 
 
 test('catapult pathfinding routes around other catapults', () => {
     const map = makeMap();
-    const origin = new castle(1, { x: 10, y: 10 });
-    const target = new castle(2, { x: 90, y: 90 });
+    const origin = new Castle(1, { x: 10, y: 10 });
+    const target = new Castle(2, { x: 90, y: 90 });
     const blocker = map.reserveCatapultPosition(
         'blocker',
         { x: 50, y: 50 },

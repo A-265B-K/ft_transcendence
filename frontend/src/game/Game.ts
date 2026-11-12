@@ -183,6 +183,9 @@ export class Game {
     setPlayerDead(): void {
         this.scene?.setPlayerDead();
     }
+    respawnLocalPlayer(x: number, y: number): void {
+        this.scene?.respawnLocalPlayer(x, y);
+    }
     armoractive() {
         return this.scene?.player.hasarmor();
     }
