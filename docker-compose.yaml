@@ -80,6 +80,15 @@ services:
     nginx_exporter:
       image: nginx/nginx-prometheus-exporter:1.5.1
       command: ["--nginx.scrape-uri", "http://nginx_prod:3001/stub_status"]
+
+    node_exporter:
+      image: quay.io/prometheus/node-exporter:latest
+      restart: unless-stopped
+      pid: host
+      command:
+        - --path.rootfs=/host
+      volumes:
+        - /:/host:ro,rslave
  
     prometheus:
       image: prom/prometheus:v3.13.1
