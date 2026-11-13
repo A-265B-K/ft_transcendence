@@ -82,9 +82,9 @@ export class Room {
         });
     }
 
-    private async registerwinner(winner : string) {
-    const result = await query(
-        `
+    private async registerwinner(winner: string) {
+        const result = await query(
+            `
 		INSERT INTO completedgames
 		(
 			gameid,
@@ -99,9 +99,9 @@ export class Room {
 			gameid,
             winner
 		`,
-        [this.roomId, winner]
-    );
-    return result.rows[0];
+            [this.roomId, winner]
+        );
+        return result.rows[0];
     }
     private winnercheck(socket: Socket) {
         if (!this.active()) return;
@@ -119,7 +119,7 @@ export class Room {
             socket.nsp
                 .to(this.roomId)
                 .emit('game_end', { winnerid: winner.getUserId() });
-            this.registerwinner(winner.getUsername())
+            this.registerwinner(winner.getUsername());
         }
     }
 
