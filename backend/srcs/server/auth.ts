@@ -29,7 +29,8 @@ export function registerAuthRoutes(fastify: FastifyInstance) {
                         rateLimitKey(
                             request,
                             'auth.register',
-                            (request.body as RegisterBody).email
+                            (request.body as Partial<SignInBody> | undefined)
+                                ?.email
                         ),
                     onExceeded: (request) => {
                         request.log.warn(
@@ -64,7 +65,8 @@ export function registerAuthRoutes(fastify: FastifyInstance) {
                         rateLimitKey(
                             request,
                             'auth.login',
-                            (request.body as SignInBody).email
+                            (request.body as Partial<SignInBody> | undefined)
+                                ?.email
                         ),
                     onExceeded: (request) => {
                         request.log.warn(

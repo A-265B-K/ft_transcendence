@@ -51,9 +51,9 @@ type SignInFailure = {
 type SignInResult = SignInSuccess | SignIn2FARequired | SignInFailure;
 
 export async function SignInUser(
-    payload: singinPayload
+    payload: singinPayload | undefined
 ): Promise<SignInResult> {
-    const { email, password } = payload;
+    const { email, password } = payload ?? { email: '', password: '' };
     if (!email || !password) {
         return {
             ok: false,
