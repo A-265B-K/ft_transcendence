@@ -15,10 +15,10 @@ export type Resource = Room['map']['resourceSpawns'][number];
 
 function getMapSize(playerCount: number): number {
     const sizes: Record<number, number> = {
-        1: 75,
-        2: 90,
-        3: 100,
-        4: 120
+        1: 30,
+        2: 60,
+        3: 70,
+        4: 80
     };
     const size = sizes[playerCount];
     if (!size) {
@@ -47,7 +47,7 @@ export class GameMap {
         this.obstacles = this.generateObstacles(this.getMapDensityCount(15));
         this.resourceSpawns = this.generateResourceSpawns(
             this.obstacles,
-            this.getMapDensityCount(20)
+            this.getMapDensityCount(35)
         );
     }
 
@@ -183,12 +183,12 @@ export class GameMap {
             radius: number;
             blocksMovement: boolean;
         }[],
-        count = 20
+        count = 10000
     ) {
         const resources = [];
         const types = [
             { type: 'wood', amount: 10, respawnTime: 30 },
-            { type: 'iron', amount: 10, respawnTime: 45 }
+            { type: 'iron', amount: 10, respawnTime: 35 }
         ];
 
         let attempts = 0;
