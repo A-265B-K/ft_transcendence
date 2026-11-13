@@ -88,12 +88,12 @@ export class Room {
 		INSERT INTO completedgames
 		(
 			gameid,
-			email,
+			winner
 		)
 		VALUES
 		(
 			$1,
-			$2,
+			$2
 		)
 		RETURNING
 			gameid,
@@ -119,9 +119,8 @@ export class Room {
             socket.nsp
                 .to(this.roomId)
                 .emit('game_end', { winnerid: winner.getUserId() });
-        }
-        if (winner)
             this.registerwinner(winner.getUsername())
+        }
     }
 
     destroy(): void {

@@ -4,22 +4,20 @@
   "metadata": {
     "name": "adcfzxl",
     "namespace": "default",
-    "uid": "e0c69c2d-2d68-4827-b305-1803d9b02caf",
-    "resourceVersion": "1790421056052982",
-    "generation": 2,
-    "creationTimestamp": "2026-09-26T10:41:33Z",
+    "uid": "91577d15-2610-465a-80c0-476c46088cef",
+    "resourceVersion": "1794586690710988",
+    "generation": 1,
+    "creationTimestamp": "2026-11-13T16:18:10Z",
     "labels": {
-      "grafana.app/deprecatedInternalID": "616090621464576"
+      "grafana.app/deprecatedInternalID": "81021147820032"
     },
     "annotations": {
       "grafana.app/createdBy": "access-policy:service",
       "grafana.app/managedBy": "classic-file-provisioning",
       "grafana.app/managerId": "dashboard",
-      "grafana.app/sourceChecksum": "6096a98f195beae896895a5ed638cd3f",
+      "grafana.app/sourceChecksum": "0ada21a394184f7283962b96592fbdbf",
       "grafana.app/sourcePath": "/var/lib/grafana/dashboards/dashboard.json",
-      "grafana.app/sourceTimestamp": "1790421050000",
-      "grafana.app/updatedBy": "access-policy:service",
-      "grafana.app/updatedTimestamp": "2026-09-26T11:10:56Z",
+      "grafana.app/sourceTimestamp": "1791280057000",
       "grafana.app/folder": ""
     }
   },
@@ -190,7 +188,7 @@
                 }
               }
             },
-            "version": "13.0.9"
+            "version": "13.0.13"
           }
         }
       },
@@ -274,7 +272,7 @@
                 "wideLayout": true
               }
             },
-            "version": "13.0.9"
+            "version": "13.0.13"
           }
         }
       },
@@ -395,7 +393,171 @@
                 }
               }
             },
-            "version": "13.0.9"
+            "version": "13.0.13"
+          }
+        }
+      },
+      "panel-4": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "group": "",
+                      "kind": "DataQuery",
+                      "spec": {},
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 4,
+          "links": [],
+          "title": "New panel",
+          "vizConfig": {
+            "group": "__unconfigured-panel",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {},
+                "overrides": []
+              },
+              "options": {}
+            },
+            "version": "13.0.13"
+          }
+        }
+      },
+      "panel-5": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "PBFA97CFB590B2093"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "builder",
+                        "expr": "gamehistory",
+                        "instant": false,
+                        "legendFormat": "__auto",
+                        "range": true
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 5,
+          "links": [],
+          "title": "completed games",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "axisBorderShow": false,
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
+                    "axisPlacement": "auto",
+                    "barAlignment": 0,
+                    "barWidthFactor": 0.6,
+                    "drawStyle": "line",
+                    "fillOpacity": 0,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "insertNulls": false,
+                    "lineInterpolation": "stepBefore",
+                    "lineWidth": 1,
+                    "pointSize": 40,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "showPoints": "auto",
+                    "showValues": false,
+                    "spanNulls": false,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "none"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "annotations": {
+                  "clustering": -1,
+                  "multiLane": false
+                },
+                "legend": {
+                  "calcs": [],
+                  "displayMode": "list",
+                  "enableFacetedFilter": false,
+                  "overflow": "ellipsis",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "hideZeros": false,
+                  "mode": "single",
+                  "sort": "none"
+                }
+              }
+            },
+            "version": "13.0.13"
           }
         }
       }
@@ -428,7 +590,25 @@
             "spec": {
               "element": {
                 "kind": "ElementReference",
+                "name": "panel-5"
+              }
+            }
+          },
+          {
+            "kind": "AutoGridLayoutItem",
+            "spec": {
+              "element": {
+                "kind": "ElementReference",
                 "name": "panel-2"
+              }
+            }
+          },
+          {
+            "kind": "AutoGridLayoutItem",
+            "spec": {
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-4"
               }
             }
           }

@@ -23,6 +23,6 @@ CREATE TABLE IF NOT EXISTS session_ (
 );
 
 CREATE TABLE IF NOT EXISTS completedgames (
-	gameid INT NOT NULL,
+	gameid UUID PRIMARY KEY,
 	winner TEXT NOT NULL
 );
