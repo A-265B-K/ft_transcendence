@@ -68,7 +68,7 @@ export class Player {
         this.castle.setlevel(PLAYER_DEFAULT_CASTLE_LEVEL);
         this.hp = PLAYER_MAX_HP;
         this.alive = true;
-        this.equippedWeapon = 'empty'
+        this.equippedWeapon = 'empty';
 
         this.spawn = spawn.pos;
         this.x = this.spawn.x;
@@ -270,13 +270,12 @@ export class Player {
             return false;
         }
         const castlelvl = this.castle.getlevel();
-        if (castlelvl > 1)
-            this.castle.setlevel(castlelvl - 1);
+        if (castlelvl > 1) this.castle.setlevel(castlelvl - 1);
         this.hp = PLAYER_MAX_HP;
         this.alive = true;
         this.x = this.spawn.x;
         this.y = this.spawn.y;
-        this.equippedWeapon = 'empty'
+        this.equippedWeapon = 'empty';
         this.lastMoveAt = now;
         this.respawnAt = null;
         this.inventory.iron = 0;
