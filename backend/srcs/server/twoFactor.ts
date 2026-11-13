@@ -17,6 +17,7 @@ import {
     verify2FALogin,
     get2FAstatus
 } from '../security/2FA/twoFA.js';
+import { rateLimitKey } from './rateLimit.js';
 
 type TwoFAEnableBody = {
     password: string;
@@ -66,6 +67,12 @@ export function registerTwoFactorRoutes(fastify: FastifyInstance) {
                 rateLimit: {
                     max: 5,
                     timeWindow: '15 minutes',
+                    keyGenerator: (request) =>
+                        rateLimitKey(
+                            request,
+                            'auth.2fa.setup',
+                            request.cookies.session_id
+                        ),
                     onExceeded: (request) => {
                         request.log.warn(
                             {
@@ -138,6 +145,12 @@ export function registerTwoFactorRoutes(fastify: FastifyInstance) {
                 rateLimit: {
                     max: 5,
                     timeWindow: '5 minutes',
+                    keyGenerator: (request) =>
+                        rateLimitKey(
+                            request,
+                            'auth.2fa.confirm',
+                            request.cookies.session_id
+                        ),
                     onExceeded: (request) => {
                         request.log.warn(
                             {
@@ -187,6 +200,12 @@ export function registerTwoFactorRoutes(fastify: FastifyInstance) {
                 rateLimit: {
                     max: 5,
                     timeWindow: '15 minutes',
+                    keyGenerator: (request) =>
+                        rateLimitKey(
+                            request,
+                            'auth.2fa.disable',
+                            request.cookies.session_id
+                        ),
                     onExceeded: (request) => {
                         request.log.warn(
                             {
@@ -258,6 +277,12 @@ export function registerTwoFactorRoutes(fastify: FastifyInstance) {
                 rateLimit: {
                     max: 5,
                     timeWindow: '1 minute',
+                    keyGenerator: (request) =>
+                        rateLimitKey(
+                            request,
+                            'auth.2fa.verify',
+                            request.cookies.temporary_auth
+                        ),
                     onExceeded: (request) => {
                         request.log.warn(
                             {

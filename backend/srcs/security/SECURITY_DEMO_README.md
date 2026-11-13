@@ -33,7 +33,8 @@ every container or request inherently trusted.
 - SQL injection, XSS, and disallowed content-type blocking tested.
 - Narrow Socket.IO exception for CRS rule `920420` on legitimate polling
   `text/plain` POSTs; other rules remain active.
-- IP rate limiting for sign-in, registration, and four 2FA endpoints.
+- Identity-based rate limiting for sign-in, registration, and four 2FA
+  endpoints, with an IP fallback when the identity is unavailable.
 - Five failed passwords → 5-minute account cooldown (sequential tests validated;
   concurrent-login race hardening deferred).
 - Five incorrect 2FA codes → temporary authentication token locked;
@@ -128,7 +129,7 @@ configuration.
 | **Live API logs**                         | `backend`        | `docker compose -f docker-compose.yaml logs -f backend`                                         |
 | **Login rate-limit event**                | `backend`        | `auth.login.rate_limited`                                                                       |
 | **Registration rate-limit event**         | `backend`        | `auth.register.rate_limited`                                                                    |
-| **2FA verify IP rate-limit event**        | `backend`        | `auth.2fa.rate_limited`                                                                         |
+| **2FA verify rate-limit event**           | `backend`        | `auth.2fa.rate_limited`                                                                         |
 | **2FA setup / confirm / disable limits**  | `backend`        | `auth.2fa.setup.rate_limited`, `auth.2fa.confirm.rate_limited`, `auth.2fa.disable.rate_limited` |
 | **Five incorrect 2FA codes**              | `backend`        | `auth.2fa.temporary_auth_locked`                                                                |
 | **Failed sign-in**                        | `backend`        | `auth.login.failed`                                                                             |
@@ -176,7 +177,7 @@ docker compose -f docker-compose.yaml logs backend \
   | grep 'auth.2fa.temporary_auth_locked'
 ```
 
-For only IP rate-limit violations:
+For rate-limit violations:
 
 ```bash
 docker compose -f docker-compose.yaml logs backend \
@@ -184,19 +185,19 @@ docker compose -f docker-compose.yaml logs backend \
 ```
 
 **Important:** Five incorrect 2FA codes trigger the **temporary-token lockout**,
-not necessarily the IP limiter. The **sixth** request within one minute is the
-one expected to hit the verify endpoint's IP limit and return **429**. An
+not necessarily the request limiter. The **sixth** request within one minute is
+the one expected to hit the verify endpoint's limit and return **429**. An
 account login cooldown currently has database state but no confirmed dedicated
 `auth.login.account_locked` event.
 
 ## 5. Authentication demo (use a test account)
 
-| Mechanism           | Test                                                               | Expected evidence                                                                          |
-| ------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
-| Login IP rate limit | More than 5 sign-in requests in 1 minute from one IP               | HTTP **429**, `auth.login.rate_limited` in backend logs                                    |
-| Account cooldown    | 5 incorrect passwords, then correct password after IP limit window | Login still rejected for 5 minutes; database lock timestamp                                |
-| 2FA token lockout   | Sign in to a 2FA-enabled test account; enter 5 incorrect codes     | Five HTTP **401** responses; fifth prompts sign-in again; `auth.2fa.temporary_auth_locked` |
-| 2FA IP limit        | More than 5 verify requests in 1 minute from one IP                | HTTP **429**, `auth.2fa.rate_limited`                                                      |
+| Mechanism         | Test                                                                 | Expected evidence                                                                          |
+| ----------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Login rate limit  | More than 5 sign-in requests in 1 minute for one account             | HTTP **429**, `auth.login.rate_limited` in backend logs                                    |
+| Account cooldown  | 5 incorrect passwords, then correct password after rate-limit window | Login still rejected for 5 minutes; database lock timestamp                                |
+| 2FA token lockout | Sign in to a 2FA-enabled test account; enter 5 incorrect codes       | Five HTTP **401** responses; fifth prompts sign-in again; `auth.2fa.temporary_auth_locked` |
+| 2FA rate limit    | More than 5 verify requests in 1 minute for one temporary login      | HTTP **429**, `auth.2fa.rate_limited`                                                      |
 
 **Do not confuse 401 with 429:** **401** means authentication was rejected;
 **429** means the request rate limit was exceeded. Avoid real users' accounts

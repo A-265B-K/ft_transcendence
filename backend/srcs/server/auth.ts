@@ -4,6 +4,7 @@ import { registerUser } from '../security/auth/registration.js';
 import { SignInUser } from '../security/auth/signin.js';
 import { getCurrentUser } from '../security/session/session.js';
 import { deleteSessionById } from '../security/repository/sessionRepository.js';
+import { rateLimitKey } from './rateLimit.js';
 
 type RegisterBody = {
     username: string;
@@ -24,6 +25,12 @@ export function registerAuthRoutes(fastify: FastifyInstance) {
                 rateLimit: {
                     max: 3,
                     timeWindow: '10 minutes',
+                    keyGenerator: (request) =>
+                        rateLimitKey(
+                            request,
+                            'auth.register',
+                            (request.body as RegisterBody).email
+                        ),
                     onExceeded: (request) => {
                         request.log.warn(
                             {
@@ -53,6 +60,12 @@ export function registerAuthRoutes(fastify: FastifyInstance) {
                 rateLimit: {
                     max: 5,
                     timeWindow: '1 minute',
+                    keyGenerator: (request) =>
+                        rateLimitKey(
+                            request,
+                            'auth.login',
+                            (request.body as SignInBody).email
+                        ),
                     onExceeded: (request) => {
                         request.log.warn(
                             {
