@@ -5,6 +5,8 @@ services:
         dockerfile: ../frontend/Dockerfile
       volumes:
         - ./frontend:/workspace/app
+      networks:
+        - edge
       healthcheck:
         test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:5173/"]
         interval: 1s
@@ -31,6 +33,10 @@ services:
         start_period: 10s
       secrets:
         - backend_vault_token
+      networks:
+        - edge
+        - database
+        - secrets
 
     nginx_dev:
       build: 
@@ -45,6 +51,9 @@ services:
           condition: service_healthy
       ports:
         - "8443:443"
+      networks:
+        - edge
+        - monitoring
 
     postgres:
       image: postgres:18.4
@@ -54,6 +63,8 @@ services:
       environment:
         POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is not set}
         POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is not set}
+      networks:
+        - database
       healthcheck:
         test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
         interval: 5s
@@ -73,8 +84,14 @@ services:
           condition: service_healthy
         postgres:
           condition: service_healthy
+      networks:
+        - database
+        - monitoring
+        - secrets
 
     nginx_exporter:
+      networks:
+        - monitoring
       image: nginx/nginx-prometheus-exporter:1.5.1
       command: ["--nginx.scrape-uri", "http://nginx_dev:3001/stub_status"]
  
@@ -83,6 +100,8 @@ services:
       volumes:
         - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
         - prometheus:/prometheus
+      networks:
+        - monitoring
       healthcheck:
         test: ["CMD", "wget", "--spider", "-q", "http://localhost:9090/-/ready"]
         interval: 5s
@@ -109,6 +128,9 @@ services:
       secrets:
         - grafana_admin_user
         - grafana_admin_password
+      networks:
+        - edge
+        - monitoring
       healthcheck:
         test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:3000/api/health"]
         interval: 1s
@@ -131,12 +153,16 @@ services:
           condition: service_healthy
         vault:
           condition: service_healthy
+      networks:
+        - database
+        - secrets
 
     vault-init:
       image: hashicorp/vault:1.20.4
       user: "0:0"
       volumes:
         - vault_data:/vault/data
+      network_mode: "none"
       command:
         - sh
         - -c
@@ -156,6 +182,8 @@ services:
         - "127.0.0.1:8200:8200"
       environment:
         VAULT_ADDR: http://127.0.0.1:8200
+      networks:
+        - secrets
       volumes:
         - vault_data:/vault/data
         - ./vault/config/vault.hcl:/vault/config/vault.hcl:ro
@@ -189,3 +217,11 @@ secrets:
     file: ./tokens/grafana/admin_password
   backups_vault_token:
     file: ./tokens/.backups_vault_token
+
+networks:
+  edge:
+  database:
+    internal: true
+  monitoring:
+  secrets:
+    internal: true
