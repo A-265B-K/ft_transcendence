@@ -161,6 +161,11 @@ export const uk = {
         chooseWeaponToCraft: 'Виберіть зброю для створення.',
 
         closeForge: 'Закрити кузню',
-        openForge: 'Відкрити кузню'
+        openForge: 'Відкрити кузню',
+
+        controls: 'Керування',
+        move: 'Рух',
+        castleAttack: 'Атака замкoм',
+        weaponAttack: 'Атака зброєю'
     }
 };
