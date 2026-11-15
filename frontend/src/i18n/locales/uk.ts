@@ -161,6 +161,9 @@ export const uk = {
         chooseWeaponToCraft: 'Виберіть зброю для створення.',
 
         closeForge: 'Закрити кузню',
-        openForge: 'Відкрити кузню'
+        openForge: 'Відкрити кузню',
+
+        fullscreen: '⛶ На весь екран',
+        exitFullscreen: '⛶ Вийти з режиму'
     }
 };

@@ -25,8 +25,8 @@ export class Game {
         }
         this.scene.update(
             this.input.state,
-            this.app.renderer.width,
-            this.app.renderer.height,
+            this.app.screen.width,
+            this.app.screen.height,
             deltaSeconds
         );
     };
@@ -132,9 +132,9 @@ export class Game {
         socket: Socket
     ) {
         await this.app.init({
-            resizeTo: window, // Automatically resize canvas with window
-            autoDensity: true, // Handle high-DPI displays
-            resolution: window.devicePixelRatio || 1 // Device pixel ratio for crisp rendering
+            resizeTo: container,
+            autoDensity: true,
+            resolution: window.devicePixelRatio || 1
         });
 
         container.appendChild(this.app.canvas);

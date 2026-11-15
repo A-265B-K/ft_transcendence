@@ -166,6 +166,9 @@ export const nl = {
         chooseWeaponToCraft: 'Kies een wapen om te maken.',
 
         closeForge: 'Smidse sluiten',
-        openForge: 'Smidse openen'
+        openForge: 'Smidse openen',
+
+        fullscreen: '⛶ Volledig scherm',
+        exitFullscreen: '⛶ Volledig scherm afsluiten'
     }
 };
