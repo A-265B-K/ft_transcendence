@@ -84,7 +84,7 @@ export class GameScene {
             },
             this.map.width,
             this.map.height,
-            joinedData.player.username,
+            joinedData.player.username
         );
 
         this.player.placeAt(joinedData.player.x, joinedData.player.y);
@@ -197,8 +197,7 @@ export class GameScene {
                 playerStand: this.textures.playerStand
             },
             player.userId,
-            player.username,
-
+            player.username
         );
 
         remote.placeAt(player.x, player.y);
