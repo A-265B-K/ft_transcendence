@@ -161,6 +161,7 @@ export const en = {
         controls: 'Controls',
         move: 'Move',
         castleAttack: 'Castle attack',
-        weaponAttack: 'Weapon attack'
+        weaponAttack: 'Weapon attack',
+        waitingToRespawn: 'Waiting to respawn..'
     }
 };

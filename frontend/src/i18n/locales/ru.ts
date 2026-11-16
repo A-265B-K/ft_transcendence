@@ -175,6 +175,7 @@ export const ru = {
         controls: 'Управление',
         move: 'Движение',
         castleAttack: 'Атака замком',
-        weaponAttack: 'Атака оружием'
+        weaponAttack: 'Атака оружием',
+        waitingToRespawn: 'Ожидание возрождения...'
     }
 };

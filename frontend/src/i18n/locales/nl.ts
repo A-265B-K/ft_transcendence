@@ -171,6 +171,7 @@ export const nl = {
         controls: 'Besturing',
         move: 'Bewegen',
         castleAttack: 'Kasteel aanval',
-        weaponAttack: 'Wapenaanval'
+        weaponAttack: 'Wapenaanval',
+        waitingToRespawn: 'Wachten op respawn..'
     }
 };

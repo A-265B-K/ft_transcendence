@@ -166,6 +166,7 @@ export const uk = {
         controls: 'Керування',
         move: 'Рух',
         castleAttack: 'Атака замкoм',
-        weaponAttack: 'Атака зброєю'
+        weaponAttack: 'Атака зброєю',
+        waitingToRespawn: 'Oчікування відродження...'
     }
 };
