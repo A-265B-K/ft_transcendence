@@ -5,7 +5,11 @@ import {
     insertTemporary2FAstate,
     deleteTemporary2FAByUserId
 } from '../repository/sessionRepository.js';
-import { findUserByEmail } from '../repository/userRepository.js';
+import {
+    findUserByEmail,
+    recordFailedLoginAttempt,
+    resetFailedLoginAttempts
+} from '../repository/userRepository.js';
 
 type singinPayload = {
     email: string;
@@ -47,9 +51,9 @@ type SignInFailure = {
 type SignInResult = SignInSuccess | SignIn2FARequired | SignInFailure;
 
 export async function SignInUser(
-    payload: singinPayload
+    payload: singinPayload | undefined
 ): Promise<SignInResult> {
-    const { email, password } = payload;
+    const { email, password } = payload ?? { email: '', password: '' };
     if (!email || !password) {
         return {
             ok: false,
@@ -58,7 +62,6 @@ export async function SignInUser(
         };
     }
     try {
-        console.log('Searching for:', email);
         const user = await findUserByEmail(email);
         if (!user) {
             return {
@@ -72,6 +75,15 @@ export async function SignInUser(
             user.password_hash
         );
         if (!validPassword) {
+            await recordFailedLoginAttempt(user.id);
+            return {
+                ok: false,
+                statusCode: 401,
+                message: 'Invalid email or password'
+            };
+        }
+        const loginAllowed = await resetFailedLoginAttempts(user.id);
+        if (!loginAllowed) {
             return {
                 ok: false,
                 statusCode: 401,

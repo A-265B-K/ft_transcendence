@@ -6,6 +6,8 @@ CREATE TABLE IF NOT EXISTS users (
 	verification_token_hash TEXT,
 	verification_expires_at TIMESTAMPTZ,
 	password_hash TEXT NOT NULL,
+	failed_login_attempts INTEGER NOT NULL DEFAULT 0,
+	login_locked_until TIMESTAMPTZ,
 	password_verification_token_hash TEXT,
 	password_verification_token_hash_expires_at TIMESTAMPTZ,
 	enabled_2fa BOOLEAN NOT NULL DEFAULT FALSE,
@@ -19,5 +21,6 @@ CREATE TABLE IF NOT EXISTS session_ (
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     expires_at TIMESTAMPTZ,
 	temporary_auth_hash TEXT,
-	temporary_auth_expires_at TIMESTAMPTZ
+	temporary_auth_expires_at TIMESTAMPTZ,
+	temporary_auth_failed_attempts INTEGER NOT NULL DEFAULT 0
 );

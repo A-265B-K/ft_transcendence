@@ -1,5 +1,4 @@
 import { Container, Graphics, Sprite, Text, TextStyle, Texture } from 'pixi.js';
-import { MAP_SIZE } from '../config/constants';
 import { isoX, isoY } from '../world/iso';
 
 export type CastleTextures = {
@@ -22,9 +21,14 @@ export class Castle {
     private health = 100;
 
     private readonly textures: CastleTextures;
+    private readonly mapWidth: number;
+    private readonly mapHeight: number;
 
-    constructor(textures: CastleTextures) {
+    constructor(textures: CastleTextures, mapWidth: number, mapHeight: number) {
         this.textures = textures;
+        this.mapWidth = mapWidth;
+        this.mapHeight = mapHeight;
+
         this.container = new Container();
         this.sprite = new Sprite(textures.castle1);
         this.sprite.anchor.set(0.5, 0.6);
@@ -56,9 +60,9 @@ export class Castle {
     }
 
     placeAt(gridX: number, gridY: number) {
-        this.gridX = Math.max(0, Math.min(MAP_SIZE - 2, gridX));
+        this.gridX = Math.max(0, Math.min(this.mapWidth - 2, gridX));
 
-        this.gridY = Math.max(0, Math.min(MAP_SIZE - 2, gridY));
+        this.gridY = Math.max(0, Math.min(this.mapHeight - 2, gridY));
 
         this.syncPosition();
     }
@@ -115,9 +119,7 @@ export class Castle {
 
     private syncPosition() {
         this.container.x = isoX(this.gridX, this.gridY);
-
         this.container.y = isoY(this.gridX, this.gridY);
-
         this.container.zIndex = this.gridX + this.gridY;
     }
 }

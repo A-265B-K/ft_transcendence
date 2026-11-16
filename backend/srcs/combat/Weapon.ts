@@ -6,28 +6,28 @@ export type WeaponAttackStats = {
 };
 
 export const SWORD_ATTACK: WeaponAttackStats = {
-    damage: 10,
+    damage: 30,
     reach: 2.5,
     width: 2,
     cooldown: 1
 };
 
 export const AXE_ATTACK: WeaponAttackStats = {
-    damage: 25,
+    damage: 45,
     reach: 2,
     width: 3,
     cooldown: 2.5
 };
 
 export const DAGGER_ATTACK: WeaponAttackStats = {
-    damage: 3,
+    damage: 20,
     reach: 1.5,
     width: 1,
     cooldown: 0.3
 };
 
 export const SPEAR_ATTACK: WeaponAttackStats = {
-    damage: 12,
+    damage: 20,
     reach: 4.5,
     width: 1,
     cooldown: 1.5
@@ -48,4 +48,4 @@ export function getattackstats(weapon: WeaponType) {
     }
 }
 
-export type WeaponType = 'sword' | 'axe' | 'dagger' | 'spear';
+export type WeaponType = 'empty' | 'sword' | 'axe' | 'dagger' | 'spear';

@@ -113,7 +113,7 @@ export async function registerUser(payload: registerPayload) {
             return {
                 ok: false,
                 statusCode: 409,
-                message: 'Email already exists'
+                message: 'Invalid input'
             };
         }
         console.error('[auth.registerUser] failed:', error);

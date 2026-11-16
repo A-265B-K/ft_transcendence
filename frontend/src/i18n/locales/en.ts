@@ -156,6 +156,8 @@ export const en = {
         buyCatapult: 'Buy catapult',
         chooseWeaponToCraft: 'Choose a weapon to craft.',
         closeForge: 'Close forge',
-        openForge: 'Open forge'
+        openForge: 'Open forge',
+
+        waitingToRespawn: 'Waiting to respawn..'
     }
 };

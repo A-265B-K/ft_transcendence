@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import type { castle } from './castle.js';
+import type { Castle } from './castle.js';
 import type { Socket, Vec2 } from '../types.js';
 import { getDistance } from '../util.js';
 import type { GameMap } from '../map.js';
@@ -11,7 +11,7 @@ import {
     CATAPULT_MOVE_SPEED
 } from '../constants.js';
 
-export class catapult {
+export class Catapult {
     readonly id = randomUUID();
     private position: Vec2;
     private health = CATAPULT_MAX_HP;
@@ -23,12 +23,12 @@ export class catapult {
     private nextAttackAt = 0;
 
     constructor(
-        readonly origin: castle,
+        readonly origin: Castle,
         private readonly namespace: Socket['nsp'],
         private readonly roomId: string,
         private readonly onDestroyed: (catapultId: string) => void,
         private readonly map: GameMap,
-        readonly target?: castle
+        readonly target?: Castle
     ) {
         const preferredPosition =
             map.getSpawnPoint(origin.playerSlot)?.pos ?? origin.getposition();

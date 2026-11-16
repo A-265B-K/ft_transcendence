@@ -1,5 +1,4 @@
-import { AnimatedSprite, Texture, Container } from 'pixi.js';
-import { MAP_SIZE } from '../config/constants';
+import { AnimatedSprite, Texture, Container, Text, TextStyle } from 'pixi.js';
 import { isoX, isoY } from '../world/iso';
 import { Inventory } from './Inventory';
 import { Weapon, type WeaponType } from './weapons/weapon';
@@ -33,6 +32,8 @@ export class Player {
     readonly container = new Container();
     sprite: AnimatedSprite;
 
+    readonly nameLabel: Text;
+
     readonly inventory = new Inventory();
     gridX = 0;
     gridY = 0;
@@ -40,12 +41,21 @@ export class Player {
     speed = 10;
     direction: Direction = 'down';
     private readonly textures: PlayerTextures;
+    private readonly mapWidth: number;
+    private readonly mapHeight: number;
     weapon?: Weapon;
     private hittimer = 0;
     private Armor = false;
 
-    constructor(textures: PlayerTextures) {
+    constructor(
+        textures: PlayerTextures,
+        mapWidth: number,
+        mapHeight: number,
+        playerName: string
+    ) {
         this.textures = textures;
+        this.mapWidth = mapWidth;
+        this.mapHeight = mapHeight;
 
         this.sprite = new AnimatedSprite([
             textures.playerDown1,
@@ -61,6 +71,26 @@ export class Player {
         this.container.sortableChildren = true;
         this.sprite.zIndex = 0;
         this.container.addChild(this.sprite);
+
+        this.nameLabel = new Text({
+            text: playerName,
+            style: new TextStyle({
+                fontFamily: 'Arial',
+                fontSize: 24,
+                fill: '#ffffff',
+                fontWeight: 'bold',
+                stroke: {
+                    color: '#000000',
+                    width: 4
+                }
+            })
+        });
+
+        this.nameLabel.anchor.set(0.5, 1);
+        this.nameLabel.y = -this.sprite.height - 8;
+        this.nameLabel.zIndex = 10;
+
+        this.container.addChild(this.nameLabel);
 
         this.sprite.animationSpeed = 0.12;
         this.sprite.loop = true;
@@ -122,15 +152,17 @@ export class Player {
             this.direction = 'down';
         }
 
-        this.gridX = Math.max(0, Math.min(MAP_SIZE - 1, this.gridX));
-        this.gridY = Math.max(0, Math.min(MAP_SIZE - 1, this.gridY));
+        this.gridX = Math.max(0, Math.min(this.mapWidth - 1, this.gridX));
+        this.gridY = Math.max(0, Math.min(this.mapHeight - 1, this.gridY));
 
         this.syncSpritePosition();
 
         if (this.hittimer > 0) {
             this.hittimer = Math.max(0, this.hittimer - deltaSeconds);
         }
-        if (this.hittimer == 0) this.sprite.tint = 0xffffff;
+        if (this.hittimer === 0) {
+            this.sprite.tint = 0xffffff;
+        }
     }
 
     private updateDirection(moveX: number, moveY: number) {

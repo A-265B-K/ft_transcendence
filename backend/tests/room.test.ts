@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { ROOM_MAX_SIZE } from '../srcs/constants.js';
+import {
+    PLAYER_MAX_HP,
+    PLAYER_RESPAWN_DELAY,
+    ROOM_MAX_SIZE
+} from '../srcs/constants.js';
 import type { Resource } from '../srcs/map.js';
 import { Room } from '../srcs/room/room.js';
 import type { GameMap } from '../srcs/map.js';
@@ -167,4 +171,20 @@ test('destroyed castles block forge operations', () => {
     assert.equal(room.upgradecastle(user.id), null);
     assert.equal(room.equiparmor(user.id), false);
     assert.equal(room.payForCatapult(user.id, 'user-2'), null);
+});
+
+test('a dead player respawns while their castle is standing', () => {
+    const room = makeRoom();
+    const user = makeUser('user-1');
+
+    room.join(makeSocket(user.id), user);
+    const state = room as unknown as RoomState;
+    const player = state.players.get(user.id);
+    assert.ok(player);
+
+    player.takeDamage(PLAYER_MAX_HP);
+    assert.equal(player.isOutOfGame(), false);
+    assert.equal(player.respawn(Date.now() + PLAYER_RESPAWN_DELAY), true);
+    assert.equal(player.isAlive(), true);
+    assert.equal(player.getHp(), PLAYER_MAX_HP);
 });

@@ -15,6 +15,7 @@
     },
     "dependencies": {
         "@fastify/cookie": "^11.1.2",
+        "@fastify/rate-limit": "^11.2.1",
         "@fastify/static": "^10.1.5",
         "@otplib/uri": "^13.4.1",
         "bcrypt": "^6.0.0",

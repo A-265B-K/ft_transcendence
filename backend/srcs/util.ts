@@ -1,4 +1,3 @@
-import { MAP_HEIGHT, MAP_WIDTH } from './constants.js';
 import type { Vec2 } from './types.js';
 
 export function getDistance(a: Vec2, b: Vec2): number {
@@ -7,10 +6,10 @@ export function getDistance(a: Vec2, b: Vec2): number {
     return Math.sqrt(dx * dx + dy * dy);
 }
 
-export function randomPos() {
+export function randomPos(width: number, height: number): Vec2 {
     return {
-        x: Math.floor(Math.random() * MAP_WIDTH),
-        y: Math.floor(Math.random() * MAP_HEIGHT)
+        x: Math.floor(Math.random() * width),
+        y: Math.floor(Math.random() * height)
     };
 }
 

@@ -50,6 +50,8 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
 
     const [winner, setWinner] = useState('');
 
+    const canSpectate = spectating && castlelvl === 0;
+
     const resumeGame = useCallback(() => {
         setPaused(false);
         gameRef.current?.resume();
@@ -191,7 +193,25 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             }
 
             game.removeRemotePlayer(data.player);
-            game.removeRemoteCastle(data.player);
+        }
+
+        function handlePlayerRespawned(data: {
+            player: JoinedPayload['players'][number];
+        }) {
+            const player = data.player;
+            if (player.userId === joinedData.player.userId) {
+                game.respawnLocalPlayer(player.x, player.y);
+                setHp(player.hp);
+                setSpectating(false);
+                return;
+            }
+
+            game.addRemotePlayer(player);
+            setOpponents((current) =>
+                current.some((opponent) => opponent.userId === player.userId)
+                    ? current
+                    : [...current, player]
+            );
         }
 
         function handleResourceCollected({
@@ -347,6 +367,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         socket.on('resource_spawned', handleResourceSpawned);
         socket.on('castle_update', handleCastleUpgrade);
         socket.on('player_died', handlePlayerDied);
+        socket.on('player_respawned', handlePlayerRespawned);
         socket.on('player_weapon_equipped', handlePlayerWeaponEquipped);
         socket.on('armor', handlearmor);
         socket.on('castle_attack_started', handleCastleAttackStarted);
@@ -380,6 +401,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             socket.off('player_hp', handlePlayerHP);
             socket.off('player_attacked', handlePlayerAttacked);
             socket.off('player_died', handlePlayerDied);
+            socket.off('player_respawned', handlePlayerRespawned);
             socket.off('resource_collected', handleResourceCollected);
             socket.off('resource_spawned', handleResourceSpawned);
             socket.off('join_error', handleJoinError);
@@ -562,16 +584,20 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
                         </h2>
 
                         <p className="mb-4 text-sm text-white/50">
-                            {t('spectating')}
+                            {canSpectate
+                                ? t('spectating')
+                                : t('waitingToRespawn')}
                         </p>
 
-                        <button
-                            type="button"
-                            onClick={handleLeave}
-                            className="w-full rounded-xl bg-red-500 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-red-600"
-                        >
-                            {t('leaveGame')}
-                        </button>
+                        {canSpectate && (
+                            <button
+                                type="button"
+                                onClick={handleLeave}
+                                className="w-full rounded-xl bg-red-500 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-red-600"
+                            >
+                                {t('leaveGame')}
+                            </button>
+                        )}
                     </div>
                 </div>
             )}
