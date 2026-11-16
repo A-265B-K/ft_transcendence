@@ -170,6 +170,7 @@ export const ru = {
         chooseWeaponToCraft: 'Выберите оружие для создания.',
 
         closeForge: 'Закрыть кузницу',
-        openForge: 'Открыть кузницу'
+        openForge: 'Открыть кузницу',
+        waitingToRespawn: 'Ожидание возрождения...'
     }
 };
