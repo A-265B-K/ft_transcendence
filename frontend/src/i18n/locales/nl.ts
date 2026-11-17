@@ -167,6 +167,11 @@ export const nl = {
 
         closeForge: 'Smidse sluiten',
         openForge: 'Smidse openen',
+
+        controls: 'Besturing',
+        move: 'Bewegen',
+        castleAttack: 'Kasteel aanval',
+        weaponAttack: 'Wapenaanval',
         waitingToRespawn: 'Wachten op respawn..'
     }
 };

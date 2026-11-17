@@ -158,6 +158,10 @@ export const en = {
         closeForge: 'Close forge',
         openForge: 'Open forge',
 
+        controls: 'Controls',
+        move: 'Move',
+        castleAttack: 'Castle attack',
+        weaponAttack: 'Weapon attack',
         waitingToRespawn: 'Waiting to respawn..'
     }
 };

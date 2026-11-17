@@ -162,6 +162,11 @@ export const uk = {
 
         closeForge: 'Закрити кузню',
         openForge: 'Відкрити кузню',
+
+        controls: 'Керування',
+        move: 'Рух',
+        castleAttack: 'Атака замкoм',
+        weaponAttack: 'Атака зброєю',
         waitingToRespawn: 'Oчікування відродження...'
     }
 };

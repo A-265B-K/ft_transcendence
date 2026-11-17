@@ -171,6 +171,11 @@ export const ru = {
 
         closeForge: 'Закрыть кузницу',
         openForge: 'Открыть кузницу',
+
+        controls: 'Управление',
+        move: 'Движение',
+        castleAttack: 'Атака замком',
+        weaponAttack: 'Атака оружием',
         waitingToRespawn: 'Ожидание возрождения...'
     }
 };
