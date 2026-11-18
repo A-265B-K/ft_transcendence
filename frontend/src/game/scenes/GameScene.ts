@@ -88,6 +88,7 @@ export class GameScene {
         );
 
         this.player.placeAt(joinedData.player.x, joinedData.player.y);
+        this.player.equipWeapon(joinedData.player.equippedWeapon);
         this.world.addChild(this.player.container);
 
         this.createRemotePlayers();
@@ -203,7 +204,7 @@ export class GameScene {
         remote.placeAt(player.x, player.y);
 
         this.remotePlayers.set(player.socketId, remote);
-        if (player.equippedweapon) remote.equipWeapon(player.equippedweapon);
+        if (player.equippedWeapon) remote.equipWeapon(player.equippedWeapon);
 
         this.world.addChild(remote.container);
     }

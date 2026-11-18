@@ -100,6 +100,6 @@ export function handleRoomAttack(
 
     handleplayerdamage(players.values(), player, attackStats, direction);
     handlecatapultdamage(players.values(), player, attackStats, direction);
-    player.attackNow(player.getEquippedWeapon());
+    player.attackNow(weapon);
     return true;
 }

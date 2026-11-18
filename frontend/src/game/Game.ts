@@ -41,7 +41,7 @@ export class Game {
         };
     }
 
-    equipWeapon(weapon: WeaponType) {
+    equipWeapon(weapon: WeaponType | null) {
         this.scene?.player.equipWeapon(weapon);
     }
     equipremoteweapon(socketId: string, weapon: WeaponType) {

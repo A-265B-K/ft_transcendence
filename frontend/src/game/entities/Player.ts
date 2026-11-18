@@ -207,12 +207,15 @@ export class Player {
         this.container.y = isoY(this.gridX, this.gridY);
         this.container.zIndex = this.gridX + this.gridY + 1;
     }
-    equipWeapon(type: WeaponType) {
+    equipWeapon(type: WeaponType | null) {
         if (this.weapon) {
             this.container.removeChild(this.weapon.sprite);
             this.weapon.sprite.destroy();
+            this.weapon = undefined;
         }
         switch (type) {
+            case null:
+                return;
             case 'sword':
                 this.weapon = new Sword();
                 break;

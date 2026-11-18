@@ -48,4 +48,4 @@ export function getattackstats(weapon: WeaponType) {
     }
 }
 
-export type WeaponType = 'empty' | 'sword' | 'axe' | 'dagger' | 'spear';
+export type WeaponType = 'sword' | 'axe' | 'dagger' | 'spear';
