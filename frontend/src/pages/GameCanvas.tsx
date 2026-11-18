@@ -215,22 +215,20 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             );
         }
 
-        function handleResourceCollected({
-            x,
-            y,
+        function handleResourceCollected({ x, y }: { x: number; y: number }) {
+            game.removeResourceTile(x, y);
+        }
+
+        function handleInventoryUpdated({
             playerId,
             inventory
         }: {
-            x: number;
-            y: number;
             playerId: string;
             inventory: {
                 wood: number;
                 iron: number;
             };
         }) {
-            game.removeResourceTile(x, y);
-
             if (playerId === joinedData.player.userId) {
                 game.syncInventory(inventory.wood, inventory.iron);
             }
@@ -362,6 +360,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         socket.on('player_move', handlePlayerMove);
         socket.on('player_left', handlePlayerLeft);
         socket.on('resource_collected', handleResourceCollected);
+        socket.on('inventory_updated', handleInventoryUpdated);
         socket.on('join_error', handleJoinError);
         socket.on('player_hp', handlePlayerHP);
         socket.on('player_attacked', handlePlayerAttacked);
@@ -404,6 +403,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             socket.off('player_died', handlePlayerDied);
             socket.off('player_respawned', handlePlayerRespawned);
             socket.off('resource_collected', handleResourceCollected);
+            socket.off('inventory_updated', handleInventoryUpdated);
             socket.off('resource_spawned', handleResourceSpawned);
             socket.off('join_error', handleJoinError);
             socket.off('castle_update', handleCastleUpgrade);
