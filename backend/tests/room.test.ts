@@ -33,6 +33,7 @@ function makeRoom(started = false): Room {
                 {
                     playerSlot: slot,
                     setlevel: () => undefined,
+                    setOwner: () => undefined,
                     getlevel: () => 1,
                     gethealth: () => 100,
                     isDestroyed: () => false,
