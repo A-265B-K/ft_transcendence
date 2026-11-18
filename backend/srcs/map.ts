@@ -80,45 +80,46 @@ export class GameMap {
         return spawnPoints;
     }
 
-    private generateCastleZones(playerSlots: number[]) {
+    private generateCastleZones(playerSlots: number[]): Castle[] {
         const minDistBetweenCastles = MIN_DIST_CASTLE;
-        const castleZones: Castle[] = [];
-        let attempts = 0;
         const maxAttempts = playerSlots.length * 100;
 
-        while (
-            castleZones.length < playerSlots.length &&
-            attempts < maxAttempts
-        ) {
-            attempts++;
-            const pos = randomPos(this.width, this.height);
-            let tooClose = castleZones.some(
-                (c) => getDistance(pos, c.getposition()) < minDistBetweenCastles
-            );
+        while (true) {
+            const castleZones: Castle[] = [];
+            let attempts = 0;
 
-            if (
-                pos.x - CASTLE_RADIUS / 2 < 0 ||
-                pos.x + CASTLE_RADIUS / 2 > this.width ||
-                pos.y - CASTLE_RADIUS / 2 < 0 ||
-                pos.y + CASTLE_RADIUS / 2 > this.height
+            while (
+                castleZones.length < playerSlots.length &&
+                attempts < maxAttempts
             ) {
-                tooClose = true;
+                attempts++;
+
+                const pos = randomPos(this.width, this.height);
+                const outOfBounds =
+                    pos.x - CASTLE_RADIUS / 2 < 0 ||
+                    pos.x + CASTLE_RADIUS / 2 > this.width ||
+                    pos.y - CASTLE_RADIUS / 2 < 0 ||
+                    pos.y + CASTLE_RADIUS / 2 > this.height;
+
+                const tooClose =
+                    outOfBounds ||
+                    castleZones.some(
+                        (c) =>
+                            getDistance(pos, c.getposition()) <
+                            minDistBetweenCastles
+                    );
+
+                if (!tooClose) {
+                    castleZones.push(
+                        new Castle(playerSlots[castleZones.length]!, pos)
+                    );
+                }
             }
 
-            if (!tooClose) {
-                castleZones.push(
-                    new Castle(playerSlots[castleZones.length]!, pos)
-                );
+            if (castleZones.length === playerSlots.length) {
+                return castleZones;
             }
         }
-
-        if (castleZones.length < playerSlots.length) {
-            throw new Error(
-                `Could only place ${castleZones.length}/${playerSlots.length} castles`
-            );
-        }
-
-        return castleZones;
     }
 
     private generateObstacles(count = 15) {
