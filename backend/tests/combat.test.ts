@@ -126,7 +126,7 @@ test('room attack damages only living targets inside the hitbox', () => {
     );
 
     assert.equal(result, true);
-    assert.deepEqual(damageTaken, [10]);
+    assert.deepEqual(damageTaken, [30]);
     assert.deepEqual(attacksStarted, ['sword']);
     assert.deepEqual(events, [
         {
@@ -164,7 +164,7 @@ test('room attack can hit a catapult by its larger collision radius', () => {
         { direction: 'right' }
     );
 
-    assert.deepEqual(damageTaken, [10]);
+    assert.deepEqual(damageTaken, [30]);
 });
 
 test('room attack rejects invalid directions and active cooldowns', () => {
