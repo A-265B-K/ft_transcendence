@@ -169,8 +169,7 @@ export class Catapult {
     }
     private findnewtarget() {
         for (const target of this.othertargets) {
-            if (target.isAlive() && !target.getCastle().isDestroyed())
-            {
+            if (target.isAlive() && !target.getCastle().isDestroyed()) {
                 this.target = target.getCastle();
                 this.replanPath();
                 return;
