@@ -95,6 +95,8 @@ export const uk = {
 
         // reset password
         resetPassword: 'Скинути пароль',
+        confirmPasswordResetRequest:
+            'Підтвердьте, щоб надіслати посилання для скидання пароля на електронну пошту вашого акаунта.',
         enterNewPassword: 'Введіть новий пароль нижче.',
         newPassword: 'Новий пароль',
         confirmNewPassword: 'Підтвердіть новий пароль',

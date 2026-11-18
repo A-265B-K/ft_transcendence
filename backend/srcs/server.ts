@@ -20,7 +20,8 @@ const fastify = Fastify({
 });
 
 await fastify.register(rateLimit, {
-    global: false
+    global: false,
+    hook: 'preHandler'
 });
 
 await fastify.register(cookie);
