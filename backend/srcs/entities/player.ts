@@ -283,6 +283,10 @@ export class Player {
         this.namespace.to(this.roomId).emit('player_respawned', {
             player: this
         });
+        this.namespace.to(this.socketId).emit('inventory_updated', {
+            playerId: this.userId,
+            inventory: this.getInventory()
+        });
         return true;
     }
 
