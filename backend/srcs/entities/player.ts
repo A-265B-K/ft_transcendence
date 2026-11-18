@@ -43,7 +43,7 @@ export class Player {
     private castle: Castle;
 
     private lastMoveAt: number;
-    private equippedWeapon: WeaponType;
+    private equippedWeapon: WeaponType | undefined;
     private nextAttack: number;
 
     private armor = false;
@@ -68,7 +68,6 @@ export class Player {
         this.castle.setlevel(PLAYER_DEFAULT_CASTLE_LEVEL);
         this.hp = PLAYER_MAX_HP;
         this.alive = true;
-        this.equippedWeapon = 'empty';
 
         this.spawn = spawn.pos;
         this.x = this.spawn.x;
@@ -80,7 +79,6 @@ export class Player {
         };
 
         this.lastMoveAt = Date.now();
-        this.equippedWeapon = 'sword';
         this.nextAttack = 0;
     }
 
@@ -160,12 +158,12 @@ export class Player {
             y: this.y,
             inventory: this.getInventory(),
             lastMoveAt: this.lastMoveAt,
-            equippedWeapon: this.equippedWeapon,
+            equippedWeapon: this.equippedWeapon ?? null,
             nextAttack: this.nextAttack
         };
     }
 
-    getEquippedWeapon(): WeaponType {
+    getEquippedWeapon(): WeaponType | undefined {
         return this.equippedWeapon;
     }
 
@@ -175,7 +173,9 @@ export class Player {
     }
 
     canattack(): boolean {
-        return Date.now() >= this.nextAttack && this.equippedWeapon != 'empty';
+        return (
+            Date.now() >= this.nextAttack && this.equippedWeapon !== undefined
+        );
     }
 
     setPosition(x: number, y: number): void {
@@ -275,7 +275,7 @@ export class Player {
         this.alive = true;
         this.x = this.spawn.x;
         this.y = this.spawn.y;
-        this.equippedWeapon = 'empty';
+        this.equippedWeapon = undefined;
         this.lastMoveAt = now;
         this.respawnAt = null;
         this.inventory.iron = 0;

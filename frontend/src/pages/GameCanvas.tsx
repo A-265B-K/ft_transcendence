@@ -200,6 +200,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         }) {
             const player = data.player;
             if (player.userId === joinedData.player.userId) {
+                game.equipWeapon(player.equippedWeapon);
                 game.respawnLocalPlayer(player.x, player.y);
                 setHp(player.hp);
                 setSpectating(false);
