@@ -80,7 +80,6 @@ export class Player {
         };
 
         this.lastMoveAt = Date.now();
-        this.equippedWeapon = 'sword';
         this.nextAttack = 0;
     }
 
