@@ -328,7 +328,11 @@ export class Player {
             inventory: { wood: this.inventory.wood, iron: this.inventory.iron }
         };
     }
-    payForCatapult(target: Player, map: GameMap): boolean {
+    payForCatapult(
+        target: Player,
+        othertargets: Player[],
+        map: GameMap
+    ): boolean {
         if (
             !this.alive ||
             this.castle.isDestroyed() ||
@@ -346,6 +350,7 @@ export class Player {
                 );
             },
             map,
+            othertargets,
             target.castle
         );
         if (!newCatapult.canSpawn()) return false;

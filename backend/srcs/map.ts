@@ -406,6 +406,7 @@ export class GameMap {
 
             return this.castleZones.some(
                 (castle) =>
+                    !castle.isDestroyed() &&
                     castle !== originCastle &&
                     castle !== targetCastle &&
                     getDistance(node, castle.getposition()) <= castle.radius

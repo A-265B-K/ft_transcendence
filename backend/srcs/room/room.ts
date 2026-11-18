@@ -400,11 +400,16 @@ export class Room {
 
         const player = this.getPlayerByUserId(userId);
         const target = this.getPlayerByUserId(targetUserId);
+        const otherPlayers = Array.from(this.players.values()).filter(
+            (otherPlayer) =>
+                otherPlayer.getUserId() !== userId &&
+                otherPlayer.getUserId() !== target?.getUserId()
+        );
         if (
             !target ||
             targetUserId === userId ||
             !target.isAlive() ||
-            !player?.payForCatapult(target, this.map)
+            !player?.payForCatapult(target, otherPlayers, this.map)
         )
             return null;
 
