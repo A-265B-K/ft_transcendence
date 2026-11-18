@@ -72,7 +72,7 @@ export class Castle {
 
         this.level = level;
 
-		this.setHealth(200);
+        this.setHealth(200);
         this.updateTexture();
         this.refreshLabel();
     }
