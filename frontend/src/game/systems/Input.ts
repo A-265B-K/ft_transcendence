@@ -28,7 +28,7 @@ export class Input {
         if (key === 'e') {
             this.interactQueued = true;
         }
-        if (key == 'f' && !e.repeat) this.Attack?.();
+        if (key == ' ' && !e.repeat) this.Attack?.();
         if (key == 'r' && !e.repeat) this.Castleranged?.();
     };
 
