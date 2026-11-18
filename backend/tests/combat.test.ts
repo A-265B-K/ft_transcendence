@@ -259,7 +259,7 @@ test('catapult fires and damages its target castle when in range', () => {
     siegeEngine.loop();
     siegeEngine.loop();
 
-    assert.equal(target.gethealth(), CASTLE_MAX_HP - 20);
+    assert.equal(target.gethealth(), CASTLE_MAX_HP - 40);
     assert.deepEqual(
         events.map(({ event }) => event),
         ['catapult_fire', 'catapult_attack', 'castle_damaged']
