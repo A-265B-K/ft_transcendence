@@ -7,7 +7,7 @@ export function rateLimitKey(
     identity: unknown
 ): string {
     if (typeof identity === 'string' && identity.trim().length > 0) {
-        const normalizedIdentity = identity.trim();
+        const normalizedIdentity = identity.trim().toLowerCase();
         const identityHash = createHash('sha256')
             .update(normalizedIdentity)
             .digest('hex');
