@@ -46,6 +46,10 @@ import catapultUpFireUrl from '../../assets/catapult/up-fire.png';
 import catapultLeftFireUrl from '../../assets/catapult/left-fire.png';
 import catapultRightFireUrl from '../../assets/catapult/right-fire.png';
 import catapultDestroyedUrl from '../../assets/catapult/destroyed.png';
+
+import rockobstacle from '../../assets/obstacles/rock.png'
+import treeobstacle from '../../assets/obstacles/tree.png'
+
 import type { CatapultTextures } from '../entities/catapult';
 
 export type GameTextures = {
@@ -95,6 +99,9 @@ export type GameTextures = {
 
     boulder: Texture;
     catapult: CatapultTextures;
+
+    tree: Texture;
+    rock: Texture;
 };
 
 export async function loadGameTextures(): Promise<GameTextures> {
@@ -150,7 +157,10 @@ export async function loadGameTextures(): Promise<GameTextures> {
         catapultUpFire,
         catapultLeftFire,
         catapultRightFire,
-        catapultDestroyed
+        catapultDestroyed,
+
+        tree,
+        rock
     ] = await Promise.all([
         Assets.load(grassUrl),
         Assets.load<Texture>(forestBackgroundUrl),
@@ -205,7 +215,9 @@ export async function loadGameTextures(): Promise<GameTextures> {
         Assets.load<Texture>(catapultUpFireUrl),
         Assets.load<Texture>(catapultLeftFireUrl),
         Assets.load<Texture>(catapultRightFireUrl),
-        Assets.load<Texture>(catapultDestroyedUrl)
+        Assets.load<Texture>(catapultDestroyedUrl),
+        Assets.load<Texture>(treeobstacle),
+        Assets.load<Texture>(rockobstacle)
     ]);
 
     return {
@@ -268,6 +280,8 @@ export async function loadGameTextures(): Promise<GameTextures> {
                 right: catapultRightFire
             },
             broken: catapultDestroyed
-        }
+        },
+        tree,
+        rock
     };
 }
