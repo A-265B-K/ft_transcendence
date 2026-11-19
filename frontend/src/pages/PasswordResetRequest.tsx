@@ -6,7 +6,6 @@ export default function PasswordResetRequest() {
     const navigate = useNavigate();
     const { t } = useTranslation();
 
-    const [email, setEmail] = useState('');
     const [message, setMessage] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -21,7 +20,7 @@ export default function PasswordResetRequest() {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ email })
+                body: JSON.stringify({})
             });
 
             const data = await response.json();
@@ -49,20 +48,9 @@ export default function PasswordResetRequest() {
                     {t('passwordReset')}
                 </h1>
 
-                <label htmlFor="reset-email" className="mb-2 block">
-                    {t('email')}
-                </label>
-
-                <input
-                    id="reset-email"
-                    type="email"
-                    required
-                    autoComplete="email"
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                    disabled={loading}
-                    className="mb-4 w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 outline-none focus:border-[#ffcf5c]"
-                />
+                <p className="mb-4 text-center text-white/70">
+                    {t('confirmPasswordResetRequest')}
+                </p>
 
                 <button
                     type="submit"

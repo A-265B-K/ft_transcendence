@@ -39,11 +39,6 @@ export const registerCastleHandlers = (context: ConnectionContext) => {
                 callback({ success: false });
                 return;
             }
-            socket.to(context.currentRoomId).emit('castle_update', {
-                socketId: socket.id,
-                level: inventory.castleLevel
-            });
-
             callback({
                 success: true,
                 level: inventory.castleLevel,

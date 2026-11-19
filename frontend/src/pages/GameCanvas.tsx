@@ -215,22 +215,20 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             );
         }
 
-        function handleResourceCollected({
-            x,
-            y,
+        function handleResourceCollected({ x, y }: { x: number; y: number }) {
+            game.removeResourceTile(x, y);
+        }
+
+        function handleInventoryUpdated({
             playerId,
             inventory
         }: {
-            x: number;
-            y: number;
             playerId: string;
             inventory: {
                 wood: number;
                 iron: number;
             };
         }) {
-            game.removeResourceTile(x, y);
-
             if (playerId === joinedData.player.userId) {
                 game.syncInventory(inventory.wood, inventory.iron);
             }
@@ -257,7 +255,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             game.spawnResourceTile(x, y, type);
         }
 
-        function handleCastleUpgrade({
+        function handleCastleLvlupdate({
             socketId,
             level
         }: {
@@ -362,11 +360,12 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         socket.on('player_move', handlePlayerMove);
         socket.on('player_left', handlePlayerLeft);
         socket.on('resource_collected', handleResourceCollected);
+        socket.on('inventory_updated', handleInventoryUpdated);
         socket.on('join_error', handleJoinError);
         socket.on('player_hp', handlePlayerHP);
         socket.on('player_attacked', handlePlayerAttacked);
         socket.on('resource_spawned', handleResourceSpawned);
-        socket.on('castle_update', handleCastleUpgrade);
+        socket.on('castlelvlupdate', handleCastleLvlupdate);
         socket.on('player_died', handlePlayerDied);
         socket.on('player_respawned', handlePlayerRespawned);
         socket.on('player_weapon_equipped', handlePlayerWeaponEquipped);
@@ -404,9 +403,10 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             socket.off('player_died', handlePlayerDied);
             socket.off('player_respawned', handlePlayerRespawned);
             socket.off('resource_collected', handleResourceCollected);
+            socket.off('inventory_updated', handleInventoryUpdated);
             socket.off('resource_spawned', handleResourceSpawned);
             socket.off('join_error', handleJoinError);
-            socket.off('castle_update', handleCastleUpgrade);
+            socket.off('castlelvlupdate', handleCastleLvlupdate);
             socket.off('player_weapon_equipped', handlePlayerWeaponEquipped);
             socket.off('armor', handlearmor);
             socket.off('castle_attack_started', handleCastleAttackStarted);

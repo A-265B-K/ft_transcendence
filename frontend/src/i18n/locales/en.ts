@@ -115,6 +115,8 @@ export const en = {
         settings: 'Settings',
         twoFactorAuthentication: 'Two-Factor Authentication',
         passwordReset: 'Password Reset',
+        confirmPasswordResetRequest:
+            'Confirm to send a password reset link to your account email.',
         passwordResetRequestSent:
             'If an account exists for this email, a password reset link will be sent.',
 
