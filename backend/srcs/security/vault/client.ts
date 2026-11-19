@@ -2,7 +2,9 @@ import { readFileSync } from 'node:fs';
 
 const vaultAddress = process.env.VAULT_ADDR ?? 'http://vault:8200';
 const vaultTokenFile =
-    process.env.VAULT_TOKEN_FILE ?? '/run/secrets/backend_vault_token';
+    process.env.BACKEND_VAULT_TOKEN_FILE ??
+    process.env.VAULT_TOKEN_FILE ??
+    '/run/secrets/backend_vault_token';
 
 let vaultToken: string;
 
@@ -97,7 +99,7 @@ export async function getEmailCredentials(): Promise<EmailCredentials> {
     const { username, password } = credentials;
 
     if (typeof username != 'string' || typeof password != 'string') {
-        throw new Error('Vault PostgreSQL credentials are incomplete');
+        throw new Error('Vault email credentials are incomplete');
     }
 
     return {

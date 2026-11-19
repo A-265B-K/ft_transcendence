@@ -124,6 +124,8 @@ export const ru = {
         settings: 'Настройки',
         twoFactorAuthentication: 'Двухфакторная аутентификация',
         passwordReset: 'Сброс пароля',
+        confirmPasswordResetRequest:
+            'Подтвердите отправку ссылки для сброса пароля на электронную почту вашего аккаунта.',
         passwordResetRequestSent:
             'Если аккаунт с таким адресом электронной почты существует, будет отправлена ссылка для сброса пароля.',
 

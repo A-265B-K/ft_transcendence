@@ -123,6 +123,8 @@ export const nl = {
         settings: 'Instellingen',
         twoFactorAuthentication: 'Tweestapsverificatie',
         passwordReset: 'Wachtwoord opnieuw instellen',
+        confirmPasswordResetRequest:
+            'Bevestig om een resetlink naar het e-mailadres van je account te sturen.',
         passwordResetRequestSent:
             'Als er een account met dit e-mailadres bestaat, wordt er een link voor het opnieuw instellen van het wachtwoord verstuurd.',
 

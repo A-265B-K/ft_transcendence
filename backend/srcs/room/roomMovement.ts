@@ -155,17 +155,17 @@ export function movePlayer(
 
         const collectedResource = tryCollectResource(map, player, nextPos);
         if (collectedResource) {
-            const payload = {
+            socket.nsp.to(roomId).emit('resource_collected', {
                 resourceId: collectedResource.id,
                 type: collectedResource.type,
                 x: collectedResource.x,
                 y: collectedResource.y,
+                playerId: user.id
+            });
+            socket.emit('inventory_updated', {
                 playerId: user.id,
                 inventory: player.getInventory()
-            };
-
-            socket.emit('resource_collected', payload);
-            socket.to(roomId).emit('resource_collected', payload);
+            });
 
             map.scheduleResourceRespawn(socket, roomId, collectedResource);
         }

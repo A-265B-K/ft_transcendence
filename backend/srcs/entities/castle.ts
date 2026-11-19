@@ -154,9 +154,9 @@ export class Castle {
         if (this.isDestroyed()) return this.health;
 
         this.health = Math.max(0, this.health - damage);
-        if (this.health === 0 && this.level > 1) {
-            this.health = CASTLE_MAX_HP;
-            this.setlevel(this.level - 1);
+        if (this.health === 0 && this.level > 0) {
+            this.level -= 1;
+            if (this.level > 0) this.health = CASTLE_MAX_HP;
         }
         return this.health;
     }
