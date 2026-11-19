@@ -20,6 +20,7 @@ export class Castle {
     private readonly position: Vec2;
     private nextcastleheal = 0;
     private boulderlandtime = 0;
+    private attackready = false;
     private owner?: {
         namespace: Socket['nsp'];
         roomId: string;
@@ -75,12 +76,21 @@ export class Castle {
     canAddarmor(): boolean {
         return !this.isDestroyed() && this.level >= 3;
     }
-    canAttack(): boolean {
-        return (
+    checkAttack() {
+        if (this.attackready) return;
+        if (
             !this.isDestroyed() &&
             this.level == 4 &&
             Date.now() >= this.boulderlandtime
-        );
+        ) {
+            this.attackready = true;
+            this.owner?.namespace.to(this.owner.roomId).emit('boulderready', {
+                ready: true
+            });
+        }
+    }
+    canAttack() {
+        return this.attackready;
     }
     resetHealingCooldown(): void {
         this.nextcastleheal = 0;
@@ -106,6 +116,10 @@ export class Castle {
     castleattack(player: Player) {
         if (this.canAttack()) {
             this.boulderlandtime = Date.now() + 1500;
+            this.owner?.namespace.to(this.owner.roomId).emit('boulderready', {
+                ready: false
+            });
+            this.attackready = false;
             return {
                 start: this.getposition(),
                 target: player.getPosition()
