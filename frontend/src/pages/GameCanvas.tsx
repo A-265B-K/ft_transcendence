@@ -255,7 +255,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             game.spawnResourceTile(x, y, type);
         }
 
-        function handleCastleUpgrade({
+        function handleCastleLvlupdate({
             socketId,
             level
         }: {
@@ -365,7 +365,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         socket.on('player_hp', handlePlayerHP);
         socket.on('player_attacked', handlePlayerAttacked);
         socket.on('resource_spawned', handleResourceSpawned);
-        socket.on('castle_update', handleCastleUpgrade);
+        socket.on('castlelvlupdate', handleCastleLvlupdate);
         socket.on('player_died', handlePlayerDied);
         socket.on('player_respawned', handlePlayerRespawned);
         socket.on('player_weapon_equipped', handlePlayerWeaponEquipped);
@@ -406,7 +406,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             socket.off('inventory_updated', handleInventoryUpdated);
             socket.off('resource_spawned', handleResourceSpawned);
             socket.off('join_error', handleJoinError);
-            socket.off('castle_update', handleCastleUpgrade);
+            socket.off('castlelvlupdate', handleCastleLvlupdate);
             socket.off('player_weapon_equipped', handlePlayerWeaponEquipped);
             socket.off('armor', handlearmor);
             socket.off('castle_attack_started', handleCastleAttackStarted);

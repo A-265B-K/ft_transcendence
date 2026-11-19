@@ -64,8 +64,7 @@ export class Player {
         this.username = user.username;
 
         this.slot = slot;
-        this.castle = castle;
-        this.castle.setlevel(PLAYER_DEFAULT_CASTLE_LEVEL);
+        this.castle = this.configureCastle(castle);
         this.hp = PLAYER_MAX_HP;
         this.alive = true;
 
@@ -393,9 +392,14 @@ export class Player {
         }
     }
 
+    private configureCastle(castle: Castle): Castle {
+        castle.setlevel(PLAYER_DEFAULT_CASTLE_LEVEL);
+        castle.setOwner(this.namespace, this.roomId, this.socketId);
+        return castle;
+    }
+
     setGameSetup(spawn: Spawn, castle: Castle): void {
-        this.castle = castle;
-        this.castle.setlevel(PLAYER_DEFAULT_CASTLE_LEVEL);
+        this.castle = this.configureCastle(castle);
         this.spawn = spawn.pos;
         this.x = this.spawn.x;
         this.y = this.spawn.y;
