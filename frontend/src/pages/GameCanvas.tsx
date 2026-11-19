@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 import type { WeaponType } from '../game/entities/weapons/weapon';
 import healingIcon from '../assets/castleboons/healing.png';
 import shieldIcon from '../assets/castleboons/shield.png';
+import boulderIcon from '../assets/boulder-r.png'
 import Endgame from './Endgame';
 
 const CASTLE_HEAL_RADIUS = 10;
@@ -45,6 +46,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
 
     const [nearCastle, setNearCastle] = useState(false);
     const [withinHealingRange, setWithinHealingRange] = useState(false);
+    const [boulderReady, setboulderready] = useState(false);
 
     const [paused, setPaused] = useState(false);
 
@@ -356,6 +358,12 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             ack();
         };
 
+        const handleboulderready = (data: { ready: boolean }) => {
+            if (data && data.ready !== undefined) {
+                setboulderready(data.ready);
+            }
+        };
+
         socket.on('player_joined', handlePlayerJoined);
         socket.on('player_move', handlePlayerMove);
         socket.on('player_left', handlePlayerLeft);
@@ -378,6 +386,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         socket.on('catapult_fire', handleCatapultFire);
         socket.on('catapult_damaged', handleCatapultDamaged);
         socket.on('catapult_broken', handlecatapultbroken);
+        socket.on('boulderready', handleboulderready);
         socket.on('game_end', handleGameEnd);
         socket.on('poll', replyToPoll);
 
@@ -419,6 +428,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             socket.off('catapult_broken', handlecatapultbroken);
             socket.off('game_end', handleGameEnd);
             socket.off('poll', replyToPoll);
+            socket.off('handleboulderready', handleboulderready);
             window.clearInterval(intervalId);
 
             gameRef.current = null;
@@ -507,6 +517,13 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
                                 <img
                                     src={shieldIcon}
                                     alt="Armor"
+                                    className="h-12 w-12 object-contain"
+                                />
+                            )}
+                            {!boulderReady &&  (
+                                <img
+                                    src={boulderIcon}
+                                    alt="boulder"
                                     className="h-12 w-12 object-contain"
                                 />
                             )}
