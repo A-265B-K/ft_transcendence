@@ -34,6 +34,7 @@ function makeMap(): GameMap {
             position.y < 0 ||
             position.y > 100,
         getCastleZones: () => [],
+        getobstacles: () => [],
         collectResource: () => null
     } as unknown as GameMap;
 }
