@@ -86,9 +86,8 @@ export class Castle {
             this.attackready = true;
             this.owner?.namespace
                 .to(this.owner.roomId)
-                .emit('castlelvlupdate', {
-                    socketId: this.owner.socketId,
-                    level: this.level
+                .emit('boulderready', {
+                    ready: true
                 });
         }
     }

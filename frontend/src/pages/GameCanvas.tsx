@@ -428,7 +428,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             socket.off('catapult_broken', handlecatapultbroken);
             socket.off('game_end', handleGameEnd);
             socket.off('poll', replyToPoll);
-            socket.off('handleboulderready', handleboulderready);
+            socket.off('boulderready', handleboulderready);
             window.clearInterval(intervalId);
 
             gameRef.current = null;
@@ -520,7 +520,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
                                     className="h-12 w-12 object-contain"
                                 />
                             )}
-                            {!boulderReady &&  (
+                            {boulderReady &&  (
                                 <img
                                     src={boulderIcon}
                                     alt="boulder"
