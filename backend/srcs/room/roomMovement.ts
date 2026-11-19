@@ -48,6 +48,14 @@ export function isPositionOccupied(
     return false;
 }
 
+function isnearobstacle(map: GameMap, player: Player, pos: Vec2) {
+    for (const obstacle of map.getobstacles()) {
+        const obstaclePos: Vec2 = { x: obstacle.x, y: obstacle.y };
+        if (getDistance(player.getPosition(), obstaclePos) <= obstacle.radius)
+            return true;
+    }
+    return false;
+}
 export function positionIsAllowed(
     map: GameMap,
     players: ReadonlyMap<string, Player>,
@@ -60,7 +68,8 @@ export function positionIsAllowed(
         (player.isAlive() &&
             (isCollidingWithOtherPlayer(players, user.id, pos) ||
                 isCollidingWithCastle(map, players, pos) ||
-                isCollidingWithCatapult(players, pos)))
+                isCollidingWithCatapult(players, pos))) ||
+        isnearobstacle(map, player, pos)
     );
 }
 

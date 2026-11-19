@@ -51,6 +51,9 @@ export class GameMap {
         );
     }
 
+    getobstacles() {
+        return this.obstacles;
+    }
     private getMapDensityCount(baseCount: number): number {
         return Math.round(
             (baseCount * (this.width * this.height)) / (100 * 100)
