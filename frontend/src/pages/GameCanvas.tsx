@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 import type { WeaponType } from '../game/entities/weapons/weapon';
 import healingIcon from '../assets/castleboons/healing.png';
 import shieldIcon from '../assets/castleboons/shield.png';
-import boulderIcon from '../assets/boulder-r.png'
+import boulderIcon from '../assets/boulder-r.png';
 import Endgame from './Endgame';
 
 const CASTLE_HEAL_RADIUS = 10;
@@ -520,7 +520,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
                                     className="h-12 w-12 object-contain"
                                 />
                             )}
-                            {boulderReady &&  (
+                            {boulderReady && (
                                 <img
                                     src={boulderIcon}
                                     alt="boulder"

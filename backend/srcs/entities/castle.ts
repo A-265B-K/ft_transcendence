@@ -84,11 +84,9 @@ export class Castle {
             Date.now() >= this.boulderlandtime
         ) {
             this.attackready = true;
-            this.owner?.namespace
-                .to(this.owner.roomId)
-                .emit('boulderready', {
-                    ready: true
-                });
+            this.owner?.namespace.to(this.owner.roomId).emit('boulderready', {
+                ready: true
+            });
         }
     }
     canAttack() {
