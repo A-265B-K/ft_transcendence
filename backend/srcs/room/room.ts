@@ -20,6 +20,7 @@ export class Room {
     private started: boolean;
     private finished: boolean;
     private timer: ReturnType<typeof setInterval> | null = null;
+    private polltimer: ReturnType<typeof setInterval> | null = null;
 
     constructor(name: string, hostId: string, code: string, socket: Socket) {
         this.name = name;
@@ -32,10 +33,11 @@ export class Room {
         this.finished = false;
         console.log(`Room created: ${name} [${this.code}]`);
         this.gameloop(socket);
+        this.polloop(socket);
     }
 
-    private gameloop(socket: Socket) {
-        this.timer = setInterval(() => {
+    private polloop(socket: Socket) {
+        this.polltimer = setInterval(() => {
             for (const player of this.players.values()) {
                 player.poll().then((responsive) => {
                     if (this.players.get(player.getUserId()) !== player) return;
@@ -48,6 +50,10 @@ export class Room {
                     }
                 });
             }
+        }, 2000);
+    }
+    private gameloop(socket: Socket) {
+        this.timer = setInterval(() => {
             if (!this.active()) return;
 
             for (const player of this.players.values()) {
