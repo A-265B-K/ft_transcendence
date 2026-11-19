@@ -45,7 +45,6 @@ export class Player {
     private readonly mapHeight: number;
     weapon?: Weapon;
     private hittimer = 0;
-    private Armor = false;
 
     constructor(
         textures: PlayerTextures,
@@ -184,12 +183,6 @@ export class Player {
         }
     }
 
-    hasarmor() {
-        return this.Armor;
-    }
-    setarmor(newarmor: boolean) {
-        this.Armor = newarmor;
-    }
     private setWalkAnimation() {
         const animations = {
             down: [this.textures.playerDown1, this.textures.playerDown2],

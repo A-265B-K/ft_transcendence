@@ -69,7 +69,6 @@ export const ru = {
         // menu button
         gameMenu: 'Игровое меню',
         gamePaused: 'Игра приостановлена',
-        invitationCode: 'Код приглашения',
         resumeGame: 'Продолжить игру',
         pressEscToResume: 'Нажмите ESC, чтобы продолжить',
 
@@ -137,7 +136,6 @@ export const ru = {
             'Не удалось пройти двухфакторную аутентификацию',
         loading: 'Загрузка...',
 
-        enterEmail: 'Сначала введите адрес электронной почты',
         twoFactorSetupFailed:
             'Не удалось настроить двухфакторную аутентификацию',
         twoFactorScanQr:

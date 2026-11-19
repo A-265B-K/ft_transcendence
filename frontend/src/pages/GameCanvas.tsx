@@ -346,7 +346,6 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         }
 
         const handlearmor = (data: { armor: boolean }) => {
-            game.setarmor(data.armor);
             setArmorActive(data.armor);
         };
 
