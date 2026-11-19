@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 import type { WeaponType } from '../game/entities/weapons/weapon';
 import healingIcon from '../assets/castleboons/healing.png';
 import shieldIcon from '../assets/castleboons/shield.png';
+import attackIcon from '../assets/weapons/sword/sword-spacebar.png'
 import Endgame from './Endgame';
 
 const CASTLE_HEAL_RADIUS = 10;
@@ -49,7 +50,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
     const [paused, setPaused] = useState(false);
 
     const [winner, setWinner] = useState('');
-
+    const [canattack, setcanAttack] = useState(false);
     const canSpectate = spectating && castlelvl === 0;
 
     const resumeGame = useCallback(() => {
@@ -507,6 +508,13 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
                                 <img
                                     src={shieldIcon}
                                     alt="Armor"
+                                    className="h-12 w-12 object-contain"
+                                />
+                            )}
+                            {!canattack && (
+                                <img
+                                    src={attackIcon}
+                                    alt="Attackindicator"
                                     className="h-12 w-12 object-contain"
                                 />
                             )}
