@@ -47,8 +47,8 @@ import catapultLeftFireUrl from '../../assets/catapult/left-fire.png';
 import catapultRightFireUrl from '../../assets/catapult/right-fire.png';
 import catapultDestroyedUrl from '../../assets/catapult/destroyed.png';
 
-import rockobstacle from '../../assets/obstacles/rock.png'
-import treeobstacle from '../../assets/obstacles/tree.png'
+import rockobstacle from '../../assets/obstacles/rock.png';
+import treeobstacle from '../../assets/obstacles/tree.png';
 
 import type { CatapultTextures } from '../entities/catapult';
 
