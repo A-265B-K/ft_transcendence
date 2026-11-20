@@ -201,28 +201,17 @@ export class GameMap {
             if (!this.isValidPosition(pos, 6, 5, obstacles)) continue;
 
             const template = types[Math.floor(Math.random() * types.length)]!;
-            const resource: {
-                id: string;
-                type: string;
-                x: number;
-                y: number;
-                amount: number;
-                respawnTime: number;
-                radius: number;
-                blocksMovement: boolean;
-            } = {
+
+            resources.push({
                 id: `${template.type}_${resources.length + 1}`,
                 type: template.type,
                 x: pos.x,
                 y: pos.y,
                 amount: template.amount,
                 respawnTime: template.respawnTime,
-                // Please check if these are correct values as I do not know what they do
                 radius: 1,
                 blocksMovement: false
-            };
-
-            resources.push(resource);
+            });
         }
 
         return resources;
@@ -236,24 +225,38 @@ export class GameMap {
         return null;
     }
 
-    // Brings a collected resource back after its respawnTime, then tells the
-    // whole room. Uses socket.nsp instead of socket.to/socket because whoever
-    // collected it may have long disconnected by the time this fires.
     scheduleResourceRespawn(
         socket: Socket,
         roomId: string,
         resource: Resource
     ) {
+        const randomOffset = Math.random() * 15;
+
+        const delay = (resource.respawnTime + randomOffset) * 1000;
+
+        const pos = randomPos(this.width, this.height);
+
+        let x;
+        let y;
+
+        if (!this.isValidPosition(pos, 6, 5, this.obstacles)) {
+            x = resource.x;
+            y = resource.y;
+        } else {
+            x = pos.x;
+            y = pos.y;
+        }
+
         setTimeout(() => {
             this.resourceSpawns.push(resource);
 
             socket.nsp.to(roomId).emit('resource_spawned', {
                 resourceId: resource.id,
                 type: resource.type,
-                x: resource.x,
-                y: resource.y
+                x: x,
+                y: y
             });
-        }, resource.respawnTime * 1000);
+        }, delay);
     }
 
     getCastleZones(): Castle[] {
