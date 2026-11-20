@@ -213,7 +213,7 @@ export class GameMap {
                 amount: template.amount,
                 respawnTime: template.respawnTime,
                 radius: 1,
-                blocksMovement: false,
+                blocksMovement: false
             });
         }
 
@@ -289,7 +289,7 @@ export class GameMap {
                     if (
                         radius > 0 &&
                         Math.max(Math.abs(offsetX), Math.abs(offsetY)) !==
-                        radius
+                            radius
                     ) {
                         continue;
                     }
@@ -313,7 +313,7 @@ export class GameMap {
                             (castle) =>
                                 castle !== originCastle &&
                                 getDistance(candidate, castle.getposition()) <=
-                                castle.radius + CATAPULT_RADIUS
+                                    castle.radius + CATAPULT_RADIUS
                         ) ||
                         this.hasCatapultCollision(candidate, catapultId)
                     ) {
