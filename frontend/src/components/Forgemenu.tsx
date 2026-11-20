@@ -259,19 +259,64 @@ export function Forgemenu({
                                 {t('chooseTarget')}
                             </h2>
                             <div className="mt-3 flex flex-col gap-2">
-                                {opponents.map((player) => (
-                                    <button
-                                        key={player.userId}
-                                        type="button"
-                                        onClick={() =>
-                                            buyCatapult(player.userId)
-                                        }
-                                        disabled={purchasingCatapult}
-                                        className="rounded-lg bg-slate-700 px-3 py-2 text-left hover:bg-slate-600 disabled:opacity-50"
-                                    >
-                                        {player.username}
-                                    </button>
-                                ))}
+                                {opponents.map((player) => {
+                                    const castleHp = Math.max(
+                                        0,
+                                        Math.min(200, player.castleHp ?? 200)
+                                    );
+                                    const castleHpPercent =
+                                        (castleHp / 200) * 100;
+
+                                    return (
+                                        <button
+                                            key={player.userId}
+                                            type="button"
+                                            onClick={() =>
+                                                buyCatapult(player.userId)
+                                            }
+                                            disabled={purchasingCatapult}
+                                            className="rounded-lg bg-slate-700 px-3 py-3 text-left hover:bg-slate-600 disabled:opacity-50"
+                                        >
+                                            <span className="block font-bold">
+                                                {player.username}
+                                            </span>
+
+                                            <div className="mt-2 flex items-center justify-between text-sm text-slate-300">
+                                                <span>
+                                                    {t('castle')} · Level{' '}
+                                                    {
+                                                        player.inventory
+                                                            .castleLevel
+                                                    }
+                                                </span>
+                                                <span>{castleHp} / 200 HP</span>
+                                            </div>
+
+                                            <div
+                                                className="mt-1 h-2 w-full overflow-hidden rounded-full bg-slate-900"
+                                                role="progressbar"
+                                                aria-label={`${player.username} castle health`}
+                                                aria-valuemin={0}
+                                                aria-valuemax={200}
+                                                aria-valuenow={castleHp}
+                                            >
+                                                <div
+                                                    className={`h-full rounded-full transition-all ${
+                                                        castleHpPercent > 50
+                                                            ? 'bg-green-500'
+                                                            : castleHpPercent >
+                                                                25
+                                                              ? 'bg-yellow-500'
+                                                              : 'bg-red-500'
+                                                    }`}
+                                                    style={{
+                                                        width: `${castleHpPercent}%`
+                                                    }}
+                                                />
+                                            </div>
+                                        </button>
+                                    );
+                                })}
                             </div>
                             <button
                                 type="button"
