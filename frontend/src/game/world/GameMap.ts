@@ -1,7 +1,7 @@
 import { Container, Sprite, Texture } from 'pixi.js';
 import { isoX, isoY, tileHeight, tileWidth } from './iso';
 import { TileType } from './TileType';
-import { isHarvestableTile, type HarvestableTile } from './tileResource';
+import type { HarvestableTile } from './tileResource';
 import type { JoinedPayload } from '../../types/game';
 
 export class GameMap {
@@ -174,18 +174,6 @@ export class GameMap {
         }
     }
 
-    harvestAt(x: number, y: number): HarvestableTile | null {
-        if (x < 0 || y < 0 || x >= this.width || y >= this.height) {
-            return null;
-        }
-        const tileType = this.map[y]?.[x] ?? TileType.Grass;
-
-        if (!isHarvestableTile(tileType)) {
-            return null;
-        }
-        this.map[y][x] = TileType.Grass;
-        return tileType;
-    }
     clearTile(x: number, y: number) {
         if (x < 0 || y < 0 || x >= this.width || y >= this.height) {
             return;

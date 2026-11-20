@@ -66,7 +66,6 @@ export const en = {
         //menu button
         gameMenu: 'Game Menu',
         gamePaused: 'Your game is paused',
-        invitationCode: 'Invitation code',
         resumeGame: 'Resume Game',
         pressEscToResume: 'Press ESC to resume',
         //create a profile
@@ -126,7 +125,6 @@ export const en = {
         twoFactorVerificationFailed: '2FA verification failed',
         loading: 'Loading...',
 
-        enterEmail: 'Enter your email first',
         twoFactorSetupFailed: '2FA setup failed',
         twoFactorScanQr: 'Scan this QR code with your authenticator app',
         twoFactorEnabled: 'Two-factor authentication enabled',

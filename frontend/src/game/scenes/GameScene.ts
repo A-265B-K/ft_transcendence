@@ -211,7 +211,6 @@ export class GameScene {
 
                 playerStand: this.textures.playerStand
             },
-            player.userId,
             player.username
         );
 

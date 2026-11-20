@@ -7,7 +7,6 @@ export type WeaponTextureCatalogue = Record<WeaponType, WeaponTextures>;
 
 export abstract class Weapon {
     readonly sprite: Sprite;
-    readonly type: string;
     readonly textures: WeaponTextures;
     private static textureCatalogue: WeaponTextureCatalogue;
     protected attacking = false;
@@ -19,7 +18,6 @@ export abstract class Weapon {
 
     constructor(type: WeaponType) {
         const textures = Weapon.textureCatalogue?.[type];
-        this.type = type;
         this.textures = textures;
         this.sprite = new Sprite(this.textures[0]);
         this.sprite.anchor.set(0.5, 0.8);
@@ -36,9 +34,6 @@ export abstract class Weapon {
         this.sprite.zIndex = 1;
     }
 
-    setTexture(texture: Texture): void {
-        this.sprite.texture = texture;
-    }
     setframe(frame: number): void {
         this.sprite.texture = this.textures[frame];
     }

@@ -139,9 +139,6 @@ export class GameMap {
 
             if (!this.isValidPosition(pos, 5, 4, obstacles)) continue;
 
-            if (types.length === 0) {
-                throw new Error('types must not be empty');
-            }
             const template = types[Math.floor(Math.random() * types.length)]!;
             obstacles.push({
                 type: template.type,
@@ -203,9 +200,6 @@ export class GameMap {
 
             if (!this.isValidPosition(pos, 6, 5, obstacles)) continue;
 
-            if (types.length === 0) {
-                throw new Error('types must not be empty');
-            }
             const template = types[Math.floor(Math.random() * types.length)]!;
             const resource: {
                 id: string;
@@ -529,12 +523,5 @@ export class GameMap {
             return resource;
         }
         return null;
-    }
-
-    getDimensions() {
-        return {
-            width: this.width,
-            height: this.height
-        };
     }
 }
