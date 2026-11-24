@@ -31,13 +31,16 @@ groups:
               url_options:
                 data: ''
                 method: GET
-              parser: backend
+              parser: jq-backend
               format: table
               instant: true
               intervalMs: 1000
               maxDataPoints: 43200
-              root_selector: '[{"up": (ok = true ? 1 : 0)}]'
-              columns: []
+              root_selector: '[{"up": (if .ok == true then 1 else 0 end)}]'
+              columns:
+                - selector: up
+                  text: up
+                  type: number
               filters: []
               global_query_id: ''
           - refId: B
