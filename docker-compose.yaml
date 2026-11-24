@@ -37,7 +37,7 @@ services:
         grafana:
           condition: service_healthy
       environment:
-        MODSEC_RULE_ENGINE: "On"
+        MODSEC_RULE_ENGINE: "Off"
         BLOCKING_PARANOIA: "1"
         ANOMALY_INBOUND: "5"
         MODSEC_AUDIT_ENGINE: "RelevantOnly"
@@ -126,6 +126,7 @@ services:
         GF_LOG_LEVEL: warn
         GF_SERVER_SERVE_FROM_SUB_PATH: "true"
         GF_SERVER_ROOT_URL: "https://monitoring.localhost:8443/"
+        GF_PLUGINS_PREINSTALL_SYNC: "yesoreyeram-infinity-datasource"
         GF_SMTP_ENABLED: "true"
         GF_SMTP_HOST: "smtp.gmail.com:587"
         GF_SMTP_STARTTLS_POLICY: "MandatoryStartTLS"

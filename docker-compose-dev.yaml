@@ -115,6 +115,7 @@ services:
         GF_LOG_LEVEL: warn
         GF_SERVER_SERVE_FROM_SUB_PATH: "true"
         GF_SERVER_ROOT_URL: "https://monitoring.localhost:8443/"
+        GF_PLUGINS_PREINSTALL_SYNC: "yesoreyeram-infinity-datasource"
         GF_SMTP_ENABLED: "true"
         GF_SMTP_HOST: "smtp.gmail.com:587"
         GF_SMTP_STARTTLS_POLICY: "MandatoryStartTLS"
