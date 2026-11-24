@@ -21,5 +21,4 @@ scrape_configs:
     static_configs:
       - targets: ["telegraf:9273"]
         labels:
-          # Keep the label used by the existing Grafana dashboard queries.
           instance: "monitoringexporter:80"
