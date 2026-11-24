@@ -350,6 +350,8 @@ else
 	postgres_ensure_backups_role
 fi
 
+postgres_ensure_telegraf_reader
+
 unset POSTGRES_ADMIN_PASSWORD
 unset POSTGRES_APP_PASSWORD
 unset POSTGRES_BACKUPS_PASSWORD

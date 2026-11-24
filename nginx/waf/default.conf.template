@@ -111,7 +111,7 @@ server {
 }
 
 server {
-    listen 9443 ssl;
+    listen ${SSL_PORT} ssl;
     server_name prometheus.localhost;
     resolver 127.0.0.11 valid=10s ipv6=off;
 

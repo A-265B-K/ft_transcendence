@@ -51,7 +51,6 @@ services:
           condition: service_healthy
       ports:
         - "8443:443"
-        - "127.0.0.1:9443:9443"
       networks:
         - edge
         - monitoring
@@ -79,6 +78,17 @@ services:
       image: nginx/nginx-prometheus-exporter:1.5.1
       command: ["--nginx.scrape-uri", "http://nginx_dev:3001/stub_status"]
  
+    telegraf:
+      image: telegraf:1.40.3-alpine
+      restart: unless-stopped
+      networks:
+        - database
+        - monitoring
+      secrets:
+        - telegraf_postgres_dsn
+      volumes:
+        - ./monitoring/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+
     prometheus:
       image: prom/prometheus:v3.13.1
       volumes:
@@ -94,7 +104,7 @@ services:
       command:
       - --config.file=/etc/prometheus/prometheus.yml
       - --storage.tsdb.path=/prometheus
-      - --web.external-url=https://prometheus.localhost:9443
+      - --web.external-url=https://prometheus.localhost:8443
       - --web.enable-admin-api
 
 
@@ -199,6 +209,8 @@ volumes:
   vault_data:
 
 secrets:
+  telegraf_postgres_dsn:
+    environment: TELEGRAF_POSTGRES_DSN
   backend_vault_token:
     file: ./tokens/.backend_vault_token
   grafana_admin_user:
