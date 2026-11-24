@@ -103,7 +103,9 @@ services:
       command:
         - --path.rootfs=/host
       volumes:
-        - /:/host:ro,rslave
+        - /:/host:ro
+      networks:
+        - monitoring
  
     prometheus:
       image: prom/prometheus:v3.13.1
