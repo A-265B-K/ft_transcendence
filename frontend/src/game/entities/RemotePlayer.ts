@@ -26,9 +26,7 @@ export type RemotePlayerTextures = {
 
 export class RemotePlayer {
     readonly sprite: AnimatedSprite;
-    userId: string;
     readonly nameLabel: Text;
-    userName: string;
 
     gridX = 0;
     gridY = 0;
@@ -39,13 +37,7 @@ export class RemotePlayer {
     private hittimer = 0;
     weapon?: Weapon;
 
-    constructor(
-        textures: RemotePlayerTextures,
-        userId: string,
-        userName: string
-    ) {
-        this.userId = userId;
-        this.userName = userName;
+    constructor(textures: RemotePlayerTextures, userName: string) {
         this.textures = textures;
 
         this.sprite = new AnimatedSprite([

@@ -1,7 +1,7 @@
 import { randomUUID } from 'crypto';
 import { ROOM_MAX_SIZE } from '../constants.js';
 import { GameMap } from '../map.js';
-import type { Socket, SocketUser, Vec2, boulder } from '../types.js';
+import type { Socket, SocketUser, boulder } from '../types.js';
 import { Player } from '../entities/player.js';
 import type { WeaponType } from '../combat/Weapon.js';
 import * as roomCombat from './roomCombat.js';
@@ -20,6 +20,7 @@ export class Room {
     private started: boolean;
     private finished: boolean;
     private timer: ReturnType<typeof setInterval> | null = null;
+    private polltimer: ReturnType<typeof setInterval> | null = null;
 
     constructor(name: string, hostId: string, code: string, socket: Socket) {
         this.name = name;
@@ -32,10 +33,11 @@ export class Room {
         this.finished = false;
         console.log(`Room created: ${name} [${this.code}]`);
         this.gameloop(socket);
+        this.polloop(socket);
     }
 
-    private gameloop(socket: Socket) {
-        this.timer = setInterval(() => {
+    private polloop(socket: Socket) {
+        this.polltimer = setInterval(() => {
             for (const player of this.players.values()) {
                 player.poll().then((responsive) => {
                     if (this.players.get(player.getUserId()) !== player) return;
@@ -48,11 +50,16 @@ export class Room {
                     }
                 });
             }
+        }, 2000);
+    }
+    private gameloop(socket: Socket) {
+        this.timer = setInterval(() => {
             if (!this.active()) return;
 
             for (const player of this.players.values()) {
                 player.castlecheck();
                 player.respawn();
+                player.getCastle().checkAttack();
                 for (const catapult of player.getcatapults()) {
                     catapult.loop();
                 }
@@ -62,7 +69,7 @@ export class Room {
         }, 250);
     }
 
-    bouldercheck() {
+    private bouldercheck() {
         const now = Date.now();
 
         this.boulders = this.boulders.filter((boulder) => {
@@ -82,7 +89,29 @@ export class Room {
         });
     }
 
-    winnercheck(socket: Socket) {
+    private async registerwinner(winner: string) {
+        const { query } = await import('../security/auth/db.js');
+        const result = await query(
+            `
+		INSERT INTO completedgames
+		(
+			gameid,
+			winner
+		)
+		VALUES
+		(
+			$1,
+			$2
+		)
+		RETURNING
+			gameid,
+            winner
+		`,
+            [this.roomId, winner]
+        );
+        return result.rows[0];
+    }
+    private winnercheck(socket: Socket) {
         if (!this.active()) return;
 
         const remainingPlayers = Array.from(this.players.values()).filter(
@@ -94,6 +123,7 @@ export class Room {
             socket.nsp
                 .to(this.roomId)
                 .emit('game_end', { winnerid: winner.getUserId() });
+            this.registerwinner(winner.getUsername());
         }
     }
 
@@ -264,37 +294,6 @@ export class Room {
         }
 
         return null;
-    }
-
-    isSlotOccupied(slot: number): boolean {
-        return roomMovement.isSlotOccupied(this.players, slot);
-    }
-
-    isPositionOccupied(
-        selfUserId: string,
-        position: Vec2,
-        collisionRadius: number
-    ): boolean {
-        return roomMovement.isPositionOccupied(
-            this.players,
-            selfUserId,
-            position,
-            collisionRadius
-        );
-    }
-
-    positionIsAllowed(player: Player, user: SocketUser, pos: Vec2): boolean {
-        return roomMovement.positionIsAllowed(
-            this.map,
-            this.players,
-            player,
-            user,
-            pos
-        );
-    }
-
-    tryCollectResource(player: Player, pos: Vec2) {
-        return roomMovement.tryCollectResource(this.map, player, pos);
     }
 
     private getPlayerByUserId(userId: string): Player | null {

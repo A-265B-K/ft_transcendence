@@ -67,7 +67,6 @@ export const uk = {
         // menu button
         gameMenu: 'Ігрове меню',
         gamePaused: 'Гру призупинено',
-        invitationCode: 'Код запрошення',
         resumeGame: 'Продовжити гру',
         pressEscToResume: 'Натисніть ESC, щоб продовжити',
         // create a profile
@@ -129,7 +128,6 @@ export const uk = {
             'Не вдалося підтвердити двофакторну автентифікацію',
         loading: 'Завантаження...',
 
-        enterEmail: 'Спочатку введіть електронну адресу',
         twoFactorSetupFailed:
             'Не вдалося налаштувати двофакторну автентифікацію',
         twoFactorScanQr:

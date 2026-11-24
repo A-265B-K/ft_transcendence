@@ -68,15 +68,13 @@ The bootstrap stores the following records in the `app/` KV v2 engine:
 | --- | --- | --- |
 | `app/postgres` | `username`, `password`, `database` | Bootstrap scripts |
 | `app/postgres-app` | `username`, `password`, `database` | Backend |
-| `app/postgres_exporter` | `username`, `password`, `database` | PostgreSQL monitoring exporter |
 | `app/backups` | `username`, `password`, `database` | Backup service |
 | `app/email` | `username`, `password` | Backend email operations |
 | `app/grafana` | `username`, `password` | Grafana secret-file generation |
 
 The backend reads `app/postgres-app` and `app/email` through
 [`backend/srcs/security/vault/client.ts`](../backend/srcs/security/vault/client.ts).
-The monitoring exporter reads `app/postgres_exporter`, and the backup
-container reads `app/backups`.
+The backup container reads `app/backups`.
 
 KV v2 API paths include the `data` segment. For example, the backend reads:
 
@@ -94,7 +92,6 @@ only read the record required by its service:
 | Token file | Policy | Allowed path |
 | --- | --- | --- |
 | `tokens/.backend_vault_token` | `transcendence-backend` | `app/data/postgres-app`, `app/data/email` |
-| `tokens/.exporter_vault_token` | `transcendence-postgres_exporter` | `app/data/postgres_exporter` |
 | `tokens/.grafana_vault_token` | `transcendence-grafana` | `app/data/grafana` |
 | `tokens/.backups_vault_token` | `transcendence-backups` | `app/data/backups` |
 
@@ -108,7 +105,6 @@ Git:
 
 - `.vault_secrets` — the Vault root token and five unseal keys
 - `tokens/.backend_vault_token`
-- `tokens/.exporter_vault_token`
 - `tokens/.grafana_vault_token`
 - `tokens/.backups_vault_token`
 - `tokens/grafana/admin_user`

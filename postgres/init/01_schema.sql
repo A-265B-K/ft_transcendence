@@ -24,3 +24,8 @@ CREATE TABLE IF NOT EXISTS session_ (
 	temporary_auth_expires_at TIMESTAMPTZ,
 	temporary_auth_failed_attempts INTEGER NOT NULL DEFAULT 0
 );
+
+CREATE TABLE IF NOT EXISTS completedgames (
+	gameid UUID PRIMARY KEY,
+	winner TEXT NOT NULL
+);

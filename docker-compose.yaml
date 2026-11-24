@@ -72,30 +72,34 @@ services:
         timeout: 3s
         retries: 10
 
-    monitoringexporter:
-      build: ./monitoring/exporter
-      restart: unless-stopped
-      environment:
-        VAULT_ADDR: http://vault:8200
-        EXPORTER_VAULT_TOKEN_FILE: /run/secrets/exporter_vault_token
-      secrets:
-        - exporter_vault_token
-      depends_on:
-        vault:
-          condition: service_healthy
-        postgres:
-          condition: service_healthy
-      networks:
-        - database
-        - monitoring
-        - secrets
-
     nginx_exporter:
       networks:
         - monitoring
       image: nginx/nginx-prometheus-exporter:1.5.1
       command: ["--nginx.scrape-uri", "http://nginx_prod:3001/stub_status"]
+
+    node_exporter:
+      image: quay.io/prometheus/node-exporter:latest
+      restart: unless-stopped
+      pid: host
+      command:
+        - --path.rootfs=/host
+      volumes:
+        - /:/host:ro
+      networks:
+        - monitoring
  
+    telegraf:
+      image: telegraf:1.40.3-alpine
+      restart: unless-stopped
+      networks:
+        - database
+        - monitoring
+      secrets:
+        - telegraf_postgres_dsn
+      volumes:
+        - ./monitoring/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+
     prometheus:
       image: prom/prometheus:v3.13.1
       volumes:
@@ -122,6 +126,14 @@ services:
         GF_LOG_LEVEL: warn
         GF_SERVER_SERVE_FROM_SUB_PATH: "true"
         GF_SERVER_ROOT_URL: "https://monitoring.localhost:8443/"
+        GF_PLUGINS_PREINSTALL_SYNC: "yesoreyeram-infinity-datasource"
+        GF_SMTP_ENABLED: "${GRAFANA_SMTP_ENABLED:-true}"
+        GF_SMTP_HOST: "smtp.gmail.com:587"
+        GF_SMTP_STARTTLS_POLICY: "MandatoryStartTLS"
+        GF_SMTP_USER: "${EMAIL_USER}"
+        GF_SMTP_PASSWORD: "${EMAIL_PASSWORD}"
+        GF_SMTP_FROM_ADDRESS: "${GRAFANA_SMTP_FROM_ADDRESS:-${EMAIL_USER}}"
+        alert_email: "${alert_email:-${EMAIL_USER}}"
       secrets:
         - grafana_admin_user
         - grafana_admin_password
@@ -210,10 +222,10 @@ volumes:
   vault_data:
 
 secrets:
+  telegraf_postgres_dsn:
+    environment: TELEGRAF_POSTGRES_DSN
   backend_vault_token:
     file: ./tokens/.backend_vault_token
-  exporter_vault_token:
-    file: ./tokens/.exporter_vault_token
   backups_vault_token:
     file: ./tokens/.backups_vault_token
   grafana_admin_user:
