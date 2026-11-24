@@ -69,7 +69,7 @@ export class Room {
         }, 250);
     }
 
-    bouldercheck() {
+    private bouldercheck() {
         const now = Date.now();
 
         this.boulders = this.boulders.filter((boulder) => {
@@ -89,7 +89,29 @@ export class Room {
         });
     }
 
-    winnercheck(socket: Socket) {
+    private async registerwinner(winner: string) {
+        const { query } = await import('../security/auth/db.js');
+        const result = await query(
+            `
+		INSERT INTO completedgames
+		(
+			gameid,
+			winner
+		)
+		VALUES
+		(
+			$1,
+			$2
+		)
+		RETURNING
+			gameid,
+            winner
+		`,
+            [this.roomId, winner]
+        );
+        return result.rows[0];
+    }
+    private winnercheck(socket: Socket) {
         if (!this.active()) return;
 
         const remainingPlayers = Array.from(this.players.values()).filter(
@@ -101,6 +123,7 @@ export class Room {
             socket.nsp
                 .to(this.roomId)
                 .emit('game_end', { winnerid: winner.getUserId() });
+            this.registerwinner(winner.getUsername());
         }
     }
 
