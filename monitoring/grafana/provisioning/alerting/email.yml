@@ -8,6 +8,12 @@ contactPoints:
         type: email
         settings:
           addresses: $alert_email
+          message: |
+            {{ range .Alerts }}
+            {{ .Labels.alertname }} ({{ .Status }})
+            {{ .Annotations.summary }}
+            View alert: {{ .GeneratorURL }}
+            {{ end }}
 
 policies:
   - orgId: 1
