@@ -9,9 +9,6 @@ VAULT_SECRETS_FILE=".vault_secrets"
 BACKEND_VAULT_TOKEN_FILE="$VAULT_TOKEN_DIR/.backend_vault_token"
 BACKEND_VAULT_POLICY="transcendence-backend"
 
-POSTGRES_EXPORTER_VAULT_TOKEN_FILE="$VAULT_TOKEN_DIR/.exporter_vault_token"
-POSTGRES_EXPORTER_VAULT_POLICY="transcendence-postgres_exporter"
-
 GRAFANA_VAULT_TOKEN_FILE="$VAULT_TOKEN_DIR/.grafana_vault_token"
 GRAFANA_VAULT_POLICY="transcendence-grafana"
 GRAFANA_SECRETS_DIR="$VAULT_TOKEN_DIR/grafana"

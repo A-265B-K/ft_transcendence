@@ -62,7 +62,7 @@ The bootstrap process follows this sequence:
 8. Enable the `app/` KV v2 engine and configure project secrets
 9. Start PostgreSQL and wait for it to become ready
 10. Verify PostgreSQL access and generate database credentials when needed
-11. Create application, exporter, and backups roles in PostgreSQL
+11. Create application and backups roles in PostgreSQL
 12. Store credentials in Vault
 13. Create service-specific Vault tokens
 14. Generate Grafana secret files

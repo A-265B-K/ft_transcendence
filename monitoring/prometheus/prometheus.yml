@@ -13,10 +13,6 @@ scrape_configs:
       - targets:
           - nginx_exporter:9113
 
-  - job_name: postgres
-    static_configs:
-      - targets: ["monitoringexporter:80"]
-
   - job_name: node
     static_configs:
       - targets: ["node_exporter:9100"]

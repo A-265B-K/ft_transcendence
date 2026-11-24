@@ -46,6 +46,7 @@ services:
         SERVER_NAME: "localhost"
       ports:
         - "8443:8443"
+        - "127.0.0.1:9443:9443"
       networks:
         - edge
         - monitoring
@@ -71,24 +72,6 @@ services:
         interval: 5s
         timeout: 3s
         retries: 10
-
-    monitoringexporter:
-      build: ./monitoring/exporter
-      restart: unless-stopped
-      environment:
-        VAULT_ADDR: http://vault:8200
-        EXPORTER_VAULT_TOKEN_FILE: /run/secrets/exporter_vault_token
-      secrets:
-        - exporter_vault_token
-      depends_on:
-        vault:
-          condition: service_healthy
-        postgres:
-          condition: service_healthy
-      networks:
-        - database
-        - monitoring
-        - secrets
 
     nginx_exporter:
       networks:
@@ -122,6 +105,7 @@ services:
       command:
       - --config.file=/etc/prometheus/prometheus.yml
       - --storage.tsdb.path=/prometheus
+      - --web.external-url=https://prometheus.localhost:9443
       - --web.enable-admin-api
 
 
@@ -230,8 +214,6 @@ volumes:
 secrets:
   backend_vault_token:
     file: ./tokens/.backend_vault_token
-  exporter_vault_token:
-    file: ./tokens/.exporter_vault_token
   backups_vault_token:
     file: ./tokens/.backups_vault_token
   grafana_admin_user:
