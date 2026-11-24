@@ -104,7 +104,6 @@ services:
       command:
       - --config.file=/etc/prometheus/prometheus.yml
       - --storage.tsdb.path=/prometheus
-      - --web.external-url=https://prometheus.localhost:8443
       - --web.enable-admin-api
 
 
