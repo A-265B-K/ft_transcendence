@@ -7,7 +7,6 @@ import type { WeaponType } from '../combat/Weapon.js';
 import * as roomCombat from './roomCombat.js';
 import * as roomMovement from './roomMovement.js';
 import { getDistance } from '../util.js';
-import { query } from '../security/auth/db.js';
 
 export type Cost = { wood: number; iron: number };
 export class Room {
@@ -91,6 +90,7 @@ export class Room {
     }
 
     private async registerwinner(winner: string) {
+        const { query } = await import('../security/auth/db.js');
         const result = await query(
             `
 		INSERT INTO completedgames
