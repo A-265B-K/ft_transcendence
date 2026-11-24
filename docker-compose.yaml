@@ -37,7 +37,7 @@ services:
         grafana:
           condition: service_healthy
       environment:
-        MODSEC_RULE_ENGINE: "Off"
+        MODSEC_RULE_ENGINE: "On"
         BLOCKING_PARANOIA: "1"
         ANOMALY_INBOUND: "5"
         MODSEC_AUDIT_ENGINE: "RelevantOnly"
