@@ -59,13 +59,34 @@ export default function Room({ joinedData, onStartGame }: RoomProps) {
         const handleGameStart = (data: {
             roomId: string;
             players: JoinedPayload['players'];
+            map: JoinedPayload['map'];
         }) => {
             if (data.roomId !== roomId || !currentJoinedData) return;
 
             localStorage.setItem('gameRoomId', data.roomId);
-            currentJoinedData.players = data.players;
-            onStartGame(currentJoinedData);
+
+            const updatedPlayers = data.players;
+
+            const updatedLocalPlayer = updatedPlayers.find(
+                (player) =>
+                    player.socketId === currentJoinedData.player.socketId
+            );
+
+            if (!updatedLocalPlayer) {
+                console.error('Local player not found in gamestart payload');
+                return;
+            }
+
+            const gameData: JoinedPayload = {
+                ...currentJoinedData,
+                player: updatedLocalPlayer,
+                players: updatedPlayers,
+                map: data.map
+            };
+
+            onStartGame(gameData);
         };
+
         const handleRoomUpdate = (data: {
             roomId: string;
             playerCount: number;

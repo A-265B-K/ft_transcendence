@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { ROOM_MAX_SIZE } from '../srcs/constants.js';
+import {
+    PLAYER_MAX_HP,
+    PLAYER_RESPAWN_DELAY,
+    ROOM_MAX_SIZE
+} from '../srcs/constants.js';
 import type { Resource } from '../srcs/map.js';
 import { Room } from '../srcs/room/room.js';
 import type { GameMap } from '../srcs/map.js';
@@ -29,7 +33,9 @@ function makeRoom(started = false): Room {
                 {
                     playerSlot: slot,
                     setlevel: () => undefined,
+                    setOwner: () => undefined,
                     getlevel: () => 1,
+                    gethealth: () => 100,
                     isDestroyed: () => false,
                     getposition: () => ({ x: slot * 10, y: 10 })
                 }
@@ -152,6 +158,35 @@ test('weapon crafting preserves insufficient resources and deducts recipe cost',
     });
 });
 
+test('weapon attacks require equipment on spawn and after respawn', () => {
+    const room = makeRoom();
+    const user = makeUser('user-1');
+    const socket = makeSocket(user.id);
+    room.join(socket, user);
+
+    const state = room as unknown as RoomState;
+    state.started = true;
+    const player = state.players.get(user.id);
+    assert.ok(player);
+    const attack = { direction: 'right' };
+
+    assert.equal(player.getEquippedWeapon(), undefined);
+    assert.equal(player.toJSON().equippedWeapon, null);
+    assert.equal(room.handleAttack(user, attack, socket), false);
+
+    player.addResources({ type: 'wood', amount: 15 } as Resource);
+    player.addResources({ type: 'iron', amount: 15 } as Resource);
+    assert.ok(room.craftWeapon(user.id, 'dagger'));
+    assert.equal(player.toJSON().equippedWeapon, 'dagger');
+    assert.equal(room.handleAttack(user, attack, socket), true);
+
+    player.takeDamage(PLAYER_MAX_HP);
+    assert.equal(player.respawn(Date.now() + PLAYER_RESPAWN_DELAY), true);
+    assert.equal(player.getEquippedWeapon(), undefined);
+    assert.equal(player.toJSON().equippedWeapon, null);
+    assert.equal(room.handleAttack(user, attack, socket), false);
+});
+
 test('destroyed castles block forge operations', () => {
     const room = makeRoom(true);
     const user = makeUser('user-1');
@@ -167,4 +202,20 @@ test('destroyed castles block forge operations', () => {
     assert.equal(room.upgradecastle(user.id), null);
     assert.equal(room.equiparmor(user.id), false);
     assert.equal(room.payForCatapult(user.id, 'user-2'), null);
+});
+
+test('a dead player respawns while their castle is standing', () => {
+    const room = makeRoom();
+    const user = makeUser('user-1');
+
+    room.join(makeSocket(user.id), user);
+    const state = room as unknown as RoomState;
+    const player = state.players.get(user.id);
+    assert.ok(player);
+
+    player.takeDamage(PLAYER_MAX_HP);
+    assert.equal(player.isOutOfGame(), false);
+    assert.equal(player.respawn(Date.now() + PLAYER_RESPAWN_DELAY), true);
+    assert.equal(player.isAlive(), true);
+    assert.equal(player.getHp(), PLAYER_MAX_HP);
 });

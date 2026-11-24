@@ -69,7 +69,6 @@ export const nl = {
         // menu button
         gameMenu: 'Spelmenu',
         gamePaused: 'Je spel is gepauzeerd',
-        invitationCode: 'Uitnodigingscode',
         resumeGame: 'Spel hervatten',
         pressEscToResume: 'Druk op ESC om door te gaan',
 
@@ -123,6 +122,8 @@ export const nl = {
         settings: 'Instellingen',
         twoFactorAuthentication: 'Tweestapsverificatie',
         passwordReset: 'Wachtwoord opnieuw instellen',
+        confirmPasswordResetRequest:
+            'Bevestig om een resetlink naar het e-mailadres van je account te sturen.',
         passwordResetRequestSent:
             'Als er een account met dit e-mailadres bestaat, wordt er een link voor het opnieuw instellen van het wachtwoord verstuurd.',
 
@@ -133,7 +134,6 @@ export const nl = {
         twoFactorVerificationFailed: 'Tweestapsverificatie mislukt',
         loading: 'Laden...',
 
-        enterEmail: 'Voer eerst je e-mailadres in',
         twoFactorSetupFailed:
             'Het instellen van tweestapsverificatie is mislukt',
         twoFactorScanQr: 'Scan deze QR-code met je authenticator-app',
@@ -166,6 +166,12 @@ export const nl = {
         chooseWeaponToCraft: 'Kies een wapen om te maken.',
 
         closeForge: 'Smidse sluiten',
-        openForge: 'Smidse openen'
+        openForge: 'Smidse openen',
+
+        controls: 'Besturing',
+        move: 'Bewegen',
+        castleAttack: 'Kasteel aanval',
+        weaponAttack: 'Wapenaanval',
+        waitingToRespawn: 'Wachten op respawn..'
     }
 };

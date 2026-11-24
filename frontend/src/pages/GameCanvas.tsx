@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 import type { WeaponType } from '../game/entities/weapons/weapon';
 import healingIcon from '../assets/castleboons/healing.png';
 import shieldIcon from '../assets/castleboons/shield.png';
+import boulderIcon from '../assets/boulder-r.png';
 import Endgame from './Endgame';
 
 const CASTLE_HEAL_RADIUS = 10;
@@ -45,10 +46,13 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
 
     const [nearCastle, setNearCastle] = useState(false);
     const [withinHealingRange, setWithinHealingRange] = useState(false);
+    const [boulderReady, setboulderready] = useState(false);
 
     const [paused, setPaused] = useState(false);
 
     const [winner, setWinner] = useState('');
+
+    const canSpectate = spectating && castlelvl === 0;
 
     const resumeGame = useCallback(() => {
         setPaused(false);
@@ -191,25 +195,42 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             }
 
             game.removeRemotePlayer(data.player);
-            game.removeRemoteCastle(data.player);
         }
 
-        function handleResourceCollected({
-            x,
-            y,
+        function handlePlayerRespawned(data: {
+            player: JoinedPayload['players'][number];
+        }) {
+            const player = data.player;
+            if (player.userId === joinedData.player.userId) {
+                game.equipWeapon(player.equippedWeapon);
+                game.respawnLocalPlayer(player.x, player.y);
+                setHp(player.hp);
+                setSpectating(false);
+                return;
+            }
+
+            game.addRemotePlayer(player);
+            setOpponents((current) =>
+                current.some((opponent) => opponent.userId === player.userId)
+                    ? current
+                    : [...current, player]
+            );
+        }
+
+        function handleResourceCollected({ x, y }: { x: number; y: number }) {
+            game.removeResourceTile(x, y);
+        }
+
+        function handleInventoryUpdated({
             playerId,
             inventory
         }: {
-            x: number;
-            y: number;
             playerId: string;
             inventory: {
                 wood: number;
                 iron: number;
             };
         }) {
-            game.removeResourceTile(x, y);
-
             if (playerId === joinedData.player.userId) {
                 game.syncInventory(inventory.wood, inventory.iron);
             }
@@ -236,7 +257,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             game.spawnResourceTile(x, y, type);
         }
 
-        function handleCastleUpgrade({
+        function handleCastleLvlupdate({
             socketId,
             level
         }: {
@@ -325,7 +346,6 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         }
 
         const handlearmor = (data: { armor: boolean }) => {
-            game.setarmor(data.armor);
             setArmorActive(data.armor);
         };
 
@@ -337,16 +357,24 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             ack();
         };
 
+        const handleboulderready = (data: { ready: boolean }) => {
+            if (data && data.ready !== undefined) {
+                setboulderready(data.ready);
+            }
+        };
+
         socket.on('player_joined', handlePlayerJoined);
         socket.on('player_move', handlePlayerMove);
         socket.on('player_left', handlePlayerLeft);
         socket.on('resource_collected', handleResourceCollected);
+        socket.on('inventory_updated', handleInventoryUpdated);
         socket.on('join_error', handleJoinError);
         socket.on('player_hp', handlePlayerHP);
         socket.on('player_attacked', handlePlayerAttacked);
         socket.on('resource_spawned', handleResourceSpawned);
-        socket.on('castle_update', handleCastleUpgrade);
+        socket.on('castlelvlupdate', handleCastleLvlupdate);
         socket.on('player_died', handlePlayerDied);
+        socket.on('player_respawned', handlePlayerRespawned);
         socket.on('player_weapon_equipped', handlePlayerWeaponEquipped);
         socket.on('armor', handlearmor);
         socket.on('castle_attack_started', handleCastleAttackStarted);
@@ -357,6 +385,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         socket.on('catapult_fire', handleCatapultFire);
         socket.on('catapult_damaged', handleCatapultDamaged);
         socket.on('catapult_broken', handlecatapultbroken);
+        socket.on('boulderready', handleboulderready);
         socket.on('game_end', handleGameEnd);
         socket.on('poll', replyToPoll);
 
@@ -380,10 +409,12 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             socket.off('player_hp', handlePlayerHP);
             socket.off('player_attacked', handlePlayerAttacked);
             socket.off('player_died', handlePlayerDied);
+            socket.off('player_respawned', handlePlayerRespawned);
             socket.off('resource_collected', handleResourceCollected);
+            socket.off('inventory_updated', handleInventoryUpdated);
             socket.off('resource_spawned', handleResourceSpawned);
             socket.off('join_error', handleJoinError);
-            socket.off('castle_update', handleCastleUpgrade);
+            socket.off('castlelvlupdate', handleCastleLvlupdate);
             socket.off('player_weapon_equipped', handlePlayerWeaponEquipped);
             socket.off('armor', handlearmor);
             socket.off('castle_attack_started', handleCastleAttackStarted);
@@ -396,6 +427,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             socket.off('catapult_broken', handlecatapultbroken);
             socket.off('game_end', handleGameEnd);
             socket.off('poll', replyToPoll);
+            socket.off('boulderready', handleboulderready);
             window.clearInterval(intervalId);
 
             gameRef.current = null;
@@ -487,6 +519,13 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
                                     className="h-12 w-12 object-contain"
                                 />
                             )}
+                            {boulderReady && (
+                                <img
+                                    src={boulderIcon}
+                                    alt="boulder"
+                                    className="h-12 w-12 object-contain"
+                                />
+                            )}
                         </div>
                     </div>
 
@@ -562,16 +601,20 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
                         </h2>
 
                         <p className="mb-4 text-sm text-white/50">
-                            {t('spectating')}
+                            {canSpectate
+                                ? t('spectating')
+                                : t('waitingToRespawn')}
                         </p>
 
-                        <button
-                            type="button"
-                            onClick={handleLeave}
-                            className="w-full rounded-xl bg-red-500 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-red-600"
-                        >
-                            {t('leaveGame')}
-                        </button>
+                        {canSpectate && (
+                            <button
+                                type="button"
+                                onClick={handleLeave}
+                                className="w-full rounded-xl bg-red-500 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-red-600"
+                            >
+                                {t('leaveGame')}
+                            </button>
+                        )}
                     </div>
                 </div>
             )}

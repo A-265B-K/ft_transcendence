@@ -78,12 +78,13 @@ What to do:
 
 ## 6. Add hardening around the auth flow
 
-Goal: reduce brute force and abuse.
+<!-- Goal: reduce brute force and abuse.
 
 What to do:
 
 - Add rate limiting on register/login/2FA endpoints.
-- Add login backoff or temporary lockout after repeated failures.
+- Add login backoff or temporary lockout after repeated failures. -->
+
 - Log auth events and suspicious websocket joins.
 - Add CSRF protection if you use cookies for browser sessions.
 - Validate input strictly server-side.
@@ -99,4 +100,4 @@ What to do:
 
 <!-- 7. Add ModSecurity/WAF at the Nginx edge and tune it. -->
 
-8. Add rate limiting, lockout, and audit logging.
+<!-- 8. Add rate limiting, lockout, and audit logging. -->

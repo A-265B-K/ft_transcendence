@@ -48,6 +48,13 @@ export function isPositionOccupied(
     return false;
 }
 
+function isnearobstacle(map: GameMap, pos: Vec2) {
+    for (const obstacle of map.getobstacles()) {
+        const obstaclePos: Vec2 = { x: obstacle.x, y: obstacle.y };
+        if (getDistance(pos, obstaclePos) <= obstacle.radius) return true;
+    }
+    return false;
+}
 export function positionIsAllowed(
     map: GameMap,
     players: ReadonlyMap<string, Player>,
@@ -60,7 +67,8 @@ export function positionIsAllowed(
         (player.isAlive() &&
             (isCollidingWithOtherPlayer(players, user.id, pos) ||
                 isCollidingWithCastle(map, players, pos) ||
-                isCollidingWithCatapult(players, pos)))
+                isCollidingWithCatapult(players, pos))) ||
+        isnearobstacle(map, pos)
     );
 }
 
@@ -155,17 +163,17 @@ export function movePlayer(
 
         const collectedResource = tryCollectResource(map, player, nextPos);
         if (collectedResource) {
-            const payload = {
+            socket.nsp.to(roomId).emit('resource_collected', {
                 resourceId: collectedResource.id,
                 type: collectedResource.type,
                 x: collectedResource.x,
                 y: collectedResource.y,
+                playerId: user.id
+            });
+            socket.emit('inventory_updated', {
                 playerId: user.id,
                 inventory: player.getInventory()
-            };
-
-            socket.emit('resource_collected', payload);
-            socket.to(roomId).emit('resource_collected', payload);
+            });
 
             map.scheduleResourceRespawn(socket, roomId, collectedResource);
         }

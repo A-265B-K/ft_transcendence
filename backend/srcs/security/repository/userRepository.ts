@@ -66,7 +66,9 @@ export async function findUserByEmail(email: string) {
 			email_verified,
 			password_hash,
 			enabled_2fa,
-			totp_secret
+			totp_secret,
+			failed_login_attempts,
+    		login_locked_until
 		FROM users
 		WHERE email = $1
 		`,
@@ -198,4 +200,75 @@ export async function deletePasswordResetToken(email: string) {
         [email]
     );
     return result.rows[0];
+}
+
+export async function recordFailedLoginAttempt(
+    userId: string
+): Promise<{ attempts: number; locked: boolean } | null> {
+    const result = await query(
+        `
+        UPDATE users
+        SET
+            failed_login_attempts =
+                CASE
+                    WHEN login_locked_until IS NOT NULL
+                         AND login_locked_until <= NOW()
+                    THEN 1
+                    ELSE failed_login_attempts + 1
+                END,
+            login_locked_until =
+                CASE
+                    WHEN (
+                        CASE
+                            WHEN login_locked_until IS NOT NULL
+                                 AND login_locked_until <= NOW()
+                            THEN 1
+                            ELSE failed_login_attempts + 1
+                        END
+                    ) >= 5
+                    THEN NOW() + INTERVAL '5 minutes'
+                    ELSE NULL
+                END
+        WHERE id = $1
+          AND (
+              login_locked_until IS NULL
+              OR login_locked_until <= NOW()
+          )
+        RETURNING
+            failed_login_attempts,
+            login_locked_until IS NOT NULL AS locked
+        `,
+        [userId]
+    );
+
+    if (result.rows.length === 0) {
+        return null;
+    }
+
+    return {
+        attempts: Number(result.rows[0].failed_login_attempts),
+        locked: result.rows[0].locked
+    };
+}
+
+export async function resetFailedLoginAttempts(
+    userId: string
+): Promise<boolean> {
+    const result = await query(
+        `
+        UPDATE users
+        SET
+            failed_login_attempts = 0,
+            login_locked_until = NULL
+        WHERE id = $1
+          AND (
+              login_locked_until IS NULL
+              OR login_locked_until <= NOW()
+          )
+        RETURNING id
+        `,
+        [userId]
+    );
+
+    return result.rows.length === 1;
 }

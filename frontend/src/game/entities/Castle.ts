@@ -1,5 +1,4 @@
 import { Container, Graphics, Sprite, Text, TextStyle, Texture } from 'pixi.js';
-import { MAP_SIZE } from '../config/constants';
 import { isoX, isoY } from '../world/iso';
 
 export type CastleTextures = {
@@ -19,12 +18,17 @@ export class Castle {
     gridX = 0;
     gridY = 0;
     level = 1;
-    private health = 100;
+    private health = 200;
 
     private readonly textures: CastleTextures;
+    private readonly mapWidth: number;
+    private readonly mapHeight: number;
 
-    constructor(textures: CastleTextures) {
+    constructor(textures: CastleTextures, mapWidth: number, mapHeight: number) {
         this.textures = textures;
+        this.mapWidth = mapWidth;
+        this.mapHeight = mapHeight;
+
         this.container = new Container();
         this.sprite = new Sprite(textures.castle1);
         this.sprite.anchor.set(0.5, 0.6);
@@ -51,14 +55,14 @@ export class Castle {
         this.container.addChild(this.sprite);
         this.container.addChild(this.healthBar);
         this.container.addChild(this.levelLabel);
-        this.setHealth(100);
+        this.setHealth(200);
         this.refreshLabel();
     }
 
     placeAt(gridX: number, gridY: number) {
-        this.gridX = Math.max(0, Math.min(MAP_SIZE - 2, gridX));
+        this.gridX = Math.max(0, Math.min(this.mapWidth - 2, gridX));
 
-        this.gridY = Math.max(0, Math.min(MAP_SIZE - 2, gridY));
+        this.gridY = Math.max(0, Math.min(this.mapHeight - 2, gridY));
 
         this.syncPosition();
     }
@@ -68,14 +72,15 @@ export class Castle {
 
         this.level = level;
 
+        this.setHealth(200);
         this.updateTexture();
         this.refreshLabel();
     }
 
     setHealth(health: number) {
         const width = 48;
-        this.health = Math.max(0, Math.min(100, health));
-        const ratio = Math.max(0, Math.min(1, health / 100));
+        this.health = Math.max(0, Math.min(200, health));
+        const ratio = Math.max(0, Math.min(1, health / 200));
         this.healthBar.clear();
         this.healthBar.rect(0, 0, width, 5).fill('#222b33');
         this.healthBar.rect(0, 0, width * ratio, 5).fill('#e65b47');
@@ -115,9 +120,7 @@ export class Castle {
 
     private syncPosition() {
         this.container.x = isoX(this.gridX, this.gridY);
-
         this.container.y = isoY(this.gridX, this.gridY);
-
         this.container.zIndex = this.gridX + this.gridY;
     }
 }

@@ -41,7 +41,7 @@ export class Game {
         };
     }
 
-    equipWeapon(weapon: WeaponType) {
+    equipWeapon(weapon: WeaponType | null) {
         this.scene?.player.equipWeapon(weapon);
     }
     equipremoteweapon(socketId: string, weapon: WeaponType) {
@@ -183,11 +183,8 @@ export class Game {
     setPlayerDead(): void {
         this.scene?.setPlayerDead();
     }
-    armoractive() {
-        return this.scene?.player.hasarmor();
-    }
-    setarmor(newarmor: boolean) {
-        this.scene?.player.setarmor(newarmor);
+    respawnLocalPlayer(x: number, y: number): void {
+        this.scene?.respawnLocalPlayer(x, y);
     }
     launchboulder(shot: CastleAttackStarted) {
         this.scene?.launchboulder(shot);

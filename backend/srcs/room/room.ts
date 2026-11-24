@@ -1,7 +1,7 @@
 import { randomUUID } from 'crypto';
 import { ROOM_MAX_SIZE } from '../constants.js';
 import { GameMap } from '../map.js';
-import type { Socket, SocketUser, Vec2, boulder } from '../types.js';
+import type { Socket, SocketUser, boulder } from '../types.js';
 import { Player } from '../entities/player.js';
 import type { WeaponType } from '../combat/Weapon.js';
 import * as roomCombat from './roomCombat.js';
@@ -21,6 +21,7 @@ export class Room {
     private started: boolean;
     private finished: boolean;
     private timer: ReturnType<typeof setInterval> | null = null;
+    private polltimer: ReturnType<typeof setInterval> | null = null;
 
     constructor(name: string, hostId: string, code: string, socket: Socket) {
         this.name = name;
@@ -28,15 +29,16 @@ export class Room {
         this.roomId = randomUUID();
         this.code = code;
         this.players = new Map<string, Player>();
-        this.map = new GameMap(ROOM_MAX_SIZE);
+        this.map = new GameMap([1, 2, 3, 4]);
         this.started = false;
         this.finished = false;
         console.log(`Room created: ${name} [${this.code}]`);
         this.gameloop(socket);
+        this.polloop(socket);
     }
 
-    private gameloop(socket: Socket) {
-        this.timer = setInterval(() => {
+    private polloop(socket: Socket) {
+        this.polltimer = setInterval(() => {
             for (const player of this.players.values()) {
                 player.poll().then((responsive) => {
                     if (this.players.get(player.getUserId()) !== player) return;
@@ -49,10 +51,16 @@ export class Room {
                     }
                 });
             }
+        }, 2000);
+    }
+    private gameloop(socket: Socket) {
+        this.timer = setInterval(() => {
             if (!this.active()) return;
 
             for (const player of this.players.values()) {
                 player.castlecheck();
+                player.respawn();
+                player.getCastle().checkAttack();
                 for (const catapult of player.getcatapults()) {
                     catapult.loop();
                 }
@@ -106,16 +114,12 @@ export class Room {
     private winnercheck(socket: Socket) {
         if (!this.active()) return;
 
-        let playercount = 0;
-        let winner;
-        for (const player of this.players.values()) {
-            if (player.isAlive()) {
-                winner = player;
-                playercount++;
-            }
-        }
-        this.finished = playercount <= 1;
-        if (this.hasFinished() && winner) {
+        const remainingPlayers = Array.from(this.players.values()).filter(
+            (player) => !player.isOutOfGame()
+        );
+        this.finished = remainingPlayers.length <= 1;
+        const winner = remainingPlayers[0];
+        if (this.hasFinished() && remainingPlayers.length === 1 && winner) {
             socket.nsp
                 .to(this.roomId)
                 .emit('game_end', { winnerid: winner.getUserId() });
@@ -149,10 +153,34 @@ export class Room {
     startgame(userId: string, socket: Socket) {
         if (!this.isHost(userId) || this.hasStarted()) return;
 
+        const players = Array.from(this.players.values());
+
+        if (players.length < 2) return;
+
+        const playerSlots = players.map((player) => player.getSlot());
+
+        const newMap = new GameMap(playerSlots);
+
+        for (const player of players) {
+            const slot = player.getSlot();
+            const spawn = newMap.getSpawnPoint(slot);
+            const castle = newMap.getCastle(slot);
+
+            if (!spawn || !castle) {
+                console.error(`Missing game setup for slot ${slot}`);
+                return;
+            }
+
+            player.setGameSetup(spawn, castle);
+        }
+
+        this.map = newMap;
         this.started = true;
+
         socket.nsp.to(this.roomId).emit('gamestart', {
             roomId: this.roomId,
-            players: Array.from(this.players.values())
+            players,
+            map: this.map
         });
     }
 
@@ -268,37 +296,6 @@ export class Room {
         return null;
     }
 
-    isSlotOccupied(slot: number): boolean {
-        return roomMovement.isSlotOccupied(this.players, slot);
-    }
-
-    isPositionOccupied(
-        selfUserId: string,
-        position: Vec2,
-        collisionRadius: number
-    ): boolean {
-        return roomMovement.isPositionOccupied(
-            this.players,
-            selfUserId,
-            position,
-            collisionRadius
-        );
-    }
-
-    positionIsAllowed(player: Player, user: SocketUser, pos: Vec2): boolean {
-        return roomMovement.positionIsAllowed(
-            this.map,
-            this.players,
-            player,
-            user,
-            pos
-        );
-    }
-
-    tryCollectResource(player: Player, pos: Vec2) {
-        return roomMovement.tryCollectResource(this.map, player, pos);
-    }
-
     private getPlayerByUserId(userId: string): Player | null {
         const player = this.players.get(userId);
 
@@ -402,11 +399,16 @@ export class Room {
 
         const player = this.getPlayerByUserId(userId);
         const target = this.getPlayerByUserId(targetUserId);
+        const otherPlayers = Array.from(this.players.values()).filter(
+            (otherPlayer) =>
+                otherPlayer.getUserId() !== userId &&
+                otherPlayer.getUserId() !== target?.getUserId()
+        );
         if (
             !target ||
             targetUserId === userId ||
             !target.isAlive() ||
-            !player?.payForCatapult(target, this.map)
+            !player?.payForCatapult(target, otherPlayers, this.map)
         )
             return null;
 

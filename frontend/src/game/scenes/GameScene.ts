@@ -65,31 +65,51 @@ export class GameScene {
         );
 
         this.world.addChild(this.map.container);
+        for (const { type, x, y } of joinedData.map.obstacles) {
+            if (type !== 'rock' && type !== 'tree') continue;
 
-        this.player = new Player({
-            playerDown1: textures.playerDown1,
-            playerDown2: textures.playerDown2,
+            const sprite = new Sprite(textures[type]);
 
-            playerUp1: textures.playerUp1,
-            playerUp2: textures.playerUp2,
+            sprite.anchor.set(0.5, type === 'rock' ? 0.87 : 0.79);
+            sprite.scale.set(
+                (type === 'rock' ? 160 : 128) / sprite.texture.width
+            );
+            sprite.position.set(isoX(x, y), isoY(x, y));
+            sprite.zIndex = x + y + 1;
 
-            playerLeft1: textures.playerLeft1,
-            playerLeft2: textures.playerLeft2,
+            this.world.addChild(sprite);
+        }
 
-            playerRight1: textures.playerRight1,
-            playerRight2: textures.playerRight2,
+        this.player = new Player(
+            {
+                playerDown1: textures.playerDown1,
+                playerDown2: textures.playerDown2,
 
-            playerStand: textures.playerStand
-        });
+                playerUp1: textures.playerUp1,
+                playerUp2: textures.playerUp2,
+
+                playerLeft1: textures.playerLeft1,
+                playerLeft2: textures.playerLeft2,
+
+                playerRight1: textures.playerRight1,
+                playerRight2: textures.playerRight2,
+
+                playerStand: textures.playerStand
+            },
+            this.map.width,
+            this.map.height,
+            joinedData.player.username
+        );
 
         this.player.placeAt(joinedData.player.x, joinedData.player.y);
+        this.player.equipWeapon(joinedData.player.equippedWeapon);
         this.world.addChild(this.player.container);
 
         this.createRemotePlayers();
 
         this.castle = this.createCastles();
 
-        this.camera = new Camera(this.world);
+        this.camera = new Camera(this.world, this.map.width, this.map.height);
     }
 
     RemotePlayerattack(
@@ -153,13 +173,17 @@ export class GameScene {
     }
 
     private createCastle() {
-        return new Castle({
-            castle1: this.textures.castle1,
-            castle2: this.textures.castle2,
-            castle3: this.textures.castle3,
-            castle4: this.textures.castle4,
-            destroyedCastle: this.textures.destroyedCastle
-        });
+        return new Castle(
+            {
+                castle1: this.textures.castle1,
+                castle2: this.textures.castle2,
+                castle3: this.textures.castle3,
+                castle4: this.textures.castle4,
+                destroyedCastle: this.textures.destroyedCastle
+            },
+            this.map.width,
+            this.map.height
+        );
     }
 
     addRemotePlayer(player: JoinedPayload['players'][number]) {
@@ -187,13 +211,13 @@ export class GameScene {
 
                 playerStand: this.textures.playerStand
             },
-            player.userId
+            player.username
         );
 
         remote.placeAt(player.x, player.y);
 
         this.remotePlayers.set(player.socketId, remote);
-        if (player.equippedweapon) remote.equipWeapon(player.equippedweapon);
+        if (player.equippedWeapon) remote.equipWeapon(player.equippedWeapon);
 
         this.world.addChild(remote.container);
     }
@@ -524,9 +548,11 @@ export class GameScene {
 
     setPlayerDead(): void {
         this.player.container.visible = false;
-        if (this.castle) {
-            this.castle.container.visible = false;
-        }
+    }
+
+    respawnLocalPlayer(x: number, y: number): void {
+        this.player.placeAt(x, y);
+        this.player.container.visible = true;
     }
 
     launchboulder(shot: CastleAttackStarted) {

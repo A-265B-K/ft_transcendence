@@ -2,9 +2,13 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { istargethit, type Direction } from '../srcs/combat/Detection.js';
 import { SWORD_ATTACK } from '../srcs/combat/Weapon.js';
-import { CASTLE_MAX_HP, CATAPULT_MAX_HP } from '../srcs/constants.js';
-import { castle } from '../srcs/entities/castle.js';
-import { catapult } from '../srcs/entities/catapult.js';
+import {
+    CASTLE_MAX_HP,
+    CATAPULT_ATTACK_DAMAGE,
+    CATAPULT_MAX_HP
+} from '../srcs/constants.js';
+import { Castle } from '../srcs/entities/castle.js';
+import { Catapult } from '../srcs/entities/catapult.js';
 import { handleRoomAttack } from '../srcs/room/roomCombat.js';
 import type { Player, WeaponType } from '../srcs/entities/player.js';
 import type { Socket, Vec2 } from '../srcs/types.js';
@@ -126,7 +130,7 @@ test('room attack damages only living targets inside the hitbox', () => {
     );
 
     assert.equal(result, true);
-    assert.deepEqual(damageTaken, [10]);
+    assert.deepEqual(damageTaken, [SWORD_ATTACK.damage]);
     assert.deepEqual(attacksStarted, ['sword']);
     assert.deepEqual(events, [
         {
@@ -164,7 +168,7 @@ test('room attack can hit a catapult by its larger collision radius', () => {
         { direction: 'right' }
     );
 
-    assert.deepEqual(damageTaken, [10]);
+    assert.deepEqual(damageTaken, [SWORD_ATTACK.damage]);
 });
 
 test('room attack rejects invalid directions and active cooldowns', () => {
@@ -208,7 +212,7 @@ test('room attack rejects invalid directions and active cooldowns', () => {
 });
 
 test('castle damage reduces health and never drops below zero', () => {
-    const target = new castle(2, { x: 10, y: 10 });
+    const target = new Castle(2, { x: 10, y: 10 });
 
     assert.equal(target.gethealth(), CASTLE_MAX_HP);
     assert.equal(target.takedamage(30), CASTLE_MAX_HP - 30);
@@ -218,7 +222,7 @@ test('castle damage reduces health and never drops below zero', () => {
 });
 
 test('castle damage drops a level and restores health before destruction', () => {
-    const target = new castle(2, { x: 10, y: 10 });
+    const target = new Castle(2, { x: 10, y: 10 });
 
     assert.equal(target.upgrade(), true);
     assert.equal(target.getlevel(), 2);
@@ -232,9 +236,9 @@ test('castle damage drops a level and restores health before destruction', () =>
 
 test('catapult fires and damages its target castle when in range', () => {
     const events: Array<{ event: string; payload: unknown }> = [];
-    const target = new castle(2, { x: 2, y: 0 });
-    const origin = new castle(1, { x: 0, y: 0 });
-    const siegeEngine = new catapult(
+    const target = new Castle(2, { x: 2, y: 0 });
+    const origin = new Castle(1, { x: 0, y: 0 });
+    const siegeEngine = new Catapult(
         origin,
         {
             to: () => ({
@@ -253,13 +257,14 @@ test('catapult fires and damages its target castle when in range', () => {
             canCatapultMoveTo: () => true,
             removeCatapultPosition: () => undefined
         } as never,
+        [],
         target
     );
 
     siegeEngine.loop();
     siegeEngine.loop();
 
-    assert.equal(target.gethealth(), CASTLE_MAX_HP - 20);
+    assert.equal(target.gethealth(), CASTLE_MAX_HP - CATAPULT_ATTACK_DAMAGE);
     assert.deepEqual(
         events.map(({ event }) => event),
         ['catapult_fire', 'catapult_attack', 'castle_damaged']
@@ -269,8 +274,8 @@ test('catapult fires and damages its target castle when in range', () => {
 test('catapult takes damage and is destroyed only once at zero health', () => {
     const events: Array<{ event: string; payload: unknown }> = [];
     const destroyed: string[] = [];
-    const siegeEngine = new catapult(
-        new castle(1, { x: 0, y: 0 }),
+    const siegeEngine = new Catapult(
+        new Castle(1, { x: 0, y: 0 }),
         {
             to: () => ({
                 emit: (event: string, payload: unknown) => {
@@ -287,7 +292,9 @@ test('catapult takes damage and is destroyed only once at zero health', () => {
             updateCatapultPosition: () => true,
             canCatapultMoveTo: () => true,
             removeCatapultPosition: () => undefined
-        } as never
+        } as never,
+        [],
+        new Castle(2, { x: 2, y: 0 })
     );
 
     assert.equal(siegeEngine.gethealth(), CATAPULT_MAX_HP);

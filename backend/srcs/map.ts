@@ -1,7 +1,5 @@
 import { randomUUID } from 'crypto';
 import {
-    MAP_WIDTH,
-    MAP_HEIGHT,
     CASTLE_RADIUS,
     MIN_DIST_CASTLE,
     PLAYER_RADIUS,
@@ -11,9 +9,23 @@ import {
 import type { Socket, Spawn, Vec2 } from './types.js';
 import { getDistance, randomPos } from './util.js';
 import type { Room } from './room/room.js';
-import { castle as Castle } from './entities/castle.js';
+import { Castle } from './entities/castle.js';
 
 export type Resource = Room['map']['resourceSpawns'][number];
+
+function getMapSize(playerCount: number): number {
+    const sizes: Record<number, number> = {
+        1: 30,
+        2: 60,
+        3: 70,
+        4: 80
+    };
+    const size = sizes[playerCount];
+    if (!size) {
+        throw new Error(`Invalid player count: ${playerCount}`);
+    }
+    return size;
+}
 
 export class GameMap {
     private mapId: string;
@@ -25,14 +37,27 @@ export class GameMap {
     private resourceSpawns: ReturnType<typeof this.generateResourceSpawns>;
     private catapultPositions = new Map<string, Vec2>();
 
-    constructor(maxPlayers: number) {
+    constructor(playerSlots: number[]) {
         this.mapId = randomUUID();
-        this.width = MAP_WIDTH;
-        this.height = MAP_HEIGHT;
-        this.castleZones = this.generateCastleZones(maxPlayers);
+        const mapSize = getMapSize(playerSlots.length);
+        this.width = mapSize;
+        this.height = mapSize;
+        this.castleZones = this.generateCastleZones(playerSlots);
         this.spawnPoints = this.generateSpawnPoints(this.castleZones);
-        this.obstacles = this.generateObstacles();
-        this.resourceSpawns = this.generateResourceSpawns(this.obstacles);
+        this.obstacles = this.generateObstacles(this.getMapDensityCount(15));
+        this.resourceSpawns = this.generateResourceSpawns(
+            this.obstacles,
+            this.getMapDensityCount(35)
+        );
+    }
+
+    getobstacles() {
+        return this.obstacles;
+    }
+    private getMapDensityCount(baseCount: number): number {
+        return Math.round(
+            (baseCount * (this.width * this.height)) / (100 * 100)
+        );
     }
 
     private generateSpawnPoints(castleZones: Castle[]) {
@@ -58,42 +83,46 @@ export class GameMap {
         return spawnPoints;
     }
 
-    private generateCastleZones(maxPlayers: number) {
+    private generateCastleZones(playerSlots: number[]): Castle[] {
         const minDistBetweenCastles = MIN_DIST_CASTLE;
+        const maxAttempts = playerSlots.length * 100;
 
-        const castleZones: Castle[] = [];
-        let attempts = 0;
-        const maxAttempts = maxPlayers * 100;
+        while (true) {
+            const castleZones: Castle[] = [];
+            let attempts = 0;
 
-        while (castleZones.length < maxPlayers && attempts < maxAttempts) {
-            attempts++;
-            const pos = randomPos();
-
-            let tooClose = castleZones.some(
-                (c) => getDistance(pos, c.getposition()) < minDistBetweenCastles
-            );
-
-            if (
-                pos.x - CASTLE_RADIUS / 2 < 0 ||
-                pos.x + CASTLE_RADIUS / 2 > MAP_WIDTH ||
-                pos.y - CASTLE_RADIUS / 2 < 0 ||
-                pos.y + CASTLE_RADIUS / 2 > MAP_HEIGHT
+            while (
+                castleZones.length < playerSlots.length &&
+                attempts < maxAttempts
             ) {
-                tooClose = true;
+                attempts++;
+
+                const pos = randomPos(this.width, this.height);
+                const outOfBounds =
+                    pos.x - CASTLE_RADIUS / 2 < 0 ||
+                    pos.x + CASTLE_RADIUS / 2 > this.width ||
+                    pos.y - CASTLE_RADIUS / 2 < 0 ||
+                    pos.y + CASTLE_RADIUS / 2 > this.height;
+
+                const tooClose =
+                    outOfBounds ||
+                    castleZones.some(
+                        (c) =>
+                            getDistance(pos, c.getposition()) <
+                            minDistBetweenCastles
+                    );
+
+                if (!tooClose) {
+                    castleZones.push(
+                        new Castle(playerSlots[castleZones.length]!, pos)
+                    );
+                }
             }
 
-            if (!tooClose) {
-                castleZones.push(new Castle(castleZones.length + 1, pos));
+            if (castleZones.length === playerSlots.length) {
+                return castleZones;
             }
         }
-
-        if (castleZones.length < maxPlayers) {
-            console.warn(
-                `Could only place ${castleZones.length}/${maxPlayers} castles — map too small or minDistBetweenCastles too high`
-            );
-        }
-
-        return castleZones;
     }
 
     private generateObstacles(count = 15) {
@@ -106,13 +135,10 @@ export class GameMap {
         let attempts = 0;
         while (obstacles.length < count && attempts < count * 20) {
             attempts++;
-            const pos = randomPos();
+            const pos = randomPos(this.width, this.height);
 
             if (!this.isValidPosition(pos, 5, 4, obstacles)) continue;
 
-            if (types.length === 0) {
-                throw new Error('types must not be empty');
-            }
             const template = types[Math.floor(Math.random() * types.length)]!;
             obstacles.push({
                 type: template.type,
@@ -158,48 +184,34 @@ export class GameMap {
             radius: number;
             blocksMovement: boolean;
         }[],
-        count = 20
+        count = 10000
     ) {
         const resources = [];
         const types = [
             { type: 'wood', amount: 10, respawnTime: 30 },
-            { type: 'iron', amount: 10, respawnTime: 45 }
+            { type: 'iron', amount: 10, respawnTime: 35 }
         ];
 
         let attempts = 0;
 
         while (resources.length < count && attempts < count * 20) {
             attempts++;
-            const pos = randomPos();
+            const pos = randomPos(this.width, this.height);
 
             if (!this.isValidPosition(pos, 6, 5, obstacles)) continue;
 
-            if (types.length === 0) {
-                throw new Error('types must not be empty');
-            }
             const template = types[Math.floor(Math.random() * types.length)]!;
-            const resource: {
-                id: string;
-                type: string;
-                x: number;
-                y: number;
-                amount: number;
-                respawnTime: number;
-                radius: number;
-                blocksMovement: boolean;
-            } = {
+
+            resources.push({
                 id: `${template.type}_${resources.length + 1}`,
                 type: template.type,
                 x: pos.x,
                 y: pos.y,
                 amount: template.amount,
                 respawnTime: template.respawnTime,
-                // Please check if these are correct values as I do not know what they do
                 radius: 1,
                 blocksMovement: false
-            };
-
-            resources.push(resource);
+            });
         }
 
         return resources;
@@ -213,24 +225,38 @@ export class GameMap {
         return null;
     }
 
-    // Brings a collected resource back after its respawnTime, then tells the
-    // whole room. Uses socket.nsp instead of socket.to/socket because whoever
-    // collected it may have long disconnected by the time this fires.
     scheduleResourceRespawn(
         socket: Socket,
         roomId: string,
         resource: Resource
     ) {
+        const randomOffset = Math.random() * 15;
+
+        const delay = (resource.respawnTime + randomOffset) * 1000;
+
+        const pos = randomPos(this.width, this.height);
+
+        let x;
+        let y;
+
+        if (!this.isValidPosition(pos, 6, 5, this.obstacles)) {
+            x = resource.x;
+            y = resource.y;
+        } else {
+            x = pos.x;
+            y = pos.y;
+        }
+
         setTimeout(() => {
             this.resourceSpawns.push(resource);
 
             socket.nsp.to(roomId).emit('resource_spawned', {
                 resourceId: resource.id,
                 type: resource.type,
-                x: resource.x,
-                y: resource.y
+                x: x,
+                y: y
             });
-        }, resource.respawnTime * 1000);
+        }, delay);
     }
 
     getCastleZones(): Castle[] {
@@ -381,6 +407,7 @@ export class GameMap {
 
             return this.castleZones.some(
                 (castle) =>
+                    !castle.isDestroyed() &&
                     castle !== originCastle &&
                     castle !== targetCastle &&
                     getDistance(node, castle.getposition()) <= castle.radius
@@ -484,10 +511,9 @@ export class GameMap {
     }
 
     isOutOfBounds(pos: Vec2): boolean {
-        if (pos.x < 0 || pos.x > MAP_WIDTH || pos.y < 0 || pos.y > MAP_HEIGHT) {
-            return true;
-        }
-        return false;
+        return (
+            pos.x < 0 || pos.x > this.width || pos.y < 0 || pos.y > this.height
+        );
     }
 
     collectResource(pos: Vec2): Resource | null {

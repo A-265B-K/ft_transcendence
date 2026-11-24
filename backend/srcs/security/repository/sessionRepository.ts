@@ -1,4 +1,4 @@
-import { query } from '../auth/db.js';
+import { db, query } from '../auth/db.js';
 
 export async function insertSessionById(
     session_id_hash: string,
@@ -97,15 +97,27 @@ export async function deleteSessionById(session_id_hash: string) {
     return true;
 }
 
-export async function deleteTemporary2FA(temporary_auth_hash: string) {
-    await query(
+export async function recordFailedTemporary2FAAttempt(
+    temporary_auth_hash: string
+): Promise<number | null> {
+    const result = await query(
         `
-		DELETE FROM session_
+		UPDATE session_
+		SET temporary_auth_failed_attempts =
+			temporary_auth_failed_attempts + 1
 		WHERE temporary_auth_hash = $1
+		  AND temporary_auth_expires_at > NOW()
+		  AND temporary_auth_failed_attempts < 5
+		RETURNING temporary_auth_failed_attempts
 		`,
         [temporary_auth_hash]
     );
-    return true;
+
+    if (result.rows.length === 0) {
+        return null;
+    }
+
+    return Number(result.rows[0].temporary_auth_failed_attempts);
 }
 
 export async function deleteTemporary2FAByUserId(userId: string) {
@@ -118,4 +130,55 @@ export async function deleteTemporary2FAByUserId(userId: string) {
 		`,
         [userId]
     );
+}
+
+export async function consumeTemporary2FAAndCreateSession(
+    temporary_auth_hash: string,
+    session_id_hash: string
+): Promise<boolean> {
+    const client = await db.connect();
+
+    try {
+        await client.query('BEGIN');
+
+        const result = await client.query(
+            `
+            DELETE FROM session_
+            WHERE temporary_auth_hash = $1
+              AND temporary_auth_expires_at > NOW()
+              AND temporary_auth_failed_attempts < 5
+            RETURNING user_id
+            `,
+            [temporary_auth_hash]
+        );
+
+        if (result.rows.length !== 1) {
+            await client.query('ROLLBACK');
+            return false;
+        }
+
+        await client.query(
+            `
+            INSERT INTO session_ (
+                session_id_hash,
+                user_id,
+                expires_at
+            )
+            VALUES (
+                $1,
+                $2,
+                NOW() + INTERVAL '1 day'
+            )
+            `,
+            [session_id_hash, result.rows[0].user_id]
+        );
+
+        await client.query('COMMIT');
+        return true;
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+    } finally {
+        client.release();
+    }
 }

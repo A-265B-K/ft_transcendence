@@ -3,6 +3,7 @@ import {
     PLAYER_DEFAULT_IRON,
     PLAYER_DEFAULT_WOOD,
     PLAYER_DEFAULT_CASTLE_LEVEL,
+    PLAYER_RESPAWN_DELAY,
     MOVE_TOLERANCE_SECONDS,
     PLAYER_MAX_SPEED,
     MOVE_MAX_ELAPSED_SECONDS,
@@ -13,10 +14,10 @@ import type { Cost } from '../room/room.js';
 import type { Socket, SocketUser, Spawn, Vec2 } from '../types.js';
 import { getDistance } from '../util.js';
 import { type GameMap, type Resource } from '../map.js';
-import type { castle as Castle } from './castle.js';
+import type { Castle } from './castle.js';
 
 import { getattackstats, type WeaponType } from '../combat/Weapon.js';
-import { catapult } from './catapult.js';
+import { Catapult } from './catapult.js';
 
 export type { WeaponType } from '../combat/Weapon.js';
 
@@ -27,20 +28,22 @@ export class Player {
     private readonly roomId: string;
     private readonly username: string;
     private readonly slot: number;
-    private catapults: catapult[] = [];
+    private catapults: Catapult[] = [];
     private hp: number;
     private alive: boolean;
     private x: number;
     private y: number;
+    private spawn: Vec2;
+    private respawnAt: number | null = null;
 
     private inventory: {
         iron: number;
         wood: number;
     };
-    private readonly castle: Castle;
+    private castle: Castle;
 
     private lastMoveAt: number;
-    private equippedWeapon: WeaponType;
+    private equippedWeapon: WeaponType | undefined;
     private nextAttack: number;
 
     private armor = false;
@@ -61,13 +64,13 @@ export class Player {
         this.username = user.username;
 
         this.slot = slot;
-        this.castle = castle;
-        this.castle.setlevel(PLAYER_DEFAULT_CASTLE_LEVEL);
+        this.castle = this.configureCastle(castle);
         this.hp = PLAYER_MAX_HP;
         this.alive = true;
 
-        this.x = spawn.pos.x;
-        this.y = spawn.pos.y;
+        this.spawn = spawn.pos;
+        this.x = this.spawn.x;
+        this.y = this.spawn.y;
 
         this.inventory = {
             iron: PLAYER_DEFAULT_IRON,
@@ -75,7 +78,6 @@ export class Player {
         };
 
         this.lastMoveAt = Date.now();
-        this.equippedWeapon = 'sword';
         this.nextAttack = 0;
     }
 
@@ -155,12 +157,12 @@ export class Player {
             y: this.y,
             inventory: this.getInventory(),
             lastMoveAt: this.lastMoveAt,
-            equippedWeapon: this.equippedWeapon,
+            equippedWeapon: this.equippedWeapon ?? null,
             nextAttack: this.nextAttack
         };
     }
 
-    getEquippedWeapon(): WeaponType {
+    getEquippedWeapon(): WeaponType | undefined {
         return this.equippedWeapon;
     }
 
@@ -170,7 +172,9 @@ export class Player {
     }
 
     canattack(): boolean {
-        return Date.now() >= this.nextAttack;
+        return (
+            Date.now() >= this.nextAttack && this.equippedWeapon !== undefined
+        );
     }
 
     setPosition(x: number, y: number): void {
@@ -191,7 +195,10 @@ export class Player {
 
         this.hp = newHp;
         this.alive = this.hp > 0;
-        if (!this.alive) this.checkarmor();
+        if (!this.alive) {
+            this.respawnAt = Date.now() + PLAYER_RESPAWN_DELAY;
+            this.checkarmor();
+        }
         this.namespace.to(this.roomId).emit('player_hp', {
             socketId: this.socketId,
             hp: this.hp,
@@ -248,6 +255,40 @@ export class Player {
         return this.alive;
     }
 
+    isOutOfGame(): boolean {
+        return !this.alive && this.castle.isDestroyed();
+    }
+
+    respawn(now = Date.now()): boolean {
+        if (
+            this.alive ||
+            this.respawnAt === null ||
+            now < this.respawnAt ||
+            this.castle.isDestroyed()
+        ) {
+            return false;
+        }
+        const castlelvl = this.castle.getlevel();
+        if (castlelvl > 1) this.castle.setlevel(castlelvl - 1);
+        this.hp = PLAYER_MAX_HP;
+        this.alive = true;
+        this.x = this.spawn.x;
+        this.y = this.spawn.y;
+        this.equippedWeapon = undefined;
+        this.lastMoveAt = now;
+        this.respawnAt = null;
+        this.inventory.iron = 0;
+        this.inventory.wood = 0;
+        this.namespace.to(this.roomId).emit('player_respawned', {
+            player: this
+        });
+        this.namespace.to(this.socketId).emit('inventory_updated', {
+            playerId: this.userId,
+            inventory: this.getInventory()
+        });
+        return true;
+    }
+
     takeDamage(damage: number): void {
         if (!this.alive) return;
 
@@ -290,7 +331,11 @@ export class Player {
             inventory: { wood: this.inventory.wood, iron: this.inventory.iron }
         };
     }
-    payForCatapult(target: Player, map: GameMap): boolean {
+    payForCatapult(
+        target: Player,
+        othertargets: Player[],
+        map: GameMap
+    ): boolean {
         if (
             !this.alive ||
             this.castle.isDestroyed() ||
@@ -298,7 +343,7 @@ export class Player {
         )
             return false;
 
-        const newCatapult = new catapult(
+        const newCatapult = new Catapult(
             this.castle,
             this.namespace,
             this.roomId,
@@ -308,6 +353,7 @@ export class Player {
                 );
             },
             map,
+            othertargets,
             target.castle
         );
         if (!newCatapult.canSpawn()) return false;
@@ -344,5 +390,26 @@ export class Player {
         } catch {
             return false;
         }
+    }
+
+    private configureCastle(castle: Castle): Castle {
+        castle.setlevel(PLAYER_DEFAULT_CASTLE_LEVEL);
+        castle.setOwner(this.namespace, this.roomId, this.socketId);
+        return castle;
+    }
+
+    setGameSetup(spawn: Spawn, castle: Castle): void {
+        this.castle = this.configureCastle(castle);
+        this.spawn = spawn.pos;
+        this.x = this.spawn.x;
+        this.y = this.spawn.y;
+        this.hp = PLAYER_MAX_HP;
+        this.alive = true;
+        this.respawnAt = null;
+        this.lastMoveAt = Date.now();
+    }
+
+    getCastle(): Castle {
+        return this.castle;
     }
 }
