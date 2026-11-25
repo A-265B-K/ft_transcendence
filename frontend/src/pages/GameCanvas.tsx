@@ -52,7 +52,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
     const [paused, setPaused] = useState(false);
 
     const [winner, setWinner] = useState('');
-    const [canattack] = useState(false);
+    const [canattack, setCanAttack] = useState(false);
     const canSpectate = spectating && castlelvl === 0;
 
     const resumeGame = useCallback(() => {
@@ -363,6 +363,9 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
                 setboulderready(data.ready);
             }
         };
+        const handleCanAttack = () => {
+            setCanAttack(true);
+        }
 
         socket.on('player_joined', handlePlayerJoined);
         socket.on('player_move', handlePlayerMove);
@@ -372,6 +375,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         socket.on('join_error', handleJoinError);
         socket.on('player_hp', handlePlayerHP);
         socket.on('player_attacked', handlePlayerAttacked);
+        socket.on('can_attack', handleCanAttack);
         socket.on('resource_spawned', handleResourceSpawned);
         socket.on('castlelvlupdate', handleCastleLvlupdate);
         socket.on('player_died', handlePlayerDied);
@@ -409,6 +413,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             socket.off('player_left', handlePlayerLeft);
             socket.off('player_hp', handlePlayerHP);
             socket.off('player_attacked', handlePlayerAttacked);
+            socket.on('can_attack', handleCanAttack);
             socket.off('player_died', handlePlayerDied);
             socket.off('player_respawned', handlePlayerRespawned);
             socket.off('resource_collected', handleResourceCollected);
