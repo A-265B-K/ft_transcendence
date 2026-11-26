@@ -52,6 +52,7 @@ function AppContent() {
     const [loading, setLoading] = useState(true);
     const [user, setUser] = useState<User | null>(null);
     const [joinedData, setJoinedData] = useState<JoinedPayload | null>(null);
+    const [gameSession, setGameSession] = useState(0);
     const [restoringGame, setRestoringGame] = useState(() =>
         Boolean(localStorage.getItem('gameRoomId'))
     );
@@ -90,7 +91,24 @@ function AppContent() {
     }, [inRoom]);
 
     useEffect(() => {
-        if (!user || !inGame || joinedData) return;
+        if (!user || !inRoom) return;
+
+        const socket = connectSocket();
+
+        const rejoin = () => {
+            const roomId = localStorage.getItem('gameRoomId');
+            if (roomId) socket.emit('join_room', { roomId });
+        };
+
+        socket.io.on('reconnect', rejoin);
+
+        return () => {
+            socket.io.off('reconnect', rejoin);
+        };
+    }, [user, inRoom]);
+
+    useEffect(() => {
+        if (!user || !inGame) return;
 
         const roomId = localStorage.getItem('gameRoomId');
 
@@ -99,9 +117,12 @@ function AppContent() {
         const socket = connectSocket();
 
         const handleJoined = (data: JoinedPayload) => {
+            if (data.roomId !== roomId) return;
+
             console.log('Restored game room:', data.roomId);
 
             setJoinedData(data);
+            setGameSession((session) => session + 1);
             setRestoringGame(false);
         };
 
@@ -110,27 +131,18 @@ function AppContent() {
 
             localStorage.removeItem('gameRoomId');
 
+            setJoinedData(null);
             setRestoringGame(false);
         };
 
-        socket.once('joined', handleJoined);
+        socket.on('joined', handleJoined);
+        socket.on('join_error', handleJoinError);
 
-        socket.once('join_error', handleJoinError);
-
-        const joinRoom = () => {
-            socket.emit('join_room', { roomId });
-        };
-
-        if (socket.connected) {
-            joinRoom();
-        } else {
-            socket.once('connect', joinRoom);
-        }
+        if (!joinedData) socket.emit('join_room', { roomId });
 
         return () => {
             socket.off('joined', handleJoined);
             socket.off('join_error', handleJoinError);
-            socket.off('connect', joinRoom);
         };
     }, [user, inGame, joinedData]);
 
@@ -349,7 +361,7 @@ function AppContent() {
                     restoringGame ? (
                         <div>Reconnecting to game...</div>
                     ) : user && joinedData ? (
-                        <GameCanvas joinedData={joinedData} />
+                        <GameCanvas key={gameSession} joinedData={joinedData} />
                     ) : (
                         <Navigate to="/game-menu" />
                     )

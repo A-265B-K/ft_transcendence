@@ -31,6 +31,8 @@ export default function Room({ joinedData, onStartGame }: RoomProps) {
             return;
         }
 
+        localStorage.setItem('gameRoomId', roomId);
+
         const socket = connectSocket();
 
         const handleJoined = (data: JoinedPayload) => {
@@ -50,6 +52,7 @@ export default function Room({ joinedData, onStartGame }: RoomProps) {
             console.error('Could not restore room:', message);
 
             setError(message);
+            setRoom(null);
             setLoading(false);
         };
         const handleGameStart = (data: {
