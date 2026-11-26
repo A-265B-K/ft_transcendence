@@ -76,7 +76,6 @@ export interface LobbyRoom {
     hostId: string;
     started: boolean;
     name: string;
-    code: string;
     playerCount: number;
     maxPlayers: number;
 }
