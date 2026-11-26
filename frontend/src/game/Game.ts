@@ -148,8 +148,7 @@ export class Game {
 
         this.app.stage.addChild(this.scene.world);
         this.app.ticker.add(this.handleTick);
-        
-        
+
         this.audio.playBackgroundMusic(backgroundMusic);
     }
 
