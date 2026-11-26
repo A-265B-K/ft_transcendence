@@ -3,6 +3,8 @@ import { Application, Ticker } from 'pixi.js';
 import { loadGameTextures } from './assets/loadGameTextures';
 import { GameScene } from './scenes/GameScene';
 import { Input } from './systems/Input';
+import { AudioManager } from './systems/Audio';
+import backgroundMusic from './assets/sound/Glorious Morning.mp3';
 import type { JoinedPayload, Vec2 } from '../types/game';
 import type { Socket } from 'socket.io-client';
 import type { HarvestableTile } from './world/tileResource';
@@ -11,6 +13,7 @@ import type { CastleAttackStarted } from '../types/game';
 export class Game {
     readonly app: Application;
     readonly input = new Input();
+    readonly audio = new AudioManager();
 
     private scene?: GameScene;
 
@@ -145,11 +148,15 @@ export class Game {
 
         this.app.stage.addChild(this.scene.world);
         this.app.ticker.add(this.handleTick);
+
+        this.audio.playBackgroundMusic(backgroundMusic);
     }
 
     destroy() {
         this.app.ticker.remove(this.handleTick);
         this.input.destroy();
+        this.audio.stopBackgroundMusic();
+        this.audio.destroy();
         this.scene?.clearBoulders();
         this.app.destroy();
     }
@@ -174,10 +181,16 @@ export class Game {
     }
     pause() {
         this.app.ticker.stop();
+        this.audio.pause();
     }
 
     resume() {
         this.app.ticker.start();
+        void this.audio
+            .resume()
+            .catch((error: unknown) =>
+                console.error('Failed to resume game audio:', error)
+            );
     }
 
     setPlayerDead(): void {
