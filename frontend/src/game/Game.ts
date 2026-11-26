@@ -4,7 +4,7 @@ import { loadGameTextures } from './assets/loadGameTextures';
 import { GameScene } from './scenes/GameScene';
 import { Input } from './systems/Input';
 import { AudioManager } from './systems/Audio';
-import backgroundMusic from './assets/sound/Glorious Morning.mp3';
+import backgroundMusic from '../assets/sound/Glorious Morning.mp3';
 import type { JoinedPayload, Vec2 } from '../types/game';
 import type { Socket } from 'socket.io-client';
 import type { HarvestableTile } from './world/tileResource';
