@@ -146,7 +146,7 @@ export class Game {
         const textures = await loadGameTextures();
         loadSounds(this.audio);
 
-        this.scene = new GameScene(textures, joinedData, socket);
+        this.scene = new GameScene(textures, joinedData, socket, this.audio);
 
         this.app.stage.addChild(this.scene.world);
         this.app.ticker.add(this.handleTick);

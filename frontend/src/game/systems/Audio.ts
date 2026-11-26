@@ -3,6 +3,8 @@ export type SoundPosition = { x: number; y: number };
 export const SOUND_FULL_VOLUME_DISTANCE = 3;
 export const SOUND_MAX_DISTANCE = 25;
 const SOUND_MIN_AUDIBLE_VOLUME = 0.01;
+export const FOOTSTEP_DISTANCE = 3.5;
+export const FOOTSTEP_VOLUME = 0.5;
 
 export function distanceAttenuation(
     distance: number,
