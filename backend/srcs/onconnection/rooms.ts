@@ -8,26 +8,6 @@ export const registerRoomsHandlers = (context: ConnectionContext) => {
         socket.emit('rooms_list', roomManager.getRooms());
     });
 
-    socket.on('get_room_by_code', ({ code }: { code: unknown }) => {
-        if (typeof code !== 'string') {
-            socket.emit('join_error', {
-                message: 'Invalid room code'
-            });
-
-            return;
-        }
-
-        const room = roomManager.getRoomByCode(code);
-
-        if (!room) {
-            socket.emit('join_error', {
-                message: 'Room not found'
-            });
-            return;
-        }
-        socket.emit('room_info', room.getRoomInfo());
-    });
-
     socket.on('create_room', ({ name }: { name: unknown }) => {
         if (typeof name !== 'string') {
             socket.emit('join_error', {
@@ -82,17 +62,6 @@ export const registerRoomsHandlers = (context: ConnectionContext) => {
         }
         const check = roomManager.joinRoomById(socket, user, roomId);
         if (check !== null) context.currentRoomId = check;
-    });
-
-    socket.on('join_room_code', ({ code }: { code: unknown }) => {
-        if (typeof code !== 'string') {
-            socket.emit('join_error', {
-                message: 'Invalid room code'
-            });
-            return null;
-        }
-        const temp = roomManager.joinRoomByCode(socket, user, code);
-        if (temp !== null) context.currentRoomId = temp;
     });
 
     socket.on('leave_room', () => {
