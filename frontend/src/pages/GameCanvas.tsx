@@ -217,8 +217,16 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             );
         }
 
-        function handleResourceCollected({ x, y }: { x: number; y: number }) {
-            game.removeResourceTile(x, y);
+        function handleResourceCollected({
+            x,
+            y,
+            type
+        }: {
+            x: number;
+            y: number;
+            type: 'wood' | 'iron';
+        }) {
+            game.collectResource(x, y, type);
         }
 
         function handleInventoryUpdated({

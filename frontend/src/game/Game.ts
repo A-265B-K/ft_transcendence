@@ -87,8 +87,8 @@ export class Game {
         this.scene?.correctLocalPlayer(x, y);
     }
 
-    removeResourceTile(x: number, y: number) {
-        this.scene?.removeResourceTile(x, y);
+    collectResource(x: number, y: number, type: HarvestableTile) {
+        this.scene?.collectResource(x, y, type);
     }
 
     syncInventory(wood: number, iron: number) {

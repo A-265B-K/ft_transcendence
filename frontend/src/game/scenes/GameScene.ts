@@ -542,8 +542,12 @@ export class GameScene {
         this.player.placeAt(x, y);
     }
 
-    removeResourceTile(x: number, y: number) {
+    collectResource(x: number, y: number, type: HarvestableTile) {
         this.map.clearTile(Math.floor(x), Math.floor(y));
+        this.playSoundAt(
+            type === 'wood' ? Sound.gatherWood : Sound.gatherIron,
+            { x, y }
+        );
     }
 
     syncInventory(wood: number, iron: number) {
