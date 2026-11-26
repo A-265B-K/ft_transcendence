@@ -38,7 +38,9 @@ export class AudioManager {
             throw new Error('Background music source is required');
         }
 
-        if (this.backgroundMusic?.src === new URL(source, document.baseURI).href) {
+        if (
+            this.backgroundMusic?.src === new URL(source, document.baseURI).href
+        ) {
             await this.backgroundMusic.play();
             return;
         }
