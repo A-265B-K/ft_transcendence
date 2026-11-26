@@ -81,16 +81,6 @@ export class RoomManager {
             }));
     }
 
-    getRoomByCode(code: string): Room | null {
-        const normalizedCode = code.trim().toUpperCase();
-
-        return (
-            Object.values(this.rooms).find(
-                (room) => room.getCode() === normalizedCode
-            ) ?? null
-        );
-    }
-
     getRoomById(roomId: string): Room | null {
         const room = this.rooms[roomId];
         if (room) {
@@ -117,23 +107,6 @@ export class RoomManager {
         roomId: string
     ): string | null {
         const room = this.getRoomById(roomId);
-        if (!room) {
-            socket.emit('join_error', {
-                message: 'Room not found'
-            });
-            return null;
-        }
-
-        return room.join(socket, user);
-    }
-
-    joinRoomByCode(
-        socket: Socket,
-        user: SocketUser,
-        code: string
-    ): string | null {
-        const room = this.getRoomByCode(code);
-
         if (!room) {
             socket.emit('join_error', {
                 message: 'Room not found'
