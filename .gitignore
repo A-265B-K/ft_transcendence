@@ -88,3 +88,6 @@ tokens/
 
 #random stuff
 .bootstrap_complete
+
+# Assets
+frontend/src/assets/*
