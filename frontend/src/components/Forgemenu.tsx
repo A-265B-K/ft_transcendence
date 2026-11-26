@@ -6,7 +6,7 @@ import daggerIcon from '../assets/weapons/dagger/dagger1.png';
 import swordIcon from '../assets/weapons/sword/sword1.png';
 import spearIcon from '../assets/weapons/spear/spear1.png';
 import axeIcon from '../assets/weapons/axe/axe1.png';
-import catapultIcon from '../assets/catapult/down.png';
+import trebuchetIcon from '../assets/trebuchet/down.png';
 import type { PlayerData, PlayerInventory } from '../types/game';
 
 const weaponrecipes = {
@@ -47,7 +47,7 @@ export function Forgemenu({
     const [open, setOpen] = useState(false);
     const targetDialog = useRef<HTMLDialogElement>(null);
     const purchasePending = useRef(false);
-    const [purchasingCatapult, setPurchasingCatapult] = useState(false);
+    const [purchasingTrebuchet, setPurchasingTrebuchet] = useState(false);
     const [equippingArmor, setEquippingArmor] = useState(false);
     const upgradeCost = castleUpgradeRecipes[castleLevel + 1];
     const atMaxLevel = castleLevel >= 4;
@@ -55,7 +55,7 @@ export function Forgemenu({
         !!upgradeCost &&
         inventory.wood >= upgradeCost.wood &&
         inventory.iron >= upgradeCost.iron;
-    const canAffordCatapult = inventory.wood >= 50 && inventory.iron >= 50;
+    const canAffordTrebuchet = inventory.wood >= 50 && inventory.iron >= 50;
 
     function craftweapon(weapon: WeaponType) {
         type craftresult =
@@ -87,22 +87,22 @@ export function Forgemenu({
         });
     }
 
-    function buyCatapult(targetUserId: string) {
+    function buyTrebuchet(targetUserId: string) {
         targetDialog.current?.close();
         if (purchasePending.current) return;
         const socket = getSocket();
         if (!socket?.connected) return;
 
         purchasePending.current = true;
-        setPurchasingCatapult(true);
+        setPurchasingTrebuchet(true);
         socket.emit(
-            'new_catapult',
+            'new_trebuchet',
             { targetUserId },
             (
                 result: { ok: false } | { ok: true; inventory: PlayerInventory }
             ) => {
                 purchasePending.current = false;
-                setPurchasingCatapult(false);
+                setPurchasingTrebuchet(false);
                 if (!result?.ok) return;
 
                 onInventoryChange(result.inventory);
@@ -172,17 +172,17 @@ export function Forgemenu({
                                 onClick={() =>
                                     targetDialog.current?.showModal()
                                 }
-                                disabled={!canAffordCatapult || castleLevel < 2}
+                                disabled={!canAffordTrebuchet || castleLevel < 2}
                                 className="flex items-center gap-3 rounded-lg bg-slate-700 px-3 py-2 text-left hover:bg-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 <img
-                                    src={catapultIcon}
+                                    src={trebuchetIcon}
                                     alt=""
                                     className="h-10 w-10 shrink-0 object-contain"
                                 />
                                 <span>
                                     <span className="block font-bold capitalize">
-                                        {t('buyCatapult')}
+                                        {t('buyTrebuchet')}
                                     </span>
                                     <span className="block text-sm text-slate-300">
                                         50 {t('wood')} · 50 {t('iron')}
@@ -248,12 +248,12 @@ export function Forgemenu({
                         </section>
                         <dialog
                             ref={targetDialog}
-                            aria-labelledby="catapult-target-title"
+                            aria-labelledby="trebuchet-target-title"
                             onKeyDown={(event) => event.stopPropagation()}
                             className="fixed m-auto w-80 max-w-[calc(100%-2rem)] rounded-xl bg-slate-900 p-4 text-white backdrop:bg-black/60"
                         >
                             <h2
-                                id="catapult-target-title"
+                                id="trebuchet-target-title"
                                 className="text-lg font-bold"
                             >
                                 {t('chooseTarget')}
@@ -264,9 +264,9 @@ export function Forgemenu({
                                         key={player.userId}
                                         type="button"
                                         onClick={() =>
-                                            buyCatapult(player.userId)
+                                            buyTrebuchet(player.userId)
                                         }
-                                        disabled={purchasingCatapult}
+                                        disabled={purchasingTrebuchet}
                                         className="rounded-lg bg-slate-700 px-3 py-2 text-left hover:bg-slate-600 disabled:opacity-50"
                                     >
                                         {player.username}

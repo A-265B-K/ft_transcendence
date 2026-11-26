@@ -1,11 +1,11 @@
 import type { ConnectionContext } from './types.js';
 import type { Inventory } from '../types.js';
 
-export const registerCatapultHandlers = (context: ConnectionContext) => {
+export const registerTrebuchetHandlers = (context: ConnectionContext) => {
     const { socket, user, roomManager } = context;
 
     socket.on(
-        'new_catapult',
+        'new_trebuchet',
         (
             data: unknown,
             callback: (
@@ -31,7 +31,7 @@ export const registerCatapultHandlers = (context: ConnectionContext) => {
                 return;
             }
 
-            const inventory = room.payForCatapult(user.id, data.targetUserId);
+            const inventory = room.payForTrebuchet(user.id, data.targetUserId);
             if (!inventory) {
                 callback({ ok: false });
                 return;

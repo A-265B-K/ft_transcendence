@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { CATAPULT_RADIUS } from '../srcs/constants.js';
+import { TREBUCHET_RADIUS } from '../srcs/constants.js';
 import { Castle } from '../srcs/entities/castle.js';
 import { GameMap, type Resource } from '../srcs/map.js';
 import { tryCollectResource } from '../srcs/room/roomMovement.js';
@@ -26,7 +26,7 @@ function makeMap(resources: Resource[] = []): GameMap {
         height: 100,
         castleZones: [],
         obstacles: [],
-        catapultPositions: new Map()
+        trebuchetPositions: new Map()
     });
     return map;
 }
@@ -74,16 +74,16 @@ test('dead players cannot collect resources', () => {
     assert.deepEqual(map.collectResource({ x: 10, y: 10 }), resource);
 });
 
-test('catapult spawn reservations and movement keep catapults separated', () => {
+test('trebuchet spawn reservations and movement keep trebuchets separated', () => {
     const map = makeMap();
     const origin = new Castle(1, { x: 10, y: 10 });
     const preferredPosition = { x: 50, y: 50 };
-    const first = map.reserveCatapultPosition(
+    const first = map.reserveTrebuchetPosition(
         'first',
         preferredPosition,
         origin
     );
-    const second = map.reserveCatapultPosition(
+    const second = map.reserveTrebuchetPosition(
         'second',
         preferredPosition,
         origin
@@ -91,26 +91,26 @@ test('catapult spawn reservations and movement keep catapults separated', () => 
 
     assert.ok(first);
     assert.ok(second);
-    assert.ok(getDistance(first, second) >= CATAPULT_RADIUS * 2);
-    assert.equal(map.canCatapultMoveTo('second', first), false);
-    assert.equal(map.updateCatapultPosition('second', first), false);
+    assert.ok(getDistance(first, second) >= TREBUCHET_RADIUS * 2);
+    assert.equal(map.canTrebuchetMoveTo('second', first), false);
+    assert.equal(map.updateTrebuchetPosition('second', first), false);
 
-    map.removeCatapultPosition('first');
-    assert.equal(map.canCatapultMoveTo('second', first), true);
+    map.removeTrebuchetPosition('first');
+    assert.equal(map.canTrebuchetMoveTo('second', first), true);
 });
 
-test('catapult pathfinding routes around other catapults', () => {
+test('trebuchet pathfinding routes around other trebuchets', () => {
     const map = makeMap();
     const origin = new Castle(1, { x: 10, y: 10 });
     const target = new Castle(2, { x: 90, y: 90 });
-    const blocker = map.reserveCatapultPosition(
+    const blocker = map.reserveTrebuchetPosition(
         'blocker',
         { x: 50, y: 50 },
         origin
     );
 
     assert.ok(blocker);
-    const path = map.findCatapultPath(
+    const path = map.findTrebuchetPath(
         { x: 40, y: 50 },
         { x: 70, y: 50 },
         origin,
@@ -121,7 +121,7 @@ test('catapult pathfinding routes around other catapults', () => {
     assert.ok(path.length > 0);
     assert.ok(
         path.every(
-            (position) => getDistance(position, blocker) >= CATAPULT_RADIUS * 2
+            (position) => getDistance(position, blocker) >= TREBUCHET_RADIUS * 2
         )
     );
 });

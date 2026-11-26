@@ -1,4 +1,4 @@
-import { CATAPULT_RADIUS, PLAYER_RADIUS } from '../constants.js';
+import { TREBUCHET_RADIUS, PLAYER_RADIUS } from '../constants.js';
 import type { GameMap } from '../map.js';
 import type { Player } from '../entities/player.js';
 import type { Socket, SocketUser, Vec2 } from '../types.js';
@@ -67,20 +67,20 @@ export function positionIsAllowed(
         (player.isAlive() &&
             (isCollidingWithOtherPlayer(players, user.id, pos) ||
                 isCollidingWithCastle(map, players, pos) ||
-                isCollidingWithCatapult(players, pos))) ||
+                isCollidingWithTrebuchet(players, pos))) ||
         isnearobstacle(map, pos)
     );
 }
 
-function isCollidingWithCatapult(
+function isCollidingWithTrebuchet(
     players: ReadonlyMap<string, Player>,
     pos: Vec2
 ): boolean {
     for (const owner of players.values()) {
-        for (const catapult of owner.getcatapults()) {
+        for (const trebuchet of owner.gettrebuchets()) {
             if (
-                getDistance(pos, catapult.getpos()) <
-                PLAYER_RADIUS + CATAPULT_RADIUS
+                getDistance(pos, trebuchet.getpos()) <
+                PLAYER_RADIUS + TREBUCHET_RADIUS
             ) {
                 return true;
             }

@@ -8,7 +8,7 @@ import {
     PLAYER_MAX_SPEED,
     MOVE_MAX_ELAPSED_SECONDS,
     CASTLE_HEAL_RADIUS,
-    CATAPULT_COST
+    TREBUCHET_COST
 } from '../constants.js';
 import type { Cost } from '../room/room.js';
 import type { Socket, SocketUser, Spawn, Vec2 } from '../types.js';
@@ -17,7 +17,7 @@ import { type GameMap, type Resource } from '../map.js';
 import type { Castle } from './castle.js';
 
 import { getattackstats, type WeaponType } from '../combat/Weapon.js';
-import { Catapult } from './catapult.js';
+import { Trebuchet } from './trebuchet.js';
 
 export type { WeaponType } from '../combat/Weapon.js';
 
@@ -28,7 +28,7 @@ export class Player {
     private readonly roomId: string;
     private readonly username: string;
     private readonly slot: number;
-    private catapults: Catapult[] = [];
+    private trebuchets: Trebuchet[] = [];
     private hp: number;
     private alive: boolean;
     private x: number;
@@ -102,8 +102,8 @@ export class Player {
         return this.hp;
     }
 
-    getcatapults() {
-        return this.catapults;
+    gettrebuchets() {
+        return this.trebuchets;
     }
     getPosition(): { x: number; y: number } {
         return {
@@ -342,7 +342,7 @@ export class Player {
             inventory: { wood: this.inventory.wood, iron: this.inventory.iron }
         };
     }
-    payForCatapult(
+    payForTrebuchet(
         target: Player,
         othertargets: Player[],
         map: GameMap
@@ -350,28 +350,28 @@ export class Player {
         if (
             !this.alive ||
             this.castle.isDestroyed() ||
-            !this.canPay(CATAPULT_COST)
+            !this.canPay(TREBUCHET_COST)
         )
             return false;
 
-        const newCatapult = new Catapult(
+        const newTrebuchet = new Trebuchet(
             this.castle,
             this.namespace,
             this.roomId,
-            (catapultId) => {
-                this.catapults = this.catapults.filter(
-                    (catapult) => catapult.id !== catapultId
+            (trebuchetId) => {
+                this.trebuchets = this.trebuchets.filter(
+                    (trebuchet) => trebuchet.id !== trebuchetId
                 );
             },
             map,
             othertargets,
             target.castle
         );
-        if (!newCatapult.canSpawn()) return false;
+        if (!newTrebuchet.canSpawn()) return false;
 
-        this.pay(CATAPULT_COST);
-        this.catapults.push(newCatapult);
-        newCatapult.spawn();
+        this.pay(TREBUCHET_COST);
+        this.trebuchets.push(newTrebuchet);
+        newTrebuchet.spawn();
         return true;
     }
 

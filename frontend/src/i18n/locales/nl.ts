@@ -162,7 +162,7 @@ export const nl = {
         sword: 'Zwaard',
         spear: 'Speer',
         axe: 'Bijl',
-        buyCatapult: 'Katapult kopen',
+        buyTrebuchet: 'Trebuchet kopen',
         chooseWeaponToCraft: 'Kies een wapen om te maken.',
 
         closeForge: 'Smidse sluiten',

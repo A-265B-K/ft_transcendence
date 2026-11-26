@@ -153,7 +153,7 @@ export const en = {
         sword: 'Sword',
         spear: 'Spear',
         axe: 'Axe',
-        buyCatapult: 'Buy catapult',
+        buyTrebuchet: 'Buy trebuchet',
         chooseWeaponToCraft: 'Choose a weapon to craft.',
         closeForge: 'Close forge',
         openForge: 'Open forge',

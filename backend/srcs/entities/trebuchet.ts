@@ -5,17 +5,17 @@ import { getDistance } from '../util.js';
 import type { GameMap } from '../map.js';
 import type { Player } from './player.js';
 import {
-    CATAPULT_ATTACK_DAMAGE,
-    CATAPULT_ATTACK_INTERVAL,
-    CATAPULT_ATTACK_RANGE,
-    CATAPULT_MAX_HP,
-    CATAPULT_MOVE_SPEED
+    TREBUCHET_ATTACK_DAMAGE,
+    TREBUCHET_ATTACK_INTERVAL,
+    TREBUCHET_ATTACK_RANGE,
+    TREBUCHET_MAX_HP,
+    TREBUCHET_MOVE_SPEED
 } from '../constants.js';
 
-export class Catapult {
+export class Trebuchet {
     readonly id = randomUUID();
     private position: Vec2;
-    private health = CATAPULT_MAX_HP;
+    private health = TREBUCHET_MAX_HP;
     private hasSpawnPosition: boolean;
     private lastmovement = Date.now();
     private path: Vec2[];
@@ -27,14 +27,14 @@ export class Catapult {
         readonly origin: Castle,
         private readonly namespace: Socket['nsp'],
         private readonly roomId: string,
-        private readonly onDestroyed: (catapultId: string) => void,
+        private readonly onDestroyed: (trebuchetId: string) => void,
         private readonly map: GameMap,
         readonly othertargets: Player[],
         private target: Castle
     ) {
         const preferredPosition =
             map.getSpawnPoint(origin.playerSlot)?.pos ?? origin.getposition();
-        const reservedPosition = map.reserveCatapultPosition(
+        const reservedPosition = map.reserveTrebuchetPosition(
             this.id,
             preferredPosition,
             origin
@@ -43,7 +43,7 @@ export class Catapult {
         this.position = reservedPosition ?? preferredPosition;
         this.path =
             target && reservedPosition
-                ? map.findCatapultPath(
+                ? map.findTrebuchetPath(
                       this.position,
                       target.getposition(),
                       origin,
@@ -59,19 +59,19 @@ export class Catapult {
 
     spawn() {
         if (!this.hasSpawnPosition) return;
-        this.namespace.to(this.roomId).emit('catapult_spawn', {
-            catapultId: this.id,
+        this.namespace.to(this.roomId).emit('trebuchet_spawn', {
+            trebuchetId: this.id,
             position: this.position
         });
     }
 
     update(position: Vec2) {
         if (this.health <= 0) return;
-        if (!this.map.updateCatapultPosition(this.id, position)) return;
+        if (!this.map.updateTrebuchetPosition(this.id, position)) return;
 
         this.position = { ...position };
-        this.namespace.to(this.roomId).emit('catapult_move', {
-            catapultId: this.id,
+        this.namespace.to(this.roomId).emit('trebuchet_move', {
+            trebuchetId: this.id,
             position: this.position
         });
     }
@@ -80,7 +80,7 @@ export class Catapult {
         return (
             this.target !== undefined &&
             getDistance(this.position, this.target.getposition()) <=
-                CATAPULT_ATTACK_RANGE
+                TREBUCHET_ATTACK_RANGE
         );
     }
 
@@ -88,7 +88,7 @@ export class Catapult {
         const nextPosition = this.path.shift();
         if (!nextPosition) {
             if (!this.pathExhaustedLogged) {
-                console.info(`[catapult ${this.id}] no waypoint available`, {
+                console.info(`[trebuchet ${this.id}] no waypoint available`, {
                     position: this.position,
                     target: this.target?.getposition()
                 });
@@ -97,7 +97,7 @@ export class Catapult {
             return null;
         }
 
-        // console.info(`[catapult ${this.id}] moving`, {
+        // console.info(`[trebuchet ${this.id}] moving`, {
         //     from: this.position,
         //     to: nextPosition
         // });
@@ -107,7 +107,7 @@ export class Catapult {
     private replanPath() {
         if (!this.target) return;
 
-        this.path = this.map.findCatapultPath(
+        this.path = this.map.findTrebuchetPath(
             this.position,
             this.target.getposition(),
             this.origin,
@@ -122,7 +122,7 @@ export class Catapult {
         const elapsedSeconds = Math.min((now - this.lastmovement) / 1000, 0.25);
         this.lastmovement = now;
 
-        let movementRemaining = CATAPULT_MOVE_SPEED * elapsedSeconds;
+        let movementRemaining = TREBUCHET_MOVE_SPEED * elapsedSeconds;
         const startingPosition = { ...this.position };
 
         while (movementRemaining > 0) {
@@ -133,7 +133,7 @@ export class Catapult {
 
             const distance = getDistance(this.position, this.nextWaypoint);
             if (distance <= movementRemaining) {
-                if (!this.map.canCatapultMoveTo(this.id, this.nextWaypoint)) {
+                if (!this.map.canTrebuchetMoveTo(this.id, this.nextWaypoint)) {
                     this.replanPath();
                     break;
                 }
@@ -152,7 +152,7 @@ export class Catapult {
                     this.position.y +
                     (this.nextWaypoint.y - this.position.y) * progress
             };
-            if (!this.map.canCatapultMoveTo(this.id, nextPosition)) {
+            if (!this.map.canTrebuchetMoveTo(this.id, nextPosition)) {
                 this.replanPath();
                 break;
             }
@@ -198,29 +198,29 @@ export class Catapult {
                     : screenDeltaY < 0
                       ? 'up'
                       : 'down';
-            this.namespace.to(this.roomId).emit('catapult_fire', {
-                catapultId: this.id,
+            this.namespace.to(this.roomId).emit('trebuchet_fire', {
+                trebuchetId: this.id,
                 direction
             });
         }
 
-        this.nextAttackAt = Date.now() + CATAPULT_ATTACK_INTERVAL;
-        this.namespace.to(this.roomId).emit('catapult_attack', {
-            catapultId: this.id,
+        this.nextAttackAt = Date.now() + TREBUCHET_ATTACK_INTERVAL;
+        this.namespace.to(this.roomId).emit('trebuchet_attack', {
+            trebuchetId: this.id,
             start: this.position,
             target: this.target.getposition(),
             durationMs: 600
         });
-        const health = this.target.takedamage(CATAPULT_ATTACK_DAMAGE);
+        const health = this.target.takedamage(TREBUCHET_ATTACK_DAMAGE);
         this.namespace.to(this.roomId).emit('castle_damaged', {
             playerSlot: this.target.playerSlot,
             health,
             level: this.target.getlevel()
         });
-        console.info(`[catapult ${this.id}] hit castle`, {
+        console.info(`[trebuchet ${this.id}] hit castle`, {
             playerSlot: this.target.playerSlot,
             position: this.target.getposition(),
-            damage: CATAPULT_ATTACK_DAMAGE,
+            damage: TREBUCHET_ATTACK_DAMAGE,
             health
         });
     }
@@ -243,22 +243,22 @@ export class Catapult {
         }
 
         this.health = Math.max(0, this.health - damage);
-        this.namespace.to(this.roomId).emit('catapult_damaged', {
-            catapultId: this.id,
+        this.namespace.to(this.roomId).emit('trebuchet_damaged', {
+            trebuchetId: this.id,
             health: this.health,
-            maxHealth: CATAPULT_MAX_HP
+            maxHealth: TREBUCHET_MAX_HP
         });
-        console.info(`[catapult ${this.id}] took damage`, {
+        console.info(`[trebuchet ${this.id}] took damage`, {
             damage,
             health: this.health,
-            maxHealth: CATAPULT_MAX_HP
+            maxHealth: TREBUCHET_MAX_HP
         });
 
         if (this.health <= 0) {
-            this.map.removeCatapultPosition(this.id);
+            this.map.removeTrebuchetPosition(this.id);
             this.onDestroyed(this.id);
-            this.namespace.to(this.roomId).emit('catapult_broken', {
-                catapultId: this.id
+            this.namespace.to(this.roomId).emit('trebuchet_broken', {
+                trebuchetId: this.id
             });
         }
         return this.health;

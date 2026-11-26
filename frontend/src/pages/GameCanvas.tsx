@@ -271,50 +271,50 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             }
         }
 
-        function handleCatapultSpawn({
-            catapultId,
+        function handleTrebuchetSpawn({
+            trebuchetId,
             position
         }: {
-            catapultId: string;
+            trebuchetId: string;
             position: Vec2;
         }) {
-            game.spawnCatapult(catapultId, position);
+            game.spawnTrebuchet(trebuchetId, position);
         }
 
-        function handlecatapultbroken({ catapultId }: { catapultId: string }) {
-            game.breakCatapult(catapultId);
+        function handletrebuchetbroken({ trebuchetId }: { trebuchetId: string }) {
+            game.breakTrebuchet(trebuchetId);
         }
 
-        function handleCatapultFire({
-            catapultId,
+        function handleTrebuchetFire({
+            trebuchetId,
             direction
         }: {
-            catapultId: string;
+            trebuchetId: string;
             direction: 'up' | 'down' | 'left' | 'right';
         }) {
-            game.fireCatapult(catapultId, direction);
+            game.fireTrebuchet(trebuchetId, direction);
         }
 
-        function handleCatapultDamaged(data: {
-            catapultId: string;
+        function handleTrebuchetDamaged(data: {
+            trebuchetId: string;
             health: number;
             maxHealth: number;
         }) {
-            game.updateCatapultHealth(
-                data.catapultId,
+            game.updateTrebuchetHealth(
+                data.trebuchetId,
                 data.health,
                 data.maxHealth
             );
         }
 
-        function handleCatapultMove({
-            catapultId,
+        function handleTrebuchetMove({
+            trebuchetId,
             position
         }: {
-            catapultId: string;
+            trebuchetId: string;
             position: Vec2;
         }) {
-            game.updateCatapult(catapultId, position);
+            game.updateTrebuchet(trebuchetId, position);
         }
 
         function handleCastleAttackStarted(data: {
@@ -326,12 +326,12 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             game.launchboulder(data);
         }
 
-        function handleCatapultAttack(data: {
+        function handleTrebuchetAttack(data: {
             start: Vec2;
             target: Vec2;
             durationMs: number;
         }) {
-            game.launchCatapultShot(data);
+            game.launchTrebuchetShot(data);
         }
 
         function handleCastleDamaged(data: {
@@ -381,13 +381,13 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         socket.on('player_weapon_equipped', handlePlayerWeaponEquipped);
         socket.on('armor', handlearmor);
         socket.on('castle_attack_started', handleCastleAttackStarted);
-        socket.on('catapult_attack', handleCatapultAttack);
+        socket.on('trebuchet_attack', handleTrebuchetAttack);
         socket.on('castle_damaged', handleCastleDamaged);
-        socket.on('catapult_spawn', handleCatapultSpawn);
-        socket.on('catapult_move', handleCatapultMove);
-        socket.on('catapult_fire', handleCatapultFire);
-        socket.on('catapult_damaged', handleCatapultDamaged);
-        socket.on('catapult_broken', handlecatapultbroken);
+        socket.on('trebuchet_spawn', handleTrebuchetSpawn);
+        socket.on('trebuchet_move', handleTrebuchetMove);
+        socket.on('trebuchet_fire', handleTrebuchetFire);
+        socket.on('trebuchet_damaged', handleTrebuchetDamaged);
+        socket.on('trebuchet_broken', handletrebuchetbroken);
         socket.on('boulderready', handleboulderready);
         socket.on('game_end', handleGameEnd);
 
@@ -421,13 +421,13 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             socket.off('player_weapon_equipped', handlePlayerWeaponEquipped);
             socket.off('armor', handlearmor);
             socket.off('castle_attack_started', handleCastleAttackStarted);
-            socket.off('catapult_attack', handleCatapultAttack);
+            socket.off('trebuchet_attack', handleTrebuchetAttack);
             socket.off('castle_damaged', handleCastleDamaged);
-            socket.off('catapult_spawn', handleCatapultSpawn);
-            socket.off('catapult_move', handleCatapultMove);
-            socket.off('catapult_fire', handleCatapultFire);
-            socket.off('catapult_damaged', handleCatapultDamaged);
-            socket.off('catapult_broken', handlecatapultbroken);
+            socket.off('trebuchet_spawn', handleTrebuchetSpawn);
+            socket.off('trebuchet_move', handleTrebuchetMove);
+            socket.off('trebuchet_fire', handleTrebuchetFire);
+            socket.off('trebuchet_damaged', handleTrebuchetDamaged);
+            socket.off('trebuchet_broken', handletrebuchetbroken);
             socket.off('game_end', handleGameEnd);
             socket.off('boulderready', handleboulderready);
             window.clearInterval(intervalId);

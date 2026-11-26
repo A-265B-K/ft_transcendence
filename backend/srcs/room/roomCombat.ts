@@ -3,7 +3,7 @@ import type { Socket } from '../types.js';
 import { isvaliddirection } from '../util.js';
 import { istargethit, type Direction } from '../combat/Detection.js';
 import { getattackstats, type WeaponAttackStats } from '../combat/Weapon.js';
-import { CATAPULT_RADIUS, PLAYER_RADIUS } from '../constants.js';
+import { TREBUCHET_RADIUS, PLAYER_RADIUS } from '../constants.js';
 
 /* 
 function handlecastledamage() {
@@ -11,25 +11,25 @@ function handlecastledamage() {
 }
 */
 
-function handlecatapultdamage(
+function handletrebuchetdamage(
     players: MapIterator<Player>,
     player: Player,
     attackStats: WeaponAttackStats,
     direction: Direction
 ) {
-    for (const catapultowner of players) {
-        const catapults = catapultowner.getcatapults();
-        for (const catapult of catapults) {
+    for (const trebuchetowner of players) {
+        const trebuchets = trebuchetowner.gettrebuchets();
+        for (const trebuchet of trebuchets) {
             if (
                 istargethit(
                     player.getPosition(),
-                    catapult.getpos(),
+                    trebuchet.getpos(),
                     attackStats,
                     direction,
-                    CATAPULT_RADIUS
+                    TREBUCHET_RADIUS
                 )
             )
-                catapult.takedamage(attackStats.damage);
+                trebuchet.takedamage(attackStats.damage);
         }
     }
 }
@@ -99,7 +99,7 @@ export function handleRoomAttack(
     });
 
     handleplayerdamage(players.values(), player, attackStats, direction);
-    handlecatapultdamage(players.values(), player, attackStats, direction);
+    handletrebuchetdamage(players.values(), player, attackStats, direction);
     player.attackNow(weapon);
     return true;
 }

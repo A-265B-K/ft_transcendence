@@ -201,7 +201,7 @@ test('destroyed castles block forge operations', () => {
     assert.equal(room.craftWeapon(user.id, 'dagger'), null);
     assert.equal(room.upgradecastle(user.id), null);
     assert.equal(room.equiparmor(user.id), false);
-    assert.equal(room.payForCatapult(user.id, 'user-2'), null);
+    assert.equal(room.payForTrebuchet(user.id, 'user-2'), null);
 });
 
 test('a dead player respawns while their castle is standing', () => {

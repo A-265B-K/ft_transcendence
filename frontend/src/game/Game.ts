@@ -98,31 +98,31 @@ export class Game {
         this.scene?.spawnResourceTile(x, y, type);
     }
 
-    spawnCatapult(catapultId: string, position: Vec2) {
-        this.scene?.spawnCatapult(catapultId, position);
+    spawnTrebuchet(trebuchetId: string, position: Vec2) {
+        this.scene?.spawnTrebuchet(trebuchetId, position);
     }
 
-    breakCatapult(catapultId: string) {
-        this.scene?.breakCatapult(catapultId);
+    breakTrebuchet(trebuchetId: string) {
+        this.scene?.breakTrebuchet(trebuchetId);
     }
 
-    fireCatapult(
-        catapultId: string,
+    fireTrebuchet(
+        trebuchetId: string,
         direction: 'up' | 'down' | 'left' | 'right'
     ) {
-        this.scene?.fireCatapult(catapultId, direction);
+        this.scene?.fireTrebuchet(trebuchetId, direction);
     }
 
-    updateCatapult(catapultId: string, position: Vec2) {
-        this.scene?.updateCatapult(catapultId, position);
+    updateTrebuchet(trebuchetId: string, position: Vec2) {
+        this.scene?.updateTrebuchet(trebuchetId, position);
     }
 
-    updateCatapultHealth(
-        catapultId: string,
+    updateTrebuchetHealth(
+        trebuchetId: string,
         health: number,
         maxHealth: number
     ) {
-        this.scene?.updateCatapultHealth(catapultId, health, maxHealth);
+        this.scene?.updateTrebuchetHealth(trebuchetId, health, maxHealth);
     }
 
     updateRemoteCastle(socketId: string, level: number) {
@@ -202,10 +202,10 @@ export class Game {
     launchboulder(shot: CastleAttackStarted) {
         this.scene?.launchboulder(shot);
     }
-    launchCatapultShot(
+    launchTrebuchetShot(
         shot: Pick<CastleAttackStarted, 'start' | 'target' | 'durationMs'>
     ) {
-        this.scene?.launchCatapultShot(shot);
+        this.scene?.launchTrebuchetShot(shot);
     }
     updateCastleHealth(playerSlot: number, health: number, level: number) {
         this.scene?.updateCastleHealth(playerSlot, health, level);

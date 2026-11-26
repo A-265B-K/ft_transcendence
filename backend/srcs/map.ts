@@ -3,8 +3,8 @@ import {
     CASTLE_RADIUS,
     MIN_DIST_CASTLE,
     PLAYER_RADIUS,
-    CATAPULT_ATTACK_RANGE,
-    CATAPULT_RADIUS
+    TREBUCHET_ATTACK_RANGE,
+    TREBUCHET_RADIUS
 } from './constants.js';
 import type { Socket, Spawn, Vec2 } from './types.js';
 import { getDistance, randomPos } from './util.js';
@@ -56,7 +56,7 @@ export class GameMap {
     private spawnPoints: Map<number, Spawn>;
     private obstacles: ReturnType<typeof this.generateObstacles>;
     private resourceSpawns: ReturnType<typeof this.generateResourceSpawns>;
-    private catapultPositions = new Map<string, Vec2>();
+    private trebuchetPositions = new Map<string, Vec2>();
 
     constructor(playerSlots: number[]) {
         this.mapId = randomUUID();
@@ -287,12 +287,12 @@ export class GameMap {
         );
     }
 
-    reserveCatapultPosition(
-        catapultId: string,
+    reserveTrebuchetPosition(
+        trebuchetId: string,
         preferredPosition: Vec2,
         originCastle: Castle
     ): Vec2 | null {
-        const spacing = CATAPULT_RADIUS * 2 + 0.25;
+        const spacing = TREBUCHET_RADIUS * 2 + 0.25;
         const maxRadius = Math.ceil(
             Math.max(this.width, this.height) / spacing
         );
@@ -321,20 +321,20 @@ export class GameMap {
                         this.obstacles.some(
                             (obstacle) =>
                                 getDistance(candidate, obstacle) <=
-                                obstacle.radius + CATAPULT_RADIUS
+                                obstacle.radius + TREBUCHET_RADIUS
                         ) ||
                         this.castleZones.some(
                             (castle) =>
                                 castle !== originCastle &&
                                 getDistance(candidate, castle.getposition()) <=
-                                    castle.radius + CATAPULT_RADIUS
+                                    castle.radius + TREBUCHET_RADIUS
                         ) ||
-                        this.hasCatapultCollision(candidate, catapultId)
+                        this.hasTrebuchetCollision(candidate, trebuchetId)
                     ) {
                         continue;
                     }
 
-                    this.catapultPositions.set(catapultId, candidate);
+                    this.trebuchetPositions.set(trebuchetId, candidate);
                     return { ...candidate };
                 }
             }
@@ -343,27 +343,27 @@ export class GameMap {
         return null;
     }
 
-    canCatapultMoveTo(catapultId: string, position: Vec2): boolean {
-        return !this.hasCatapultCollision(position, catapultId);
+    canTrebuchetMoveTo(trebuchetId: string, position: Vec2): boolean {
+        return !this.hasTrebuchetCollision(position, trebuchetId);
     }
 
-    updateCatapultPosition(catapultId: string, position: Vec2): boolean {
-        if (!this.catapultPositions.has(catapultId)) return false;
-        if (!this.canCatapultMoveTo(catapultId, position)) return false;
+    updateTrebuchetPosition(trebuchetId: string, position: Vec2): boolean {
+        if (!this.trebuchetPositions.has(trebuchetId)) return false;
+        if (!this.canTrebuchetMoveTo(trebuchetId, position)) return false;
 
-        this.catapultPositions.set(catapultId, { ...position });
+        this.trebuchetPositions.set(trebuchetId, { ...position });
         return true;
     }
 
-    removeCatapultPosition(catapultId: string): void {
-        this.catapultPositions.delete(catapultId);
+    removeTrebuchetPosition(trebuchetId: string): void {
+        this.trebuchetPositions.delete(trebuchetId);
     }
 
-    private hasCatapultCollision(position: Vec2, catapultId: string): boolean {
-        for (const [otherId, otherPosition] of this.catapultPositions) {
+    private hasTrebuchetCollision(position: Vec2, trebuchetId: string): boolean {
+        for (const [otherId, otherPosition] of this.trebuchetPositions) {
             if (
-                otherId !== catapultId &&
-                getDistance(position, otherPosition) < CATAPULT_RADIUS * 2
+                otherId !== trebuchetId &&
+                getDistance(position, otherPosition) < TREBUCHET_RADIUS * 2
             ) {
                 return true;
             }
@@ -372,12 +372,12 @@ export class GameMap {
         return false;
     }
 
-    findCatapultPath(
+    findTrebuchetPath(
         start: Vec2,
         target: Vec2,
         originCastle: Castle,
         targetCastle: Castle,
-        catapultId: string
+        trebuchetId: string
     ): Vec2[] {
         const directions = [
             { x: 1, y: 0 },
@@ -417,7 +417,7 @@ export class GameMap {
 
             if (
                 nodeKey(node) !== nodeKey(startNode) &&
-                this.hasCatapultCollision(node, catapultId)
+                this.hasTrebuchetCollision(node, trebuchetId)
             ) {
                 return true;
             }
@@ -478,7 +478,7 @@ export class GameMap {
             const current = pop()!.node;
             const currentKey = nodeKey(current);
 
-            if (getDistance(current, target) <= CATAPULT_ATTACK_RANGE) {
+            if (getDistance(current, target) <= TREBUCHET_ATTACK_RANGE) {
                 destinationKey = currentKey;
                 break;
             }

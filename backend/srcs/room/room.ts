@@ -43,8 +43,8 @@ export class Room {
                 player.respawn();
                 player.checkAttackReady();
                 player.getCastle().checkAttack();
-                for (const catapult of player.getcatapults()) {
-                    catapult.loop();
+                for (const trebuchet of player.gettrebuchets()) {
+                    trebuchet.loop();
                 }
             }
             this.bouldercheck();
@@ -383,7 +383,7 @@ export class Room {
         return this.getPlayerByUserId(userId)?.equiparmor() ?? false;
     }
 
-    payForCatapult(userId: string, targetUserId: string) {
+    payForTrebuchet(userId: string, targetUserId: string) {
         if (!this.active()) return null;
 
         const player = this.getPlayerByUserId(userId);
@@ -397,7 +397,7 @@ export class Room {
             !target ||
             targetUserId === userId ||
             !target.isAlive() ||
-            !player?.payForCatapult(target, otherPlayers, this.map)
+            !player?.payForTrebuchet(target, otherPlayers, this.map)
         )
             return null;
 

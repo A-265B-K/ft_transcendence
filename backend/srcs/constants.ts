@@ -10,12 +10,12 @@ export const PLAYER_DEFAULT_IRON = 0;
 export const PLAYER_DEFAULT_WOOD = 0;
 export const PLAYER_DEFAULT_CASTLE_LEVEL = 1;
 
-export const CATAPULT_COST = { wood: 50, iron: 50 } as const;
-export const CATAPULT_MOVE_SPEED = 2;
-export const CATAPULT_ATTACK_RANGE = 5;
-export const CATAPULT_ATTACK_INTERVAL = 5000;
-export const CATAPULT_ATTACK_DAMAGE = 40;
-export const CATAPULT_MAX_HP = 200;
+export const TREBUCHET_COST = { wood: 50, iron: 50 } as const;
+export const TREBUCHET_MOVE_SPEED = 2;
+export const TREBUCHET_ATTACK_RANGE = 5;
+export const TREBUCHET_ATTACK_INTERVAL = 5000;
+export const TREBUCHET_ATTACK_DAMAGE = 40;
+export const TREBUCHET_MAX_HP = 200;
 export const CASTLE_MAX_HP = 200;
 
 export const MAP_SIZE = 100;
@@ -24,7 +24,7 @@ export const MAP_HEIGHT = MAP_SIZE;
 export const CASTLE_RADIUS = 8;
 
 export const PLAYER_RADIUS = 1;
-export const CATAPULT_RADIUS = 2;
+export const TREBUCHET_RADIUS = 2;
 
 export const MIN_DIST_CASTLE = 35;
 

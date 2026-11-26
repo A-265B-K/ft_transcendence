@@ -37,20 +37,20 @@ import spear2Url from '../../assets/weapons/spear/spear2.png';
 import spear3Url from '../../assets/weapons/spear/spear3.png';
 import spear4Url from '../../assets/weapons/spear/spear4.png';
 import BoulderUrl from '../../assets/boulder.png';
-import catapultUrl from '../../assets/catapult/down.png';
-import catapultUpUrl from '../../assets/catapult/up.png';
-import catapultLeftUrl from '../../assets/catapult/left.png';
-import catapultRightUrl from '../../assets/catapult/right.png';
-import catapultDownFireUrl from '../../assets/catapult/down-fire.png';
-import catapultUpFireUrl from '../../assets/catapult/up-fire.png';
-import catapultLeftFireUrl from '../../assets/catapult/left-fire.png';
-import catapultRightFireUrl from '../../assets/catapult/right-fire.png';
-import catapultDestroyedUrl from '../../assets/catapult/destroyed.png';
+import trebuchetUrl from '../../assets/trebuchet/down.png';
+import trebuchetUpUrl from '../../assets/trebuchet/up.png';
+import trebuchetLeftUrl from '../../assets/trebuchet/left.png';
+import trebuchetRightUrl from '../../assets/trebuchet/right.png';
+import trebuchetDownFireUrl from '../../assets/trebuchet/down-fire.png';
+import trebuchetUpFireUrl from '../../assets/trebuchet/up-fire.png';
+import trebuchetLeftFireUrl from '../../assets/trebuchet/left-fire.png';
+import trebuchetRightFireUrl from '../../assets/trebuchet/right-fire.png';
+import trebuchetDestroyedUrl from '../../assets/trebuchet/destroyed.png';
 
 import rockobstacle from '../../assets/obstacles/rock.png';
 import treeobstacle from '../../assets/obstacles/tree.png';
 
-import type { CatapultTextures } from '../entities/catapult';
+import type { TrebuchetTextures } from '../entities/trebuchet';
 
 export type GameTextures = {
     grass: Texture;
@@ -98,7 +98,7 @@ export type GameTextures = {
     spear4: Texture;
 
     boulder: Texture;
-    catapult: CatapultTextures;
+    trebuchet: TrebuchetTextures;
 
     tree: Texture;
     rock: Texture;
@@ -149,15 +149,15 @@ export async function loadGameTextures(): Promise<GameTextures> {
         spear3,
         spear4,
         boulder,
-        catapultDown,
-        catapultUp,
-        catapultLeft,
-        catapultRight,
-        catapultDownFire,
-        catapultUpFire,
-        catapultLeftFire,
-        catapultRightFire,
-        catapultDestroyed,
+        trebuchetDown,
+        trebuchetUp,
+        trebuchetLeft,
+        trebuchetRight,
+        trebuchetDownFire,
+        trebuchetUpFire,
+        trebuchetLeftFire,
+        trebuchetRightFire,
+        trebuchetDestroyed,
 
         tree,
         rock
@@ -207,15 +207,15 @@ export async function loadGameTextures(): Promise<GameTextures> {
         Assets.load<Texture>(spear3Url),
         Assets.load<Texture>(spear4Url),
         Assets.load<Texture>(BoulderUrl),
-        Assets.load<Texture>(catapultUrl),
-        Assets.load<Texture>(catapultUpUrl),
-        Assets.load<Texture>(catapultLeftUrl),
-        Assets.load<Texture>(catapultRightUrl),
-        Assets.load<Texture>(catapultDownFireUrl),
-        Assets.load<Texture>(catapultUpFireUrl),
-        Assets.load<Texture>(catapultLeftFireUrl),
-        Assets.load<Texture>(catapultRightFireUrl),
-        Assets.load<Texture>(catapultDestroyedUrl),
+        Assets.load<Texture>(trebuchetUrl),
+        Assets.load<Texture>(trebuchetUpUrl),
+        Assets.load<Texture>(trebuchetLeftUrl),
+        Assets.load<Texture>(trebuchetRightUrl),
+        Assets.load<Texture>(trebuchetDownFireUrl),
+        Assets.load<Texture>(trebuchetUpFireUrl),
+        Assets.load<Texture>(trebuchetLeftFireUrl),
+        Assets.load<Texture>(trebuchetRightFireUrl),
+        Assets.load<Texture>(trebuchetDestroyedUrl),
         Assets.load<Texture>(treeobstacle),
         Assets.load<Texture>(rockobstacle)
     ]);
@@ -265,21 +265,21 @@ export async function loadGameTextures(): Promise<GameTextures> {
         spear4,
 
         boulder,
-        catapult: {
-            idle: catapultDown,
+        trebuchet: {
+            idle: trebuchetDown,
             moving: {
-                up: catapultUp,
-                down: catapultDown,
-                left: catapultLeft,
-                right: catapultRight
+                up: trebuchetUp,
+                down: trebuchetDown,
+                left: trebuchetLeft,
+                right: trebuchetRight
             },
             firing: {
-                up: catapultUpFire,
-                down: catapultDownFire,
-                left: catapultLeftFire,
-                right: catapultRightFire
+                up: trebuchetUpFire,
+                down: trebuchetDownFire,
+                left: trebuchetLeftFire,
+                right: trebuchetRightFire
             },
-            broken: catapultDestroyed
+            broken: trebuchetDestroyed
         },
         tree,
         rock

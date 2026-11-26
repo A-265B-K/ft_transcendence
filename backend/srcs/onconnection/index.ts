@@ -5,7 +5,7 @@ import { registerRoomsHandlers } from './rooms.js';
 import { registerPlayerHandlers } from './player.js';
 import { registerEquipmentHandlers } from './equipment.js';
 import { registerCastleHandlers } from './castle.js';
-import { registerCatapultHandlers } from './catapults.js';
+import { registerTrebuchetHandlers } from './trebuchets.js';
 import { registerDisconnectHandlers } from './disconnect.js';
 
 const onConnection = async (socket: Socket, roomManager: RoomManager) => {
@@ -29,7 +29,7 @@ const onConnection = async (socket: Socket, roomManager: RoomManager) => {
     registerRoomsHandlers(context);
     registerPlayerHandlers(context);
     registerEquipmentHandlers(context);
-    registerCatapultHandlers(context);
+    registerTrebuchetHandlers(context);
     registerCastleHandlers(context);
     registerDisconnectHandlers(context);
 };

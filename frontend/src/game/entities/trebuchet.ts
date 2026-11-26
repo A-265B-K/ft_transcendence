@@ -2,32 +2,32 @@ import { Container, Graphics, Sprite, type Texture } from 'pixi.js';
 import type { Vec2 } from '../../types/game';
 import { isoX, isoY } from '../world/iso';
 
-export type CatapultDirection = 'up' | 'down' | 'left' | 'right';
+export type TrebuchetDirection = 'up' | 'down' | 'left' | 'right';
 
-export type CatapultTextures = {
+export type TrebuchetTextures = {
     idle: Texture;
-    moving: Record<CatapultDirection, Texture>;
-    firing: Record<CatapultDirection, Texture>;
+    moving: Record<TrebuchetDirection, Texture>;
+    firing: Record<TrebuchetDirection, Texture>;
     broken: Texture;
 };
 
-export class Catapult {
+export class Trebuchet {
     readonly id: string;
     readonly sprite: Sprite;
     readonly healthBar: Graphics;
     position: Vec2;
-    private readonly textures: CatapultTextures;
+    private readonly textures: TrebuchetTextures;
     private segmentStart: Vec2;
     private targetPosition: Vec2;
     private interpolationElapsed = 0;
     private readonly interpolationDurationSeconds = 0.25;
-    private direction: CatapultDirection = 'down';
+    private direction: TrebuchetDirection = 'down';
     private firingElapsed = 0;
     private brokenElapsed: number | null = null;
     private readonly firingDurationSeconds = 0.45;
     private readonly brokenDurationSeconds = 0.7;
 
-    constructor(id: string, textures: CatapultTextures, position: Vec2) {
+    constructor(id: string, textures: TrebuchetTextures, position: Vec2) {
         this.id = id;
         this.textures = textures;
         this.position = { ...position };
@@ -68,7 +68,7 @@ export class Catapult {
         this.updateTexture();
     }
 
-    fire(direction: CatapultDirection) {
+    fire(direction: TrebuchetDirection) {
         if (this.brokenElapsed !== null) return;
         this.direction = direction;
         this.firingElapsed = this.firingDurationSeconds;
@@ -123,7 +123,7 @@ export class Catapult {
         return false;
     }
 
-    private getDirection(deltaX: number, deltaY: number): CatapultDirection {
+    private getDirection(deltaX: number, deltaY: number): TrebuchetDirection {
         const screenDeltaX = deltaX - deltaY;
         const screenDeltaY = deltaY + deltaX;
 

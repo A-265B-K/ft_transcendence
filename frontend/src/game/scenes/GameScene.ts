@@ -1,7 +1,7 @@
 import { Container, Sprite, TilingSprite } from 'pixi.js';
 import { Player, type InputState } from '../entities/Player';
 import { Castle } from '../entities/Castle';
-import { Catapult } from '../entities/catapult';
+import { Trebuchet } from '../entities/trebuchet';
 import { Camera } from '../systems/Camera';
 import { GameMap } from '../world/GameMap';
 import type { HarvestableTile } from '../world/tileResource';
@@ -20,7 +20,7 @@ export class GameScene {
     readonly player: Player;
     readonly castle: Castle;
     readonly castles = new Map<number, Castle>();
-    private readonly catapults = new Map<string, Catapult>();
+    private readonly trebuchets = new Map<string, Trebuchet>();
     readonly camera: Camera;
     readonly joinedData: JoinedPayload;
     readonly remotePlayers = new Map<string, RemotePlayer>();
@@ -339,8 +339,8 @@ export class GameScene {
             this.camera.x,
             this.camera.y
         );
-        for (const [catapultId, catapult] of this.catapults) {
-            if (catapult.update(deltaSeconds)) this.deleteCatapult(catapultId);
+        for (const [trebuchetId, trebuchet] of this.trebuchets) {
+            if (trebuchet.update(deltaSeconds)) this.deleteTrebuchet(trebuchetId);
         }
         this.updateBoulders(deltaSeconds);
     }
@@ -386,49 +386,49 @@ export class GameScene {
         return directions[index];
     }
 
-    spawnCatapult(catapultId: string, position: Vec2) {
-        if (this.catapults.has(catapultId)) return;
+    spawnTrebuchet(trebuchetId: string, position: Vec2) {
+        if (this.trebuchets.has(trebuchetId)) return;
 
-        const catapult = new Catapult(
-            catapultId,
-            this.textures.catapult,
+        const trebuchet = new Trebuchet(
+            trebuchetId,
+            this.textures.trebuchet,
             position
         );
-        this.catapults.set(catapult.id, catapult);
-        catapult.spawn(this.world);
+        this.trebuchets.set(trebuchet.id, trebuchet);
+        trebuchet.spawn(this.world);
     }
 
-    updateCatapult(catapultId: string, position: Vec2) {
-        this.catapults.get(catapultId)?.setTargetPosition(position);
+    updateTrebuchet(trebuchetId: string, position: Vec2) {
+        this.trebuchets.get(trebuchetId)?.setTargetPosition(position);
     }
 
-    fireCatapult(
-        catapultId: string,
+    fireTrebuchet(
+        trebuchetId: string,
         direction: 'up' | 'down' | 'left' | 'right'
     ) {
-        this.catapults.get(catapultId)?.fire(direction);
+        this.trebuchets.get(trebuchetId)?.fire(direction);
     }
 
-    breakCatapult(catapultId: string) {
-        this.catapults.get(catapultId)?.break();
+    breakTrebuchet(trebuchetId: string) {
+        this.trebuchets.get(trebuchetId)?.break();
     }
 
-    updateCatapultHealth(
-        catapultId: string,
+    updateTrebuchetHealth(
+        trebuchetId: string,
         health: number,
         maxHealth: number
     ) {
-        this.catapults.get(catapultId)?.setHealth(health, maxHealth);
+        this.trebuchets.get(trebuchetId)?.setHealth(health, maxHealth);
     }
 
-    private deleteCatapult(catapultId: string) {
-        const catapult = this.catapults.get(catapultId);
-        if (catapult) {
-            this.world.removeChild(catapult.sprite);
-            this.world.removeChild(catapult.healthBar);
-            catapult.sprite.destroy();
-            catapult.healthBar.destroy();
-            this.catapults.delete(catapultId);
+    private deleteTrebuchet(trebuchetId: string) {
+        const trebuchet = this.trebuchets.get(trebuchetId);
+        if (trebuchet) {
+            this.world.removeChild(trebuchet.sprite);
+            this.world.removeChild(trebuchet.healthBar);
+            trebuchet.sprite.destroy();
+            trebuchet.healthBar.destroy();
+            this.trebuchets.delete(trebuchetId);
         }
     }
 
@@ -559,7 +559,7 @@ export class GameScene {
         this.launchProjectile(shot);
     }
 
-    launchCatapultShot(
+    launchTrebuchetShot(
         shot: Pick<CastleAttackStarted, 'start' | 'target' | 'durationMs'>
     ) {
         this.launchProjectile(shot);
