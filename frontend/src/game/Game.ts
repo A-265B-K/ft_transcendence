@@ -1,6 +1,7 @@
 import type { WeaponType } from './entities/weapons/weapon';
 import { Application, Ticker } from 'pixi.js';
 import { loadGameTextures } from './assets/loadGameTextures';
+import { loadSounds } from './assets/loadSounds';
 import { GameScene } from './scenes/GameScene';
 import { Input } from './systems/Input';
 import { AudioManager } from './systems/Audio';
@@ -143,6 +144,7 @@ export class Game {
         container.appendChild(this.app.canvas);
 
         const textures = await loadGameTextures();
+        loadSounds(this.audio);
 
         this.scene = new GameScene(textures, joinedData, socket);
 
