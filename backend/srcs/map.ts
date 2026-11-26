@@ -13,6 +13,27 @@ import { Castle } from './entities/castle.js';
 
 export type Resource = Room['map']['resourceSpawns'][number];
 
+const SPAWN_DISTANCE_FROM_CASTLE = CASTLE_RADIUS / 2 + PLAYER_RADIUS + 1;
+const CASTLE_EDGE_MARGIN = Math.max(
+    CASTLE_RADIUS / 2,
+    SPAWN_DISTANCE_FROM_CASTLE + PLAYER_RADIUS
+);
+
+function getSpawnPosition(castlePos: Vec2, mapCenter: Vec2): Vec2 {
+    let dx = mapCenter.x - castlePos.x;
+    let dy = mapCenter.y - castlePos.y;
+    const length = Math.hypot(dx, dy);
+    if (length < 1e-6) {
+        dx = 1;
+        dy = 1;
+    }
+    const norm = Math.hypot(dx, dy);
+    return {
+        x: castlePos.x + (dx / norm) * SPAWN_DISTANCE_FROM_CASTLE,
+        y: castlePos.y + (dy / norm) * SPAWN_DISTANCE_FROM_CASTLE
+    };
+}
+
 function getMapSize(playerCount: number): number {
     const sizes: Record<number, number> = {
         1: 30,
@@ -61,8 +82,7 @@ export class GameMap {
     }
 
     private generateSpawnPoints(castleZones: Castle[]) {
-        const castleClearance = CASTLE_RADIUS / 2 + PLAYER_RADIUS + 1;
-        const castleOffset = castleClearance / Math.sqrt(2);
+        const center = { x: this.width / 2, y: this.height / 2 };
 
         const spawnPoints = new Map<number, Spawn>(
             castleZones.map((castle) => {
@@ -71,10 +91,7 @@ export class GameMap {
                     castle.playerSlot,
                     {
                         playerSlot: castle.playerSlot,
-                        pos: {
-                            x: position.x + castleOffset,
-                            y: position.y + castleOffset
-                        }
+                        pos: getSpawnPosition(position, center)
                     }
                 ];
             })
@@ -99,10 +116,10 @@ export class GameMap {
 
                 const pos = randomPos(this.width, this.height);
                 const outOfBounds =
-                    pos.x - CASTLE_RADIUS / 2 < 0 ||
-                    pos.x + CASTLE_RADIUS / 2 > this.width ||
-                    pos.y - CASTLE_RADIUS / 2 < 0 ||
-                    pos.y + CASTLE_RADIUS / 2 > this.height;
+                    pos.x - CASTLE_EDGE_MARGIN < 0 ||
+                    pos.x + CASTLE_EDGE_MARGIN > this.width ||
+                    pos.y - CASTLE_EDGE_MARGIN < 0 ||
+                    pos.y + CASTLE_EDGE_MARGIN > this.height;
 
                 const tooClose =
                     outOfBounds ||
