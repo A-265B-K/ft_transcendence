@@ -18,9 +18,6 @@ export const CATAPULT_ATTACK_DAMAGE = 40;
 export const CATAPULT_MAX_HP = 200;
 export const CASTLE_MAX_HP = 200;
 
-export const MAP_SIZE = 100;
-export const MAP_WIDTH = MAP_SIZE;
-export const MAP_HEIGHT = MAP_SIZE;
 export const CASTLE_RADIUS = 8;
 
 export const PLAYER_RADIUS = 1;
