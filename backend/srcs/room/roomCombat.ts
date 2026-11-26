@@ -5,12 +5,6 @@ import { istargethit, type Direction } from '../combat/Detection.js';
 import { getattackstats, type WeaponAttackStats } from '../combat/Weapon.js';
 import { CATAPULT_RADIUS, PLAYER_RADIUS } from '../constants.js';
 
-/* 
-function handlecastledamage() {
-    
-}
-*/
-
 function handlecatapultdamage(
     players: MapIterator<Player>,
     player: Player,
