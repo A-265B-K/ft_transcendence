@@ -1,5 +1,6 @@
 export class AudioManager {
-    private readonly soundEffects = new Map<string, string>();
+    private readonly soundEffects = new Map<string, HTMLAudioElement[]>();
+    private readonly lastVariant = new Map<string, number>();
     private readonly activeEffects = new Set<HTMLAudioElement>();
     private backgroundMusic?: HTMLAudioElement;
 
@@ -8,16 +9,26 @@ export class AudioManager {
             throw new Error('Sound effect name and source are required');
         }
 
-        this.soundEffects.set(name, source);
+        const template = new Audio(source);
+        template.preload = 'auto';
+
+        const variants = this.soundEffects.get(name);
+        if (variants) {
+            variants.push(template);
+        } else {
+            this.soundEffects.set(name, [template]);
+        }
     }
 
-    async playSoundEffect(name: string): Promise<void> {
-        const source = this.soundEffects.get(name);
-        if (!source) {
-            throw new Error(`Unknown sound effect: ${name}`);
-        }
+    hasSoundEffect(name: string): boolean {
+        return this.soundEffects.has(name);
+    }
 
-        const effect = new Audio(source);
+    async playSoundEffect(name: string, volume = 1): Promise<void> {
+        const effect = this.pickVariant(name).cloneNode(
+            true
+        ) as HTMLAudioElement;
+        effect.volume = Math.max(0, Math.min(1, volume));
         this.activeEffects.add(effect);
         effect.addEventListener(
             'ended',
@@ -31,6 +42,21 @@ export class AudioManager {
             this.activeEffects.delete(effect);
             throw error;
         }
+    }
+
+    private pickVariant(name: string): HTMLAudioElement {
+        const variants = this.soundEffects.get(name);
+        if (!variants || variants.length === 0) {
+            throw new Error(`Unknown sound effect: ${name}`);
+        }
+
+        let index = Math.floor(Math.random() * variants.length);
+        if (variants.length > 1 && index === this.lastVariant.get(name)) {
+            index = (index + 1) % variants.length;
+        }
+        this.lastVariant.set(name, index);
+
+        return variants[index]!;
     }
 
     async playBackgroundMusic(source: string): Promise<void> {
@@ -90,5 +116,6 @@ export class AudioManager {
         }
         this.activeEffects.clear();
         this.soundEffects.clear();
+        this.lastVariant.clear();
     }
 }
