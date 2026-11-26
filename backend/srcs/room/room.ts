@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { ROOM_MAX_SIZE } from '../constants.js';
+import { RECONNECT_GRACE_MS, ROOM_MAX_SIZE } from '../constants.js';
 import { GameMap } from '../map.js';
 import type { Socket, SocketUser, boulder } from '../types.js';
 import { Player } from '../entities/player.js';
@@ -20,6 +20,7 @@ export class Room {
     private started: boolean;
     private finished: boolean;
     private timer: ReturnType<typeof setInterval> | null = null;
+    private pendingRemovals = new Map<string, ReturnType<typeof setTimeout>>();
 
     constructor(name: string, hostId: string, code: string, socket: Socket) {
         this.name = name;
@@ -115,6 +116,9 @@ export class Room {
             clearInterval(this.timer);
             this.timer = null;
         }
+        for (const removal of this.pendingRemovals.values())
+            clearTimeout(removal);
+        this.pendingRemovals.clear();
     }
 
     getCode(): string {
@@ -204,12 +208,10 @@ export class Room {
     }
 
     join(socket: Socket, user: SocketUser): string | null {
+        const existingPlayer = this.getPlayerByUserId(user.id);
+        if (existingPlayer) return this.reattach(socket, existingPlayer);
+
         if (this.hasStarted()) return (joinerror('Game has started'), null);
-
-        this.RemovePreviousSession(user.id, socket);
-
-        const existingplayer = this.getPlayerByUserId(user.id);
-        if (existingplayer) return (joinerror('Player already in room'), null);
 
         if (this.getPlayerCount() >= ROOM_MAX_SIZE)
             return (joinerror('Room is full'), null);
@@ -244,13 +246,7 @@ export class Room {
         });
         socket.to(this.roomId).emit('player_joined', player);
 
-        socket.emit('joined', {
-            roomId: this.roomId,
-            player,
-            map: this.map,
-            players: Array.from(this.players.values()),
-            room: this.getRoomInfo()
-        });
+        socket.emit('joined', this.joinedPayload(player));
 
         console.log(
             `Player ${player.getUsername()} joined ` +
@@ -265,6 +261,38 @@ export class Room {
                 message: error
             });
         }
+    }
+
+    private joinedPayload(player: Player) {
+        return {
+            roomId: this.roomId,
+            player,
+            map: this.map,
+            players: Array.from(this.players.values()),
+            room: this.getRoomInfo()
+        };
+    }
+
+    private reattach(socket: Socket, player: Player): string {
+        this.cancelRemoval(player.getUserId());
+
+        const previousId = player.getConnectionId();
+        if (previousId !== socket.id) {
+            const previousSocket = socket.nsp.sockets.get(previousId);
+            player.attachConnection(socket);
+            previousSocket?.leave(this.roomId);
+            console.log(
+                `Player ${player.getUsername()} reconnected to ${this.name}`
+            );
+        }
+
+        socket.join(this.roomId);
+        socket.emit('joined', this.joinedPayload(player));
+        return this.roomId;
+    }
+
+    getPlayerSocketId(userId: string): string | null {
+        return this.players.get(userId)?.getSocketId() ?? null;
     }
 
     private findAvailableSlot(maxSize: number): number | null {
@@ -290,11 +318,38 @@ export class Room {
 
     leave(socket: Socket, userId: string) {
         const player = this.getPlayerByUserId(userId);
-        if (player?.getSocketId() === socket.id)
+        if (player?.getConnectionId() === socket.id)
             this.removePlayer(socket, player);
     }
 
+    disconnect(socket: Socket, userId: string) {
+        const player = this.getPlayerByUserId(userId);
+        if (player?.getConnectionId() !== socket.id) return;
+
+        this.cancelRemoval(userId);
+        this.pendingRemovals.set(
+            userId,
+            setTimeout(() => {
+                this.pendingRemovals.delete(userId);
+                if (
+                    this.players.get(userId) === player &&
+                    player.getConnectionId() === socket.id
+                )
+                    this.removePlayer(socket, player);
+            }, RECONNECT_GRACE_MS)
+        );
+    }
+
+    private cancelRemoval(userId: string) {
+        const removal = this.pendingRemovals.get(userId);
+        if (removal === undefined) return;
+
+        clearTimeout(removal);
+        this.pendingRemovals.delete(userId);
+    }
+
     private removePlayer(socket: Socket, player: Player) {
+        this.cancelRemoval(player.getUserId());
         socket.to(this.roomId).emit('player_left', player);
 
         this.players.delete(player.getUserId());
@@ -327,26 +382,6 @@ export class Room {
             { x, y },
             moving
         );
-    }
-
-    RemovePreviousSession(userId: string, socket: Socket) {
-        const existingPlayer = this.getPlayerByUserId(userId);
-
-        if (!existingPlayer) {
-            return;
-        }
-
-        if (existingPlayer.getSocketId() === socket.id) {
-            return;
-        }
-
-        const previousSocket = socket.nsp.sockets.get(
-            existingPlayer.getSocketId()
-        );
-        previousSocket?.leave(this.roomId);
-        this.removePlayer(previousSocket ?? socket, existingPlayer);
-
-        console.log(`Removed old session for user ${userId}`);
     }
 
     craftWeapon(

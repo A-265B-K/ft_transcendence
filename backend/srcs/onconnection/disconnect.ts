@@ -1,5 +1,4 @@
 import type { ConnectionContext } from './types.js';
-import { onDisconnection } from './onDisconnection.js';
 
 export const registerDisconnectHandlers = (context: ConnectionContext) => {
     const { socket, user, roomManager } = context;
@@ -7,7 +6,11 @@ export const registerDisconnectHandlers = (context: ConnectionContext) => {
     socket.on('disconnect', () => {
         console.log('Player disconnected:', user.username);
 
-        if (context.currentRoomId)
-            onDisconnection(socket, user, context.currentRoomId, roomManager);
+        if (!context.currentRoomId) return;
+
+        roomManager
+            .getRoomById(context.currentRoomId)
+            ?.disconnect(socket, user.id);
+        context.currentRoomId = null;
     });
 };

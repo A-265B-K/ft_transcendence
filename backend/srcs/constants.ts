@@ -1,4 +1,5 @@
 export const ROOM_MAX_SIZE = 4;
+export const RECONNECT_GRACE_MS = 15000;
 export const PLAYER_MAX_HP = 100;
 export const PLAYER_RESPAWN_DELAY = 3000;
 

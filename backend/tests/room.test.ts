@@ -22,6 +22,7 @@ type RoomState = {
     started: boolean;
     finished: boolean;
     timer: null;
+    pendingRemovals: Map<string, ReturnType<typeof setTimeout>>;
 };
 
 function makeRoom(started = false): Room {
@@ -61,7 +62,8 @@ function makeRoom(started = false): Room {
         map,
         started,
         finished: false,
-        timer: null
+        timer: null,
+        pendingRemovals: new Map()
     });
 
     return room;

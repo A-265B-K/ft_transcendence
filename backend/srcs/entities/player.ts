@@ -24,6 +24,7 @@ export type { WeaponType } from '../combat/Weapon.js';
 export class Player {
     private readonly userId: string;
     private readonly socketId: string;
+    private connectionId: string;
     private readonly namespace: Socket['nsp'];
     private readonly roomId: string;
     private readonly username: string;
@@ -60,6 +61,7 @@ export class Player {
     ) {
         this.userId = user.id;
         this.socketId = socket.id;
+        this.connectionId = socket.id;
         this.namespace = socket.nsp;
         this.roomId = roomId;
         this.username = user.username;
@@ -90,6 +92,14 @@ export class Player {
         return this.socketId;
     }
 
+    getConnectionId(): string {
+        return this.connectionId;
+    }
+
+    attachConnection(socket: Socket): void {
+        this.connectionId = socket.id;
+    }
+
     getUsername(): string {
         return this.username;
     }
@@ -118,7 +128,7 @@ export class Player {
         if (this.armor !== armorvalue) {
             this.armor = armorvalue;
             this.armorexpiry = 0;
-            this.namespace.to(this.socketId).emit('armor', {
+            this.namespace.to(this.connectionId).emit('armor', {
                 armor: armorvalue
             });
         }
@@ -137,7 +147,7 @@ export class Player {
 
         this.armorexpiry = Date.now() + 20 * 1000;
         this.armor = true;
-        this.namespace.to(this.socketId).emit('armor', { armor: true });
+        this.namespace.to(this.connectionId).emit('armor', { armor: true });
         return true;
     }
 
@@ -177,7 +187,7 @@ export class Player {
         if (ready === this.attackReady) return;
 
         this.attackReady = ready;
-        this.namespace.to(this.socketId).emit('can_attack', { ready });
+        this.namespace.to(this.connectionId).emit('can_attack', { ready });
     }
 
     canattack(): boolean {
@@ -293,7 +303,7 @@ export class Player {
         this.namespace.to(this.roomId).emit('player_respawned', {
             player: this
         });
-        this.namespace.to(this.socketId).emit('inventory_updated', {
+        this.namespace.to(this.connectionId).emit('inventory_updated', {
             playerId: this.userId,
             inventory: this.getInventory()
         });

@@ -35,12 +35,12 @@ export const registerEquipmentHandlers = (context: ConnectionContext) => {
             const weapon = data.weapon;
 
             const res = room?.craftWeapon(user.id, weapon);
-            if (!res) {
+            if (!room || !res) {
                 reply({ success: false });
                 return;
             }
             socket.to(context.currentRoomId).emit('player_weapon_equipped', {
-                socketId: socket.id,
+                socketId: room.getPlayerSocketId(user.id),
                 weapon: res.weapon
             });
             reply({

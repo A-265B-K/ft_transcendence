@@ -155,7 +155,7 @@ export function movePlayer(
         player.setPosition(x, y);
 
         socket.to(roomId).emit('player_move', {
-            socketId: socket.id,
+            socketId: player.getSocketId(),
             x,
             y,
             moving
