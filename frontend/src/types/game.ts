@@ -29,12 +29,6 @@ export interface PlayerData {
     equippedWeapon: WeaponType | null;
 }
 
-export interface SpawnPoint {
-    playerSlot: number;
-    x: number;
-    y: number;
-}
-
 export interface CastleZone {
     playerSlot: number;
     x: number;
@@ -56,18 +50,12 @@ export interface ResourceSpawn {
     y: number;
 }
 
-export interface MovementData {
-    [key: string]: unknown;
-}
-
 export interface MapData {
     width: number;
     height: number;
-    spawnPoints: SpawnPoint[];
     castleZones: CastleZone[];
     obstacles: Obstacle[];
     resourceSpawns: ResourceSpawn[];
-    movement: MovementData;
 }
 
 export interface LobbyRoom {
