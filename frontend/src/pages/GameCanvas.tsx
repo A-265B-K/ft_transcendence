@@ -363,8 +363,8 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
                 setboulderready(data.ready);
             }
         };
-        const handleCanAttack = () => {
-            setCanAttack(true);
+        const handleCanAttack = ({ ready }: { ready: boolean }) => {
+            setCanAttack(ready);
         }
 
         socket.on('player_joined', handlePlayerJoined);
@@ -413,7 +413,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             socket.off('player_left', handlePlayerLeft);
             socket.off('player_hp', handlePlayerHP);
             socket.off('player_attacked', handlePlayerAttacked);
-            socket.on('can_attack', handleCanAttack);
+            socket.off('can_attack', handleCanAttack);
             socket.off('player_died', handlePlayerDied);
             socket.off('player_respawned', handlePlayerRespawned);
             socket.off('resource_collected', handleResourceCollected);
@@ -525,10 +525,10 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
                                     className="h-12 w-12 object-contain"
                                 />
                             )}
-                            {!canattack && (
+                            {canattack && !spectating && (
                                 <img
                                     src={attackIcon}
-                                    alt="Attackindicator"
+                                    alt="Attack ready (Space)"
                                     className="h-12 w-12 object-contain"
                                 />
                             )}

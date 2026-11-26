@@ -45,6 +45,7 @@ export class Player {
     private lastMoveAt: number;
     private equippedWeapon: WeaponType | undefined;
     private nextAttack: number;
+    private attackReady = false;
 
     private armor = false;
     private armorexpiry = 0;
@@ -171,9 +172,19 @@ export class Player {
             Date.now() + (getattackstats(weapon)?.cooldown ?? 0) * 1000;
     }
 
+    checkAttackReady(): void {
+        const ready = this.canattack();
+        if (ready === this.attackReady) return;
+
+        this.attackReady = ready;
+        this.namespace.to(this.socketId).emit('can_attack', { ready });
+    }
+
     canattack(): boolean {
         return (
-            Date.now() >= this.nextAttack && this.equippedWeapon !== undefined
+            this.alive &&
+            this.equippedWeapon !== undefined &&
+            Date.now() >= this.nextAttack
         );
     }
 

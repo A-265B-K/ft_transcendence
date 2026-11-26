@@ -59,6 +59,7 @@ export class Room {
             for (const player of this.players.values()) {
                 player.castlecheck();
                 player.respawn();
+                player.checkAttackReady();
                 player.getCastle().checkAttack();
                 for (const catapult of player.getcatapults()) {
                     catapult.loop();
