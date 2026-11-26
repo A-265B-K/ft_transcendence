@@ -61,7 +61,6 @@ export interface MovementData {
 }
 
 export interface MapData {
-    mapId: string;
     width: number;
     height: number;
     spawnPoints: SpawnPoint[];

@@ -1,4 +1,3 @@
-import { randomUUID } from 'crypto';
 import {
     CASTLE_RADIUS,
     MIN_DIST_CASTLE,
@@ -49,7 +48,6 @@ function getMapSize(playerCount: number): number {
 }
 
 export class GameMap {
-    private mapId: string;
     private width: number;
     private height: number;
     private castleZones: Castle[];
@@ -59,7 +57,6 @@ export class GameMap {
     private catapultPositions = new Map<string, Vec2>();
 
     constructor(playerSlots: number[]) {
-        this.mapId = randomUUID();
         const mapSize = getMapSize(playerSlots.length);
         this.width = mapSize;
         this.height = mapSize;
