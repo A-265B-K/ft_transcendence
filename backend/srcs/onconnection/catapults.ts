@@ -1,8 +1,9 @@
 import type { ConnectionContext } from './types.js';
 import type { Inventory } from '../types.js';
+import { getCurrentRoom } from './currentRoom.js';
 
 export const registerCatapultHandlers = (context: ConnectionContext) => {
-    const { socket, user, roomManager } = context;
+    const { socket, user } = context;
 
     socket.on(
         'new_catapult',
@@ -14,7 +15,6 @@ export const registerCatapultHandlers = (context: ConnectionContext) => {
         ) => {
             if (typeof callback !== 'function') return;
             if (
-                !context.currentRoomId ||
                 typeof data !== 'object' ||
                 data === null ||
                 !('targetUserId' in data) ||
@@ -25,7 +25,7 @@ export const registerCatapultHandlers = (context: ConnectionContext) => {
                 return;
             }
 
-            const room = roomManager.getRoomById(context.currentRoomId);
+            const room = getCurrentRoom(context);
             if (!room) {
                 callback({ ok: false });
                 return;

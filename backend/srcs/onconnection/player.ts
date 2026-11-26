@@ -1,16 +1,13 @@
 import type { ConnectionContext } from './types.js';
+import { getCurrentRoom } from './currentRoom.js';
 
 export const registerPlayerHandlers = (context: ConnectionContext) => {
-    const { socket, user, roomManager } = context;
+    const { socket, user } = context;
 
     socket.on(
         'player_move',
         ({ x, y, moving }: { x: number; y: number; moving: boolean }) => {
-            if (!context.currentRoomId) {
-                return;
-            }
-            const room = roomManager.getRoomById(context.currentRoomId);
-            room?.onMove(socket, user, { x, y }, moving);
+            getCurrentRoom(context)?.onMove(socket, user, { x, y }, moving);
         }
     );
 
@@ -23,11 +20,9 @@ export const registerPlayerHandlers = (context: ConnectionContext) => {
                 return;
             }
 
-            const room = context.currentRoomId
-                ? roomManager.getRoomById(context.currentRoomId)
-                : undefined;
-
-            const ok = room?.handleAttack(user, data, socket) ?? false;
+            const ok =
+                getCurrentRoom(context)?.handleAttack(user, data, socket) ??
+                false;
             callback({ ok });
         }
     );

@@ -54,7 +54,7 @@ function AppContent() {
     const [joinedData, setJoinedData] = useState<JoinedPayload | null>(null);
     const [gameSession, setGameSession] = useState(0);
     const [restoringGame, setRestoringGame] = useState(() =>
-        Boolean(localStorage.getItem('gameRoomId'))
+        Boolean(sessionStorage.getItem('gameRoomId'))
     );
 
     useEffect(() => {
@@ -83,7 +83,7 @@ function AppContent() {
     useEffect(() => {
         if (wasInRoom.current && !inRoom) {
             getSocket()?.emit('leave_room');
-            localStorage.removeItem('gameRoomId');
+            sessionStorage.removeItem('gameRoomId');
             setJoinedData(null);
             setRestoringGame(false);
         }
@@ -96,21 +96,28 @@ function AppContent() {
         const socket = connectSocket();
 
         const rejoin = () => {
-            const roomId = localStorage.getItem('gameRoomId');
+            const roomId = sessionStorage.getItem('gameRoomId');
             if (roomId) socket.emit('join_room', { roomId });
         };
 
+        const handleSessionReplaced = () => {
+            console.warn('Room session taken over by another tab');
+            navigate('/game-menu');
+        };
+
         socket.io.on('reconnect', rejoin);
+        socket.on('session_replaced', handleSessionReplaced);
 
         return () => {
             socket.io.off('reconnect', rejoin);
+            socket.off('session_replaced', handleSessionReplaced);
         };
-    }, [user, inRoom]);
+    }, [user, inRoom, navigate]);
 
     useEffect(() => {
         if (!user || !inGame) return;
 
-        const roomId = localStorage.getItem('gameRoomId');
+        const roomId = sessionStorage.getItem('gameRoomId');
 
         if (!roomId) return;
 
@@ -129,7 +136,7 @@ function AppContent() {
         const handleJoinError = ({ message }: { message: string }) => {
             console.error('Could not restore game:', message);
 
-            localStorage.removeItem('gameRoomId');
+            sessionStorage.removeItem('gameRoomId');
 
             setJoinedData(null);
             setRestoringGame(false);
@@ -212,7 +219,7 @@ function AppContent() {
         disconnectSocket();
         setJoinedData(null);
         setRestoringGame(false);
-        localStorage.removeItem('gameRoomId');
+        sessionStorage.removeItem('gameRoomId');
         setUser(null);
         navigate('/');
     }

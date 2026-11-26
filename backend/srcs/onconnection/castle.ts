@@ -1,15 +1,12 @@
 import type { ConnectionContext } from './types.js';
 import type { Inventory } from '../types.js';
+import { getCurrentRoom } from './currentRoom.js';
 
 export const registerCastleHandlers = (context: ConnectionContext) => {
-    const { socket, user, roomManager } = context;
+    const { socket, user } = context;
 
     socket.on('castleattack', () => {
-        if (!context.currentRoomId) return;
-
-        roomManager
-            .getRoomById(context.currentRoomId)
-            ?.castleattack(user, socket);
+        getCurrentRoom(context)?.castleattack(user, socket);
     });
 
     socket.on(
@@ -24,12 +21,7 @@ export const registerCastleHandlers = (context: ConnectionContext) => {
         ) => {
             if (typeof callback !== 'function') return;
 
-            if (!context.currentRoomId) {
-                callback({ success: false });
-                return;
-            }
-
-            const room = roomManager.getRoomById(context.currentRoomId);
+            const room = getCurrentRoom(context);
             if (!room) {
                 callback({ success: false });
                 return;

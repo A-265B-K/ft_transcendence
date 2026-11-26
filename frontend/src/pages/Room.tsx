@@ -31,7 +31,7 @@ export default function Room({ joinedData, onStartGame }: RoomProps) {
             return;
         }
 
-        localStorage.setItem('gameRoomId', roomId);
+        sessionStorage.setItem('gameRoomId', roomId);
 
         const socket = connectSocket();
 
@@ -62,7 +62,7 @@ export default function Room({ joinedData, onStartGame }: RoomProps) {
         }) => {
             if (data.roomId !== roomId || !currentJoinedData) return;
 
-            localStorage.setItem('gameRoomId', data.roomId);
+            sessionStorage.setItem('gameRoomId', data.roomId);
 
             const updatedPlayers = data.players;
 

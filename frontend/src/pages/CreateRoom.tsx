@@ -31,7 +31,7 @@ export default function CreateRoom({ onBack, onCreated }: CreateRoomProps) {
         socket.once('joined', (data: JoinedPayload) => {
             console.log('Created and joined room:', data);
 
-            localStorage.setItem('gameRoomId', data.roomId);
+            sessionStorage.setItem('gameRoomId', data.roomId);
 
             setLoading(false);
             onCreated(data);

@@ -1,5 +1,6 @@
 import type { ConnectionContext } from './types.js';
 import { onDisconnection } from './onDisconnection.js';
+import { getCurrentRoom } from './currentRoom.js';
 
 export const registerRoomsHandlers = (context: ConnectionContext) => {
     const { socket, user, roomManager } = context;
@@ -112,9 +113,6 @@ export const registerRoomsHandlers = (context: ConnectionContext) => {
     });
 
     socket.on('game_start', () => {
-        if (!context.currentRoomId) return;
-
-        const room = roomManager.getRoomById(context.currentRoomId);
-        room?.startgame(user.id, socket);
+        getCurrentRoom(context)?.startgame(user.id, socket);
     });
 };

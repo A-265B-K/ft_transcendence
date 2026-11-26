@@ -281,6 +281,7 @@ export class Room {
             const previousSocket = socket.nsp.sockets.get(previousId);
             player.attachConnection(socket);
             previousSocket?.leave(this.roomId);
+            previousSocket?.emit('session_replaced', { roomId: this.roomId });
             console.log(
                 `Player ${player.getUsername()} reconnected to ${this.name}`
             );
@@ -289,6 +290,10 @@ export class Room {
         socket.join(this.roomId);
         socket.emit('joined', this.joinedPayload(player));
         return this.roomId;
+    }
+
+    isConnection(userId: string, connectionId: string): boolean {
+        return this.players.get(userId)?.getConnectionId() === connectionId;
     }
 
     getPlayerSocketId(userId: string): string | null {

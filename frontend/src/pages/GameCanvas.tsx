@@ -455,7 +455,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         gameRef.current?.destroy();
         gameRef.current = null;
 
-        localStorage.removeItem('gameRoomId');
+        sessionStorage.removeItem('gameRoomId');
 
         disconnectSocket();
 
