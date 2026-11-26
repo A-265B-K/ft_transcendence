@@ -15,7 +15,6 @@ type RoomState = {
     name: string;
     hostId: string;
     roomId: string;
-    code: string;
     players: Map<string, Player>;
     boulders: [];
     map: GameMap;
@@ -55,7 +54,6 @@ function makeRoom(started = false): Room {
         name: 'test room',
         hostId: 'user-1',
         roomId: 'room-1',
-        code: 'TEST',
         players: new Map<string, Player>(),
         boulders: [],
         map,

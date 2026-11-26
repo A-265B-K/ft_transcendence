@@ -4,11 +4,9 @@ import type { Socket, SocketUser } from './types.js';
 
 export class RoomManager {
     private rooms: Record<string, Room> = {};
-    private code_characters: string;
     private readonly cleanupTimer: ReturnType<typeof setInterval>;
 
     constructor() {
-        this.code_characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         this.cleanupTimer = setInterval(() => {
             for (const [roomId, room] of Object.entries(this.rooms)) {
                 if (room.getPlayerCount() === 0) this.deleteRoomById(roomId);
@@ -18,7 +16,7 @@ export class RoomManager {
     }
 
     createRoom(name: string, hostId: string, socket: Socket): string {
-        const room = new Room(name, hostId, this.getUniqueRoomCode(), socket);
+        const room = new Room(name, hostId, socket);
 
         this.rooms[room.getRoomId()] = room;
 
@@ -40,31 +38,6 @@ export class RoomManager {
         for (const roomId of Object.keys(this.rooms)) {
             this.deleteRoomById(roomId);
         }
-    }
-
-    private getUniqueRoomCode(): string {
-        let code = this.generateRoomCode();
-
-        while (
-            Object.values(this.rooms).some((room) => room.getCode() === code)
-        ) {
-            code = this.generateRoomCode();
-        }
-
-        return code;
-    }
-
-    private generateRoomCode(): string {
-        let code = '';
-
-        for (let i = 0; i < 6; i++) {
-            const index = Math.floor(
-                Math.random() * this.code_characters.length
-            );
-
-            code += this.code_characters[index];
-        }
-        return code;
     }
 
     getRooms() {

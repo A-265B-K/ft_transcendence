@@ -13,7 +13,6 @@ export class Room {
     private name: string;
     private hostId: string;
     private roomId: string;
-    private code: string;
     private players: Map<string, Player>;
     private boulders: boulder[] = [];
     private map: GameMap;
@@ -21,16 +20,15 @@ export class Room {
     private finished: boolean;
     private timer: ReturnType<typeof setInterval> | null = null;
 
-    constructor(name: string, hostId: string, code: string, socket: Socket) {
+    constructor(name: string, hostId: string, socket: Socket) {
         this.name = name;
         this.hostId = hostId;
         this.roomId = randomUUID();
-        this.code = code;
         this.players = new Map<string, Player>();
         this.map = new GameMap([1, 2, 3, 4]);
         this.started = false;
         this.finished = false;
-        console.log(`Room created: ${name} [${this.code}]`);
+        console.log(`Room created: ${name}`);
         this.gameloop(socket);
     }
 
@@ -117,10 +115,6 @@ export class Room {
         }
     }
 
-    getCode(): string {
-        return this.code;
-    }
-
     hasStarted(): boolean {
         return this.started;
     }
@@ -186,7 +180,6 @@ export class Room {
     getRoomInfo(): {
         roomId: string;
         name: string;
-        code: string;
         playerCount: number;
         maxPlayers: number;
         hostId: string;
@@ -195,7 +188,6 @@ export class Room {
         return {
             roomId: this.roomId,
             name: this.name,
-            code: this.code,
             playerCount: this.getPlayerCount(),
             maxPlayers: ROOM_MAX_SIZE,
             hostId: this.hostId,
