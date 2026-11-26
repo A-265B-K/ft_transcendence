@@ -1,8 +1,54 @@
+export type SoundPosition = { x: number; y: number };
+
+export const SOUND_FULL_VOLUME_DISTANCE = 3;
+export const SOUND_MAX_DISTANCE = 25;
+const SOUND_MIN_AUDIBLE_VOLUME = 0.01;
+
+export function distanceAttenuation(
+    distance: number,
+    maxDistance = SOUND_MAX_DISTANCE
+): number {
+    if (distance <= SOUND_FULL_VOLUME_DISTANCE) return 1;
+    if (distance >= maxDistance) return 0;
+
+    const t =
+        (maxDistance - distance) / (maxDistance - SOUND_FULL_VOLUME_DISTANCE);
+    return t * t;
+}
+
 export class AudioManager {
     private readonly soundEffects = new Map<string, HTMLAudioElement[]>();
     private readonly lastVariant = new Map<string, number>();
     private readonly activeEffects = new Set<HTMLAudioElement>();
     private backgroundMusic?: HTMLAudioElement;
+
+    playAt(
+        name: string,
+        position: SoundPosition,
+        listener: SoundPosition,
+        { volume = 1, maxDistance = SOUND_MAX_DISTANCE } = {}
+    ): void {
+        const distance = Math.hypot(
+            position.x - listener.x,
+            position.y - listener.y
+        );
+        const finalVolume = volume * distanceAttenuation(distance, maxDistance);
+        if (finalVolume < SOUND_MIN_AUDIBLE_VOLUME) return;
+
+        this.play(name, finalVolume);
+    }
+
+    play(name: string, volume = 1): void {
+        this.playSoundEffect(name, volume).catch((error: unknown) => {
+            if (
+                error instanceof DOMException &&
+                error.name === 'NotAllowedError'
+            ) {
+                return;
+            }
+            console.error(`Failed to play sound effect "${name}":`, error);
+        });
+    }
 
     addSoundEffect(name: string, source: string): void {
         if (!name.trim() || !source.trim()) {
