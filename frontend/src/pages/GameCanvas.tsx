@@ -351,11 +351,9 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         };
 
         const handleGameEnd = (data: { winnerid: string }) => {
-            if (data && data.winnerid) setWinner(data.winnerid);
-        };
-
-        const replyToPoll = (ack: () => void) => {
-            ack();
+            if (!data?.winnerid) return;
+            setWinner(data.winnerid);
+            socket.emit('leave_room');
         };
 
         const handleboulderready = (data: { ready: boolean }) => {
@@ -392,7 +390,6 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         socket.on('catapult_broken', handlecatapultbroken);
         socket.on('boulderready', handleboulderready);
         socket.on('game_end', handleGameEnd);
-        socket.on('poll', replyToPoll);
 
         const intervalId = window.setInterval(() => {
             const snapshot = game.getInventorySnapshot();
@@ -432,7 +429,6 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             socket.off('catapult_damaged', handleCatapultDamaged);
             socket.off('catapult_broken', handlecatapultbroken);
             socket.off('game_end', handleGameEnd);
-            socket.off('poll', replyToPoll);
             socket.off('boulderready', handleboulderready);
             window.clearInterval(intervalId);
 
