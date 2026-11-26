@@ -157,6 +157,7 @@ export const nl = {
         maxLevel: 'Maximaal niveau',
         upgradeCastle: 'Kasteel upgraden',
         chooseTarget: 'Kies een doel',
+        castleStats: 'Kasteelniveau {{level}} · {{hp}} HP',
 
         dagger: 'Dolk',
         sword: 'Zwaard',

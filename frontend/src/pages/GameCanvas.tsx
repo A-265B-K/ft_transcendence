@@ -268,7 +268,21 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             game.updateRemoteCastle(socketId, level);
             if (socketId === joinedData.player.socketId) {
                 setcastlelvl(level);
+                return;
             }
+            setOpponents((current) =>
+                current.map((opponent) =>
+                    opponent.socketId === socketId
+                        ? {
+                              ...opponent,
+                              inventory: {
+                                  ...opponent.inventory,
+                                  castleLevel: level
+                              }
+                          }
+                        : opponent
+                )
+            );
         }
 
         function handleCatapultSpawn({
@@ -343,7 +357,22 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             if (data.playerSlot === joinedData.player.slot) {
                 setCastleHp(data.health);
                 setcastlelvl(data.level);
+                return;
             }
+            setOpponents((current) =>
+                current.map((opponent) =>
+                    opponent.slot === data.playerSlot
+                        ? {
+                              ...opponent,
+                              castleHp: data.health,
+                              inventory: {
+                                  ...opponent.inventory,
+                                  castleLevel: data.level
+                              }
+                          }
+                        : opponent
+                )
+            );
         }
 
         const handlearmor = (data: { armor: boolean }) => {
