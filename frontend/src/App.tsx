@@ -4,7 +4,7 @@ import Signup from './pages/SignUp';
 import LogIn from './pages/Login';
 import GameMenu from './pages/GameMenu';
 import Disconnected from './pages/Disconnected';
-import { useState, useEffect, startTransition } from 'react';
+import { useState, useEffect, useRef, startTransition } from 'react';
 import { type JoinedPayload } from './types/game';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
@@ -14,9 +14,10 @@ import TwoFactorAuth from './pages/TwoFactorAuth';
 import TwoFactorSettings from './pages/TwoFactorSettings';
 import TwoFactorSetup from './pages/TwoFactorSetup';
 
-import { connectSocket, disconnectSocket } from './socket';
+import { connectSocket, disconnectSocket, getSocket } from './socket';
 import {
     BrowserRouter,
+    matchPath,
     useNavigate,
     Routes,
     Route,
@@ -44,6 +45,10 @@ export default function App() {
 function AppContent() {
     const navigate = useNavigate();
     const path = useLocation().pathname;
+    const inGame = Boolean(matchPath('/game', path));
+    const inRoom =
+        inGame || Boolean(matchPath('/game-menu/room/:roomId', path));
+    const wasInRoom = useRef(inRoom);
     const [loading, setLoading] = useState(true);
     const [user, setUser] = useState<User | null>(null);
     const [joinedData, setJoinedData] = useState<JoinedPayload | null>(null);
@@ -75,7 +80,17 @@ function AppContent() {
     }, []);
 
     useEffect(() => {
-        if (!user) return;
+        if (wasInRoom.current && !inRoom) {
+            getSocket()?.emit('leave_room');
+            localStorage.removeItem('gameRoomId');
+            setJoinedData(null);
+            setRestoringGame(false);
+        }
+        wasInRoom.current = inRoom;
+    }, [inRoom]);
+
+    useEffect(() => {
+        if (!user || !inGame || joinedData) return;
 
         const roomId = localStorage.getItem('gameRoomId');
 
@@ -117,7 +132,7 @@ function AppContent() {
             socket.off('join_error', handleJoinError);
             socket.off('connect', joinRoom);
         };
-    }, [user]);
+    }, [user, inGame, joinedData]);
 
     useEffect(() => {
         if (!user && path !== '/disconnected') return;
@@ -297,10 +312,6 @@ function AppContent() {
                     user ? (
                         <JoinRoom
                             onBack={() => {
-                                connectSocket().emit('leave_room');
-                                localStorage.removeItem('gameRoomId');
-                                setJoinedData(null);
-                                setRestoringGame(false);
                                 navigate('/game-menu');
                             }}
                             onJoined={(data) => {
@@ -322,6 +333,7 @@ function AppContent() {
                             joinedData={joinedData}
                             onStartGame={(data) => {
                                 setJoinedData(data);
+                                setRestoringGame(false);
                                 navigate('/game');
                             }}
                         />
