@@ -365,7 +365,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         };
         const handleCanAttack = ({ ready }: { ready: boolean }) => {
             setCanAttack(ready);
-        }
+        };
 
         socket.on('player_joined', handlePlayerJoined);
         socket.on('player_move', handlePlayerMove);
