@@ -6,7 +6,6 @@ import { t } from 'i18next';
 type LobbyRoom = {
     roomId: string;
     name: string;
-    code?: string;
     playerCount: number;
     maxPlayers: number;
 };
@@ -18,7 +17,6 @@ type JoinRoomProps = {
 
 export default function JoinRoom({ onBack, onJoined }: JoinRoomProps) {
     const [loading, setLoading] = useState(false);
-    const [roomCode, setRoomCode] = useState('');
     const [error, setError] = useState('');
     const [rooms, setRooms] = useState<LobbyRoom[]>([]);
 
@@ -91,41 +89,6 @@ export default function JoinRoom({ onBack, onJoined }: JoinRoomProps) {
         });
     }
 
-    function joinWithCode() {
-        if (loading) return;
-
-        const code = roomCode.trim().toUpperCase();
-
-        if (!code) {
-            setError('enterRoomCode');
-            return;
-        }
-
-        setLoading(true);
-        setError('');
-
-        const socket = connectSocket();
-
-        const handleJoined = (data: JoinedPayload) => {
-            socket.off('join_error', handleJoinError);
-            setLoading(false);
-            onJoined(data);
-        };
-
-        const handleJoinError = ({ message }: { message: string }) => {
-            socket.off('joined', handleJoined);
-            setError(message);
-            setLoading(false);
-        };
-
-        socket.once('joined', handleJoined);
-        socket.once('join_error', handleJoinError);
-
-        socket.emit('join_room_code', {
-            code
-        });
-    }
-
     return (
         <div className="grid min-h-screen place-items-center bg-linear-to-b from-[#10212a] to-[#081016] text-[#f4f7fb]">
             <div className="w-full max-w-md rounded-3xl border border-white/10 bg-[#081016]/80 p-8 text-center shadow-2xl backdrop-blur-md">
@@ -181,12 +144,6 @@ export default function JoinRoom({ onBack, onJoined }: JoinRoomProps) {
                                             {room.playerCount} /{' '}
                                             {room.maxPlayers} {t('players')}
                                         </p>
-
-                                        {room.code && (
-                                            <p className="mt-1 text-xs text-white/30">
-                                                {t('code')}: {room.code}
-                                            </p>
-                                        )}
                                     </div>
 
                                     <button
@@ -206,29 +163,6 @@ export default function JoinRoom({ onBack, onJoined }: JoinRoomProps) {
                             ))}
                         </div>
                     )}
-
-                    <div className="flex gap-2">
-                        <input
-                            type="text"
-                            value={roomCode}
-                            onChange={(event) =>
-                                setRoomCode(event.target.value)
-                            }
-                            placeholder={t('roomCode')}
-                            maxLength={6}
-                            disabled={loading}
-                            className="min-w-0 flex-1 rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-center uppercase outline-none placeholder:text-white/30 focus:border-[#ffcf5c] disabled:opacity-50"
-                        />
-
-                        <button
-                            type="button"
-                            onClick={joinWithCode}
-                            disabled={loading}
-                            className="rounded-xl border border-white/15 bg-white/5 px-4 py-3 font-bold transition hover:bg-white/10 disabled:opacity-50"
-                        >
-                            {t('join')}
-                        </button>
-                    </div>
 
                     <button
                         type="button"
