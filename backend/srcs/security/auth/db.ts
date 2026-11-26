@@ -11,8 +11,6 @@ export const db = new Pool({
     database: credentials.database
 });
 
-export default db;
-
 export async function query(text: string, params: unknown[] = []) {
     const result = await db.query(text, params);
     return result;
