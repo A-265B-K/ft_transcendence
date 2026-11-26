@@ -594,11 +594,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             )}
 
             {!spectating && paused && (
-                <GamePauseMenu
-                    roomCode={joinedData.room.code}
-                    onResume={resumeGame}
-                    onLeave={handleLeave}
-                />
+                <GamePauseMenu onResume={resumeGame} onLeave={handleLeave} />
             )}
             {spectating && (
                 <div className="absolute left-1/2 top-3 z-[100] -translate-x-1/2">
