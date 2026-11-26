@@ -35,11 +35,7 @@ export const en = {
 
         // Game menu
         roomCreated: 'Room Created',
-        shareCode: 'Share the code with your friends',
         roomName: 'Room name',
-        roomCode: 'Room code',
-        copied: 'Copied!',
-        copyCode: 'Copy Code',
         players: 'players',
         waitingForFriends: 'Waiting for your friends to join...',
         startGame: 'Start Game',
@@ -54,15 +50,12 @@ export const en = {
         refresh: 'Refresh',
         noRooms: 'No rooms available.',
         inviteFriends: 'Create a room and invite your friends.',
-        code: 'Code',
         join: 'Join',
         joinRoom: 'Join Room',
         back: 'Back',
         logout: 'Logout',
 
         enterRoomName: 'Enter a room name.',
-        enterRoomCode: 'Enter a room code.',
-        copyError: 'Could not copy the room code.',
         //menu button
         gameMenu: 'Game Menu',
         gamePaused: 'Your game is paused',

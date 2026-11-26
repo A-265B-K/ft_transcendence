@@ -36,11 +36,7 @@ export const uk = {
 
         // Game menu
         roomCreated: 'Кімнату створено',
-        shareCode: 'Поділіться кодом із друзями',
         roomName: 'Назва кімнати',
-        roomCode: 'Код кімнати',
-        copied: 'Скопійовано!',
-        copyCode: 'Копіювати код',
         players: 'гравців',
         waitingForFriends: 'Очікування на приєднання друзів...',
         startGame: 'Почати гру',
@@ -55,15 +51,12 @@ export const uk = {
         refresh: 'Оновити',
         noRooms: 'Немає доступних кімнат.',
         inviteFriends: 'Створіть кімнату та запросіть друзів.',
-        code: 'Код',
         join: 'Приєднатися',
         joinRoom: 'Приєднатися до кімнати',
         back: 'Назад',
         logout: 'Вийти',
 
         enterRoomName: 'Введіть назву кімнати.',
-        enterRoomCode: 'Введіть код кімнати.',
-        copyError: 'Не вдалося скопіювати код кімнати.',
         // menu button
         gameMenu: 'Ігрове меню',
         gamePaused: 'Гру призупинено',

@@ -37,11 +37,7 @@ export const ru = {
 
         // Game menu
         roomCreated: 'Комната создана',
-        shareCode: 'Поделитесь кодом с друзьями',
         roomName: 'Название комнаты',
-        roomCode: 'Код комнаты',
-        copied: 'Скопировано!',
-        copyCode: 'Копировать код',
         players: 'игроков',
         waitingForFriends: 'Ожидание подключения друзей...',
         startGame: 'Начать игру',
@@ -56,15 +52,12 @@ export const ru = {
         refresh: 'Обновить',
         noRooms: 'Нет доступных комнат.',
         inviteFriends: 'Создайте комнату и пригласите друзей.',
-        code: 'Код',
         join: 'Присоединиться',
         joinRoom: 'Присоединиться к комнате',
         back: 'Назад',
         logout: 'Выйти',
 
         enterRoomName: 'Введите название комнаты.',
-        enterRoomCode: 'Введите код комнаты.',
-        copyError: 'Не удалось скопировать код комнаты.',
 
         // menu button
         gameMenu: 'Игровое меню',

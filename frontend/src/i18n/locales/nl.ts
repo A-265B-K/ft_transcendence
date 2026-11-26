@@ -37,11 +37,7 @@ export const nl = {
 
         // Game menu
         roomCreated: 'Kamer aangemaakt',
-        shareCode: 'Deel de code met je vrienden',
         roomName: 'Naam van de kamer',
-        roomCode: 'Kamercode',
-        copied: 'Gekopieerd!',
-        copyCode: 'Code kopiëren',
         players: 'spelers',
         waitingForFriends: 'Wachten tot je vrienden deelnemen...',
         startGame: 'Spel starten',
@@ -56,15 +52,12 @@ export const nl = {
         refresh: 'Vernieuwen',
         noRooms: 'Geen kamers beschikbaar.',
         inviteFriends: 'Maak een kamer aan en nodig je vrienden uit.',
-        code: 'Code',
         join: 'Deelnemen',
         joinRoom: 'Deelnemen aan kamer',
         back: 'Terug',
         logout: 'Uitloggen',
 
         enterRoomName: 'Voer een kamernaam in.',
-        enterRoomCode: 'Voer een kamercode in.',
-        copyError: 'Kan de kamercode niet kopiëren.',
 
         // menu button
         gameMenu: 'Spelmenu',
