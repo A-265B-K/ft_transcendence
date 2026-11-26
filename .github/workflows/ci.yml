@@ -26,6 +26,9 @@ jobs:
         run: ./scripts/bootstrap.sh
 
       - name: Build, start, and wait for containers
+        env:
+          GRAFANA_SMTP_ENABLED: "false"
+          GRAFANA_SMTP_FROM_ADDRESS: grafana-ci@example.invalid
         run: ./scripts/makefile/start.sh
 
   Codequality:

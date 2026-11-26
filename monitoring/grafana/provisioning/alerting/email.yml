@@ -1,0 +1,21 @@
+apiVersion: 1
+
+contactPoints:
+  - orgId: 1
+    name: Alert email
+    receivers:
+      - uid: alert-email
+        type: email
+        settings:
+          addresses: $alert_email
+          message: |
+            {{ range .Alerts }}
+            {{ .Labels.alertname }} ({{ .Status }})
+            {{ .Annotations.summary }}
+            View alert: {{ .GeneratorURL }}
+            {{ end }}
+
+policies:
+  - orgId: 1
+    receiver: Alert email
+    group_by: [grafana_folder, alertname]
