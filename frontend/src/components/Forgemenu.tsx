@@ -269,7 +269,16 @@ export function Forgemenu({
                                         disabled={purchasingCatapult}
                                         className="rounded-lg bg-slate-700 px-3 py-2 text-left hover:bg-slate-600 disabled:opacity-50"
                                     >
-                                        {player.username}
+                                        <span className="block font-bold">
+                                            {player.username}
+                                        </span>
+                                        <span className="block text-sm text-slate-300">
+                                            {t('castleStats', {
+                                                level: player.inventory
+                                                    .castleLevel,
+                                                hp: player.castleHp ?? 0
+                                            })}
+                                        </span>
                                     </button>
                                 ))}
                             </div>
