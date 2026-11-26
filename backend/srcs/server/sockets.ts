@@ -5,6 +5,8 @@ import { getCurrentUser } from '../security/session/session.js';
 import onConnection from '../onconnection/index.js';
 
 export function registerSocketHandlers(io: Server, roomManager: RoomManager) {
+    roomManager.attachNamespace(io.of('/'));
+
     io.use(async (socket, next) => {
         const cookie = socket.handshake.headers.cookie;
 

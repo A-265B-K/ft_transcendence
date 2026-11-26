@@ -1,11 +1,14 @@
 import { ROOM_MAX_SIZE } from './constants.js';
 import { Room } from './room/room.js';
+import type { Namespace } from 'socket.io';
 import type { Socket, SocketUser } from './types.js';
 
 export class RoomManager {
     private rooms: Record<string, Room> = {};
     private code_characters: string;
     private readonly cleanupTimer: ReturnType<typeof setInterval>;
+    private namespace: Namespace | null = null;
+    private publishedRooms = '';
 
     constructor() {
         this.code_characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -13,8 +16,24 @@ export class RoomManager {
             for (const [roomId, room] of Object.entries(this.rooms)) {
                 if (room.getPlayerCount() === 0) this.deleteRoomById(roomId);
             }
+            this.publishRooms();
         }, 2000);
         this.cleanupTimer.unref();
+    }
+
+    attachNamespace(namespace: Namespace): void {
+        this.namespace = namespace;
+    }
+
+    publishRooms(): void {
+        if (!this.namespace) return;
+
+        const rooms = this.getRooms();
+        const serialized = JSON.stringify(rooms);
+        if (serialized === this.publishedRooms) return;
+
+        this.publishedRooms = serialized;
+        this.namespace.emit('rooms_list', rooms);
     }
 
     createRoom(name: string, hostId: string, socket: Socket): string {

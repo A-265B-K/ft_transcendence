@@ -71,6 +71,7 @@ export const registerRoomsHandlers = (context: ConnectionContext) => {
         const roomId = roomManager.createRoom(trimmedName, user.id, socket);
 
         context.currentRoomId = roomManager.joinRoomById(socket, user, roomId);
+        roomManager.publishRooms();
     });
 
     socket.on('join_room', ({ roomId }: { roomId: unknown }) => {
@@ -94,6 +95,7 @@ export const registerRoomsHandlers = (context: ConnectionContext) => {
         leaveCurrentRoom(roomId);
         const check = roomManager.joinRoomById(socket, user, roomId);
         if (check !== null) context.currentRoomId = check;
+        roomManager.publishRooms();
     });
 
     socket.on('join_room_code', ({ code }: { code: unknown }) => {
@@ -106,13 +108,16 @@ export const registerRoomsHandlers = (context: ConnectionContext) => {
         leaveCurrentRoom(roomManager.getRoomByCode(code)?.getRoomId());
         const temp = roomManager.joinRoomByCode(socket, user, code);
         if (temp !== null) context.currentRoomId = temp;
+        roomManager.publishRooms();
     });
 
     socket.on('leave_room', () => {
         leaveCurrentRoom();
+        roomManager.publishRooms();
     });
 
     socket.on('game_start', () => {
         getCurrentRoom(context)?.startgame(user.id, socket);
+        roomManager.publishRooms();
     });
 };
