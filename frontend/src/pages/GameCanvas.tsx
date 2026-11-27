@@ -9,11 +9,13 @@ import { connectSocket, disconnectSocket, getSocket } from '../socket';
 import type { GameCanvasProps } from './gameCanvasProps';
 import { useTranslation } from 'react-i18next';
 import type { WeaponType } from '../game/entities/weapons/weapon';
-import healingIcon from '../assets/castleboons/healing.png';
-import shieldIcon from '../assets/castleboons/shield.png';
-import attackIcon from '../assets/weapons/sword/sword-spacebar.png';
-import boulderIcon from '../assets/boulder-r.png';
+import { imageUrl } from '../game/assets/assetUrls';
 import Endgame from './Endgame';
+
+const healingIcon = imageUrl('castleboons/healing.png');
+const shieldIcon = imageUrl('castleboons/shield.png');
+const attackIcon = imageUrl('weapons/sword/sword-spacebar.png');
+const boulderIcon = imageUrl('boulder-r.png');
 
 const CASTLE_HEAL_RADIUS = 10;
 

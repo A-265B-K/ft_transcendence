@@ -1,55 +1,5 @@
 import { Assets, Texture } from 'pixi.js';
-import castle1Url from '../../assets/castle1.png';
-import castle2Url from '../../assets/castle2.png';
-import castle3Url from '../../assets/castle3.png';
-import castle4Url from '../../assets/castle4.png';
-import destroyedCastleUrl from '../../assets/castle0.png';
-import down1Url from '../../assets/down1.png';
-import down2Url from '../../assets/down2.png';
-import grassUrl from '../../assets/grass.png';
-import forestBackgroundUrl from '../../assets/forest-background.webp';
-import ironUrl from '../../assets/iron.png';
-import left1Url from '../../assets/left1.png';
-import left2Url from '../../assets/left2.png';
-import right1Url from '../../assets/right1.png';
-import right2Url from '../../assets/right2.png';
-import standUrl from '../../assets/stand.png';
-import up1Url from '../../assets/up1.png';
-import up2Url from '../../assets/up2.png';
-import woodUrl from '../../assets/wood.png';
-import sword1Url from '../../assets/weapons/sword/sword1.png';
-import sword2Url from '../../assets/weapons/sword/sword2.png';
-import sword3Url from '../../assets/weapons/sword/sword3.png';
-import sword4Url from '../../assets/weapons/sword/sword4.png';
-
-import axe1Url from '../../assets/weapons/axe/axe1.png';
-import axe2Url from '../../assets/weapons/axe/axe2.png';
-import axe3Url from '../../assets/weapons/axe/axe3.png';
-import axe4Url from '../../assets/weapons/axe/axe4.png';
-
-import dagger1Url from '../../assets/weapons/dagger/dagger1.png';
-import dagger2Url from '../../assets/weapons/dagger/dagger2.png';
-import dagger3Url from '../../assets/weapons/dagger/dagger3.png';
-import dagger4Url from '../../assets/weapons/dagger/dagger4.png';
-
-import spear1Url from '../../assets/weapons/spear/spear1.png';
-import spear2Url from '../../assets/weapons/spear/spear2.png';
-import spear3Url from '../../assets/weapons/spear/spear3.png';
-import spear4Url from '../../assets/weapons/spear/spear4.png';
-import BoulderUrl from '../../assets/boulder.png';
-import catapultUrl from '../../assets/catapult/down.png';
-import catapultUpUrl from '../../assets/catapult/up.png';
-import catapultLeftUrl from '../../assets/catapult/left.png';
-import catapultRightUrl from '../../assets/catapult/right.png';
-import catapultDownFireUrl from '../../assets/catapult/down-fire.png';
-import catapultUpFireUrl from '../../assets/catapult/up-fire.png';
-import catapultLeftFireUrl from '../../assets/catapult/left-fire.png';
-import catapultRightFireUrl from '../../assets/catapult/right-fire.png';
-import catapultDestroyedUrl from '../../assets/catapult/destroyed.png';
-
-import rockobstacle from '../../assets/obstacles/rock.png';
-import treeobstacle from '../../assets/obstacles/tree.png';
-
+import { assetUrl } from './assetUrls';
 import type { CatapultTextures } from '../entities/catapult';
 
 export type GameTextures = {
@@ -103,6 +53,11 @@ export type GameTextures = {
     tree: Texture;
     rock: Texture;
 };
+
+async function loadTexture(path: string): Promise<Texture> {
+    const url = assetUrl(path);
+    return url ? Assets.load<Texture>(url) : Texture.WHITE;
+}
 
 export async function loadGameTextures(): Promise<GameTextures> {
     const [
@@ -162,62 +117,62 @@ export async function loadGameTextures(): Promise<GameTextures> {
         tree,
         rock
     ] = await Promise.all([
-        Assets.load(grassUrl),
-        Assets.load<Texture>(forestBackgroundUrl),
-        Assets.load(woodUrl),
-        Assets.load(ironUrl),
+        loadTexture('grass.png'),
+        loadTexture('forest-background.webp'),
+        loadTexture('wood.png'),
+        loadTexture('iron.png'),
 
-        Assets.load(castle1Url),
-        Assets.load(castle2Url),
-        Assets.load(castle3Url),
-        Assets.load(castle4Url),
-        Assets.load<Texture>(destroyedCastleUrl),
+        loadTexture('castle1.png'),
+        loadTexture('castle2.png'),
+        loadTexture('castle3.png'),
+        loadTexture('castle4.png'),
+        loadTexture('castle0.png'),
 
-        Assets.load(down1Url),
-        Assets.load(down2Url),
+        loadTexture('down1.png'),
+        loadTexture('down2.png'),
 
-        Assets.load(up1Url),
-        Assets.load(up2Url),
+        loadTexture('up1.png'),
+        loadTexture('up2.png'),
 
-        Assets.load(left1Url),
-        Assets.load(left2Url),
+        loadTexture('left1.png'),
+        loadTexture('left2.png'),
 
-        Assets.load(right1Url),
-        Assets.load(right2Url),
+        loadTexture('right1.png'),
+        loadTexture('right2.png'),
 
-        Assets.load(standUrl),
+        loadTexture('stand.png'),
 
-        Assets.load<Texture>(sword1Url),
-        Assets.load<Texture>(sword2Url),
-        Assets.load<Texture>(sword3Url),
-        Assets.load<Texture>(sword4Url),
+        loadTexture('weapons/sword/sword1.png'),
+        loadTexture('weapons/sword/sword2.png'),
+        loadTexture('weapons/sword/sword3.png'),
+        loadTexture('weapons/sword/sword4.png'),
 
-        Assets.load<Texture>(axe1Url),
-        Assets.load<Texture>(axe2Url),
-        Assets.load<Texture>(axe3Url),
-        Assets.load<Texture>(axe4Url),
+        loadTexture('weapons/axe/axe1.png'),
+        loadTexture('weapons/axe/axe2.png'),
+        loadTexture('weapons/axe/axe3.png'),
+        loadTexture('weapons/axe/axe4.png'),
 
-        Assets.load<Texture>(dagger1Url),
-        Assets.load<Texture>(dagger2Url),
-        Assets.load<Texture>(dagger3Url),
-        Assets.load<Texture>(dagger4Url),
+        loadTexture('weapons/dagger/dagger1.png'),
+        loadTexture('weapons/dagger/dagger2.png'),
+        loadTexture('weapons/dagger/dagger3.png'),
+        loadTexture('weapons/dagger/dagger4.png'),
 
-        Assets.load<Texture>(spear1Url),
-        Assets.load<Texture>(spear2Url),
-        Assets.load<Texture>(spear3Url),
-        Assets.load<Texture>(spear4Url),
-        Assets.load<Texture>(BoulderUrl),
-        Assets.load<Texture>(catapultUrl),
-        Assets.load<Texture>(catapultUpUrl),
-        Assets.load<Texture>(catapultLeftUrl),
-        Assets.load<Texture>(catapultRightUrl),
-        Assets.load<Texture>(catapultDownFireUrl),
-        Assets.load<Texture>(catapultUpFireUrl),
-        Assets.load<Texture>(catapultLeftFireUrl),
-        Assets.load<Texture>(catapultRightFireUrl),
-        Assets.load<Texture>(catapultDestroyedUrl),
-        Assets.load<Texture>(treeobstacle),
-        Assets.load<Texture>(rockobstacle)
+        loadTexture('weapons/spear/spear1.png'),
+        loadTexture('weapons/spear/spear2.png'),
+        loadTexture('weapons/spear/spear3.png'),
+        loadTexture('weapons/spear/spear4.png'),
+        loadTexture('boulder.png'),
+        loadTexture('catapult/down.png'),
+        loadTexture('catapult/up.png'),
+        loadTexture('catapult/left.png'),
+        loadTexture('catapult/right.png'),
+        loadTexture('catapult/down-fire.png'),
+        loadTexture('catapult/up-fire.png'),
+        loadTexture('catapult/left-fire.png'),
+        loadTexture('catapult/right-fire.png'),
+        loadTexture('catapult/destroyed.png'),
+        loadTexture('obstacles/tree.png'),
+        loadTexture('obstacles/rock.png')
     ]);
 
     return {
