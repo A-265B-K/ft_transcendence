@@ -152,7 +152,7 @@ export class GameMap {
         let attempts = 0;
         while (obstacles.length < count && attempts < count * 20) {
             attempts++;
-            const pos = this.randomPosInBoundary()
+            const pos = this.randomPosInBoundary();
 
             if (!this.isValidPosition(pos, 5, 4, obstacles)) continue;
 
