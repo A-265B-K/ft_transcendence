@@ -163,6 +163,8 @@ export const uk = {
         closeForge: 'Закрити кузню',
         openForge: 'Відкрити кузню',
 
+        fullscreen: '⛶ На весь екран',
+        exitFullscreen: '⛶ Вийти з режиму',
         controls: 'Керування',
         move: 'Рух',
         castleAttack: 'Атака замкoм',

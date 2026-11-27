@@ -5,7 +5,7 @@ import { loadSounds } from './assets/loadSounds';
 import { GameScene } from './scenes/GameScene';
 import { Input } from './systems/Input';
 import { AudioManager } from './systems/Audio';
-import backgroundMusic from '../assets/sound/Glorious Morning.mp3';
+import { assetUrl } from './assets/assetUrls';
 import type { JoinedPayload, Vec2 } from '../types/game';
 import type { Socket } from 'socket.io-client';
 import type { HarvestableTile } from './world/tileResource';
@@ -29,8 +29,8 @@ export class Game {
         }
         this.scene.update(
             this.input.state,
-            this.app.renderer.width,
-            this.app.renderer.height,
+            this.app.screen.width,
+            this.app.screen.height,
             deltaSeconds
         );
     };
@@ -140,9 +140,9 @@ export class Game {
         socket: Socket
     ) {
         await this.app.init({
-            resizeTo: window, // Automatically resize canvas with window
-            autoDensity: true, // Handle high-DPI displays
-            resolution: window.devicePixelRatio || 1 // Device pixel ratio for crisp rendering
+            resizeTo: container,
+            autoDensity: true,
+            resolution: window.devicePixelRatio || 1
         });
 
         container.appendChild(this.app.canvas);
@@ -155,7 +155,8 @@ export class Game {
         this.app.stage.addChild(this.scene.world);
         this.app.ticker.add(this.handleTick);
 
-        this.audio.playBackgroundMusic(backgroundMusic);
+        const backgroundMusic = assetUrl('sound/Glorious Morning.mp3');
+        if (backgroundMusic) this.audio.playBackgroundMusic(backgroundMusic);
     }
 
     destroy() {

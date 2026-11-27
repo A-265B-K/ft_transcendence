@@ -9,18 +9,24 @@ import { connectSocket, disconnectSocket, getSocket } from '../socket';
 import type { GameCanvasProps } from './gameCanvasProps';
 import { useTranslation } from 'react-i18next';
 import type { WeaponType } from '../game/entities/weapons/weapon';
-import healingIcon from '../assets/castleboons/healing.png';
-import shieldIcon from '../assets/castleboons/shield.png';
-import attackIcon from '../assets/weapons/sword/sword-spacebar.png';
-import boulderIcon from '../assets/boulder-r.png';
+import { imageUrl } from '../game/assets/assetUrls';
 import Endgame from './Endgame';
+
+const healingIcon = imageUrl('castleboons/healing.png');
+const shieldIcon = imageUrl('castleboons/shield.png');
+const attackIcon = imageUrl('weapons/sword/sword-spacebar.png');
+const boulderIcon = imageUrl('boulder-r.png');
 
 const CASTLE_HEAL_RADIUS = 10;
 
 export default function GameCanvas({ joinedData }: GameCanvasProps) {
     const { t } = useTranslation();
+    const [isFullscreen, setIsFullscreen] = useState(false);
+
+    const fullscreenContainer = useRef<HTMLDivElement>(null);
     const gameContainer = useRef<HTMLDivElement>(null);
     const gameRef = useRef<Game | null>(null);
+
     const [castlelvl, setcastlelvl] = useState(
         joinedData.player.inventory.castleLevel
     );
@@ -64,6 +70,35 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         setPaused(true);
         gameRef.current?.pause();
     }
+
+    const toggleFullscreen = async () => {
+        try {
+            if (!document.fullscreenElement) {
+                await fullscreenContainer.current?.requestFullscreen();
+            } else {
+                await document.exitFullscreen();
+            }
+        } catch (error) {
+            console.error('Fullscreen error:', error);
+        }
+    };
+
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+            setIsFullscreen(
+                document.fullscreenElement === fullscreenContainer.current
+            );
+        };
+
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+
+        return () => {
+            document.removeEventListener(
+                'fullscreenchange',
+                handleFullscreenChange
+            );
+        };
+    }, []);
 
     function upgradeCastle() {
         if (
@@ -152,9 +187,8 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             if (socketId === joinedData.player.socketId) {
                 setHp(hp);
                 if (reason === 'damage') game.playerhitanimation();
-            } else {
-                if (reason === 'damage')
-                    game.remoteplayerhitanimation(socketId);
+            } else if (reason === 'damage') {
+                game.remoteplayerhitanimation(socketId);
             }
         }
 
@@ -505,7 +539,8 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
     }
     return (
         <div
-            className="relative h-screen w-screen overflow-hidden"
+            ref={fullscreenContainer}
+            className="relative h-screen w-screen overflow-hidden bg-black [&:fullscreen]:h-screen [&:fullscreen]:w-screen"
             onContextMenuCapture={(event) => event.preventDefault()}
         >
             <div ref={gameContainer} className="h-full w-full" />
@@ -587,8 +622,16 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
                 </div>
             </div>
 
-            {!spectating && (
-                <div className="absolute right-4 top-4 z-50">
+            <div className="absolute right-4 top-4 z-50 flex gap-2">
+                <button
+                    type="button"
+                    onClick={toggleFullscreen}
+                    className="rounded-xl border border-white/15 bg-[#0a1016]/75 px-4 py-2 text-sm font-bold text-white shadow-lg backdrop-blur-xl transition hover:bg-white/10"
+                >
+                    {isFullscreen ? t('fullScreen') : t('exitFullScreen')}
+                </button>
+
+                {!spectating && (
                     <button
                         type="button"
                         onClick={pauseGame}
@@ -597,8 +640,8 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
                     >
                         ☰ {t('menu')}
                     </button>
-                </div>
-            )}
+                )}
+            </div>
 
             <div className="pointer-events-none absolute inset-0 flex items-end justify-center px-4 pb-6">
                 <div className="pointer-events-auto">

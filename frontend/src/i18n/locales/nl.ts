@@ -169,6 +169,8 @@ export const nl = {
         closeForge: 'Smidse sluiten',
         openForge: 'Smidse openen',
 
+        fullscreen: '⛶ Volledig scherm',
+        exitFullscreen: '⛶ Volledig scherm afsluiten',
         controls: 'Besturing',
         move: 'Bewegen',
         castleAttack: 'Kasteel aanval',

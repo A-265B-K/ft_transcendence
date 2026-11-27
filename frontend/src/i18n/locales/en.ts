@@ -159,6 +159,8 @@ export const en = {
         closeForge: 'Close forge',
         openForge: 'Open forge',
 
+        fullScreen: '⛶ Fullscreen',
+        exitFullScreen: '⛶ Exit Fullscreen',
         controls: 'Controls',
         move: 'Move',
         castleAttack: 'Castle attack',

@@ -2,12 +2,14 @@ import { useRef, useState } from 'react';
 import { t } from 'i18next';
 import type { WeaponType } from '../game/entities/weapons/weapon';
 import { getSocket } from '../socket';
-import daggerIcon from '../assets/weapons/dagger/dagger1.png';
-import swordIcon from '../assets/weapons/sword/sword1.png';
-import spearIcon from '../assets/weapons/spear/spear1.png';
-import axeIcon from '../assets/weapons/axe/axe1.png';
-import catapultIcon from '../assets/catapult/down.png';
+import { imageUrl } from '../game/assets/assetUrls';
 import type { PlayerData, PlayerInventory } from '../types/game';
+
+const daggerIcon = imageUrl('weapons/dagger/dagger1.png');
+const swordIcon = imageUrl('weapons/sword/sword1.png');
+const spearIcon = imageUrl('weapons/spear/spear1.png');
+const axeIcon = imageUrl('weapons/axe/axe1.png');
+const catapultIcon = imageUrl('catapult/down.png');
 
 const weaponrecipes = {
     dagger: { wood: 15, iron: 15, castle_level: 1, icon: daggerIcon },
