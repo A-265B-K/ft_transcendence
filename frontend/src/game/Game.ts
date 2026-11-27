@@ -1,10 +1,11 @@
 import type { WeaponType } from './entities/weapons/weapon';
 import { Application, Ticker } from 'pixi.js';
 import { loadGameTextures } from './assets/loadGameTextures';
+import { loadSounds } from './assets/loadSounds';
 import { GameScene } from './scenes/GameScene';
 import { Input } from './systems/Input';
 import { AudioManager } from './systems/Audio';
-import backgroundMusic from './assets/sound/Glorious Morning.mp3';
+import backgroundMusic from '../assets/sound/Glorious Morning.mp3';
 import type { JoinedPayload, Vec2 } from '../types/game';
 import type { Socket } from 'socket.io-client';
 import type { HarvestableTile } from './world/tileResource';
@@ -66,6 +67,10 @@ export class Game {
         this.scene?.removeRemotePlayer(player);
     }
 
+    killRemotePlayer(player: JoinedPayload['players'][number]) {
+        this.scene?.killRemotePlayer(player);
+    }
+
     updateRemotePlayer(
         socketId: string,
         x: number,
@@ -86,8 +91,8 @@ export class Game {
         this.scene?.correctLocalPlayer(x, y);
     }
 
-    removeResourceTile(x: number, y: number) {
-        this.scene?.removeResourceTile(x, y);
+    collectResource(x: number, y: number, type: HarvestableTile) {
+        this.scene?.collectResource(x, y, type);
     }
 
     syncInventory(wood: number, iron: number) {
@@ -143,8 +148,9 @@ export class Game {
         container.appendChild(this.app.canvas);
 
         const textures = await loadGameTextures();
+        loadSounds(this.audio);
 
-        this.scene = new GameScene(textures, joinedData, socket);
+        this.scene = new GameScene(textures, joinedData, socket, this.audio);
 
         this.app.stage.addChild(this.scene.world);
         this.app.ticker.add(this.handleTick);
@@ -174,10 +180,10 @@ export class Game {
     }
 
     playerhitanimation() {
-        this.scene?.player.hitanimation();
+        this.scene?.hitLocalPlayer();
     }
     remoteplayerhitanimation(socketId: string) {
-        this.scene?.remotePlayers.get(socketId)?.hitanimation();
+        this.scene?.hitRemotePlayer(socketId);
     }
     pause() {
         this.app.ticker.stop();

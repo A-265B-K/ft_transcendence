@@ -13,6 +13,15 @@ import type { Socket } from 'socket.io-client';
 
 import { Weapon } from '../entities/weapons/weapon';
 import type { CastleAttackStarted } from '../../types/game';
+import {
+    FOOTSTEP_DISTANCE,
+    FOOTSTEP_VOLUME,
+    type AudioManager,
+    type SoundPosition
+} from '../systems/Audio';
+import { Sound, type SoundName } from '../assets/loadSounds';
+
+const CATAPULT_SHOT_DURATION_MS = 600;
 
 export class GameScene {
     readonly world: Container;
@@ -28,6 +37,8 @@ export class GameScene {
     readonly socket: Socket;
     private readonly forestBackground: TilingSprite;
     private wasmoving = false;
+    private readonly audio: AudioManager;
+    private readonly footstepProgress = new Map<string, number>();
     // private isSpectating = false;
 
     private readonly boulders: {
@@ -39,9 +50,11 @@ export class GameScene {
     constructor(
         textures: GameTextures,
         joinedData: JoinedPayload,
-        socket: Socket
+        socket: Socket,
+        audio: AudioManager
     ) {
         this.socket = socket;
+        this.audio = audio;
         this.textures = textures;
         this.configureweapontextures();
         this.joinedData = joinedData;
@@ -118,6 +131,25 @@ export class GameScene {
     ): void {
         const remote = this.remotePlayers.get(socketId);
         remote?.attackanimation(direction);
+    }
+
+    hitLocalPlayer(): void {
+        this.player.hitanimation();
+        void this.playSoundAt(Sound.swordHit, {
+            x: this.player.gridX,
+            y: this.player.gridY
+        });
+    }
+
+    hitRemotePlayer(socketId: string): void {
+        const remote = this.remotePlayers.get(socketId);
+        if (!remote) return;
+
+        remote.hitanimation();
+        void this.playSoundAt(Sound.swordHit, {
+            x: remote.gridX,
+            y: remote.gridY
+        });
     }
     private createRemotePlayers() {
         for (const player of this.joinedData.players) {
@@ -274,6 +306,37 @@ export class GameScene {
         remote.container.destroy({ children: true });
 
         this.remotePlayers.delete(player.socketId);
+        this.footstepProgress.delete(player.socketId);
+    }
+
+    private playSoundAt(
+        name: SoundName,
+        position: SoundPosition,
+        volume = 1
+    ): Promise<void> {
+        return this.audio.playAt(
+            name,
+            position,
+            { x: this.player.gridX, y: this.player.gridY },
+            { volume }
+        );
+    }
+
+    private trackFootsteps(
+        key: string,
+        distance: number,
+        position: SoundPosition
+    ): void {
+        const walked =
+            (this.footstepProgress.get(key) ?? FOOTSTEP_DISTANCE) +
+            Math.min(distance, FOOTSTEP_DISTANCE);
+
+        if (walked >= FOOTSTEP_DISTANCE) {
+            this.playSoundAt(Sound.footstep, position, FOOTSTEP_VOLUME);
+            this.footstepProgress.set(key, walked - FOOTSTEP_DISTANCE);
+        } else {
+            this.footstepProgress.set(key, walked);
+        }
     }
 
     update(
@@ -299,6 +362,16 @@ export class GameScene {
         );
 
         if (movedDistance > 0.05) {
+            if (this.player.container.visible) {
+                this.trackFootsteps(
+                    this.joinedData.player.socketId,
+                    movedDistance,
+                    {
+                        x: this.player.gridX,
+                        y: this.player.gridY
+                    }
+                );
+            }
             this.socket.emit('player_move', {
                 x: this.player.gridX,
                 y: this.player.gridY,
@@ -306,6 +379,7 @@ export class GameScene {
             });
             this.wasmoving = true;
         } else if (this.wasmoving == true) {
+            this.footstepProgress.delete(this.joinedData.player.socketId);
             this.socket.emit('player_move', {
                 x: this.player.gridX,
                 y: this.player.gridY,
@@ -406,11 +480,21 @@ export class GameScene {
         catapultId: string,
         direction: 'up' | 'down' | 'left' | 'right'
     ) {
-        this.catapults.get(catapultId)?.fire(direction);
+        const catapult = this.catapults.get(catapultId);
+        if (!catapult) return;
+
+        catapult.fire(direction);
+        void this.playSoundAt(Sound.trebuchetFire, catapult.position).then(() =>
+            this.playSoundAt(Sound.trebuchetPullback, catapult.position)
+        );
     }
 
     breakCatapult(catapultId: string) {
-        this.catapults.get(catapultId)?.break();
+        const catapult = this.catapults.get(catapultId);
+        if (!catapult) return;
+
+        catapult.break();
+        this.playSoundAt(Sound.trebuchetDeath, catapult.position);
     }
 
     updateCatapultHealth(
@@ -418,7 +502,11 @@ export class GameScene {
         health: number,
         maxHealth: number
     ) {
-        this.catapults.get(catapultId)?.setHealth(health, maxHealth);
+        const catapult = this.catapults.get(catapultId);
+        if (!catapult) return;
+
+        catapult.setHealth(health, maxHealth);
+        void this.playSoundAt(Sound.swordHit, catapult.position);
     }
 
     private deleteCatapult(catapultId: string) {
@@ -457,8 +545,17 @@ export class GameScene {
         const castle = this.castles.get(playerSlot);
         if (!castle) return;
 
-        castle.setLevel(level);
-        castle.setHealth(health);
+        setTimeout(() => {
+            if (level < castle.level) {
+                void this.playSoundAt(Sound.buildingDeath, {
+                    x: castle.gridX,
+                    y: castle.gridY
+                });
+            }
+
+            castle.setLevel(level);
+            castle.setHealth(health);
+        }, CATAPULT_SHOT_DURATION_MS);
     }
 
     updateRemotePlayer(
@@ -471,6 +568,13 @@ export class GameScene {
 
         if (!remote) return;
 
+        if (moving) {
+            const distance = Math.hypot(x - remote.gridX, y - remote.gridY);
+            this.trackFootsteps(socketId, distance, { x, y });
+        } else {
+            this.footstepProgress.delete(socketId);
+        }
+
         /*
          * The backend provides the
          * authoritative remote position.
@@ -482,8 +586,12 @@ export class GameScene {
         this.player.placeAt(x, y);
     }
 
-    removeResourceTile(x: number, y: number) {
+    collectResource(x: number, y: number, type: HarvestableTile) {
         this.map.clearTile(Math.floor(x), Math.floor(y));
+        this.playSoundAt(
+            type === 'wood' ? Sound.gatherWood : Sound.gatherIron,
+            { x, y }
+        );
     }
 
     syncInventory(wood: number, iron: number) {
@@ -548,6 +656,22 @@ export class GameScene {
 
     setPlayerDead(): void {
         this.player.container.visible = false;
+        void this.playSoundAt(Sound.playerDeath, {
+            x: this.player.gridX,
+            y: this.player.gridY
+        });
+    }
+
+    killRemotePlayer(player: JoinedPayload['players'][number]) {
+        const remote = this.remotePlayers.get(player.socketId);
+        if (remote) {
+            void this.playSoundAt(Sound.playerDeath, {
+                x: remote.gridX,
+                y: remote.gridY
+            });
+        }
+
+        this.removeRemotePlayer(player);
     }
 
     respawnLocalPlayer(x: number, y: number): void {
@@ -606,6 +730,7 @@ export class GameScene {
             );
 
             if (t >= 1) {
+                this.playSoundAt(Sound.trebuchetImpact, shot.target);
                 this.world.removeChild(sprite);
                 sprite.destroy();
                 this.boulders.splice(i, 1);

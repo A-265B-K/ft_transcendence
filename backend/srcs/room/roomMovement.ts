@@ -139,7 +139,9 @@ export function movePlayer(
 ) {
     const nextPos = { x, y };
 
-    if (!positionIsAllowed(map, players, player, user, player.getPosition())) {
+    const allowed = positionIsAllowed(map, players, player, user, nextPos);
+    const movingtoofast = player.isMovingTooFast(nextPos);
+    if (!allowed) {
         const closestValidPos = getClosestValidPosition(
             map,
             players,
@@ -148,10 +150,7 @@ export function movePlayer(
             player.getPosition()
         );
         player.setPosition(closestValidPos.x, closestValidPos.y);
-    } else if (
-        positionIsAllowed(map, players, player, user, nextPos) &&
-        !player.isMovingTooFast(nextPos)
-    ) {
+    } else if (allowed && !movingtoofast) {
         player.setPosition(x, y);
 
         socket.to(roomId).emit('player_move', {
@@ -181,13 +180,12 @@ export function movePlayer(
 
     const finalPosition = player.getPosition();
 
-    // Always tell the mover the authoritative position, so the client
-    // snaps back when the server rejected the move (blocked or not).
-    socket.emit('player_move', {
-        socketId: socket.id,
-        x: finalPosition.x,
-        y: finalPosition.y
-    });
+    if (!allowed || movingtoofast)
+        socket.emit('player_move', {
+            socketId: socket.id,
+            x: finalPosition.x,
+            y: finalPosition.y
+        });
 }
 
 function getClosestValidPosition(

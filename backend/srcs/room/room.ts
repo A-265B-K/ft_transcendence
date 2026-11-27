@@ -107,6 +107,16 @@ export class Room {
                 .to(this.roomId)
                 .emit('game_end', { winnerid: winner.getUserId() });
             this.registerwinner(winner.getUsername());
+        } else {
+            for (const player of remainingPlayers) {
+                if (!(
+                    player.getCastle().isDestroyed() &&
+                    player.getEquippedWeapon() == undefined
+                ))
+                    return;
+            }
+            this.finished = true;
+            socket.nsp.to(this.roomId).emit('game_end', {});
         }
     }
 
