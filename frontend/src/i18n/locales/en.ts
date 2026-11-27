@@ -148,6 +148,7 @@ export const en = {
         maxLevel: 'Max level',
         upgradeCastle: 'Upgrade castle',
         chooseTarget: 'Choose a target',
+        castleStats: 'Castle level {{level}} · {{hp}} HP',
 
         dagger: 'Dagger',
         sword: 'Sword',

@@ -51,7 +51,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
 
     const [paused, setPaused] = useState(false);
 
-    const [winner, setWinner] = useState('');
+    const [winner, setWinner] = useState<string | null | undefined>(undefined);
     const [canattack, setCanAttack] = useState(false);
     const canSpectate = spectating && castlelvl === 0;
 
@@ -102,7 +102,8 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
     }
 
     useEffect(() => {
-        if (!joinedData || !gameContainer.current || winner) return;
+        if (!joinedData || !gameContainer.current || winner !== undefined)
+            return;
 
         console.log('Starting game with:', joinedData);
 
@@ -268,7 +269,21 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             game.updateRemoteCastle(socketId, level);
             if (socketId === joinedData.player.socketId) {
                 setcastlelvl(level);
+                return;
             }
+            setOpponents((current) =>
+                current.map((opponent) =>
+                    opponent.socketId === socketId
+                        ? {
+                              ...opponent,
+                              inventory: {
+                                  ...opponent.inventory,
+                                  castleLevel: level
+                              }
+                          }
+                        : opponent
+                )
+            );
         }
 
         function handleCatapultSpawn({
@@ -343,16 +358,31 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             if (data.playerSlot === joinedData.player.slot) {
                 setCastleHp(data.health);
                 setcastlelvl(data.level);
+                return;
             }
+            setOpponents((current) =>
+                current.map((opponent) =>
+                    opponent.slot === data.playerSlot
+                        ? {
+                              ...opponent,
+                              castleHp: data.health,
+                              inventory: {
+                                  ...opponent.inventory,
+                                  castleLevel: data.level
+                              }
+                          }
+                        : opponent
+                )
+            );
         }
 
         const handlearmor = (data: { armor: boolean }) => {
             setArmorActive(data.armor);
         };
 
-        const handleGameEnd = (data: { winnerid: string }) => {
-            if (!data?.winnerid) return;
-            setWinner(data.winnerid);
+        const handleGameEnd = (data: { winnerid?: string }) => {
+            setWinner(data.winnerid ?? null);
+
             socket.emit('leave_room');
         };
 
@@ -462,7 +492,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         window.location.href = '/game-menu';
     }
 
-    if (winner) {
+    if (winner !== undefined) {
         return <Endgame winner={joinedData.player.userId === winner} />;
     }
     return (

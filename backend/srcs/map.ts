@@ -190,6 +190,11 @@ export class GameMap {
         return true;
     }
 
+    private randomResourcePosition(): Vec2 {
+        const pos = randomPos(this.width - 2, this.height - 2);
+        return { x: pos.x + 1, y: pos.y + 1 };
+    }
+
     private generateResourceSpawns(
         obstacles: {
             type: string;
@@ -210,7 +215,7 @@ export class GameMap {
 
         while (resources.length < count && attempts < count * 20) {
             attempts++;
-            const pos = randomPos(this.width, this.height);
+            const pos = this.randomResourcePosition();
 
             if (!this.isValidPosition(pos, 6, 5, obstacles)) continue;
 
@@ -248,7 +253,7 @@ export class GameMap {
 
         const delay = (resource.respawnTime + randomOffset) * 1000;
 
-        const pos = randomPos(this.width, this.height);
+        const pos = this.randomResourcePosition();
 
         let x;
         let y;
@@ -262,7 +267,7 @@ export class GameMap {
         }
 
         setTimeout(() => {
-            this.resourceSpawns.push(resource);
+            this.resourceSpawns.push({ ...resource, x, y });
 
             socket.nsp.to(roomId).emit('resource_spawned', {
                 resourceId: resource.id,
