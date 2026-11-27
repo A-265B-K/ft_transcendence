@@ -5,7 +5,7 @@ export const SOUND_MAX_DISTANCE = 25;
 const SOUND_MIN_AUDIBLE_VOLUME = 0.01;
 export const FOOTSTEP_DISTANCE = 3.5;
 export const FOOTSTEP_VOLUME = 0.5;
-export const BACKGROUND_MUSIC_VOLUME = 0.0;
+export const BACKGROUND_MUSIC_VOLUME = 0.1;
 
 export function distanceAttenuation(
     distance: number,
