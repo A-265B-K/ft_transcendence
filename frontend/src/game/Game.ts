@@ -67,6 +67,10 @@ export class Game {
         this.scene?.removeRemotePlayer(player);
     }
 
+    killRemotePlayer(player: JoinedPayload['players'][number]) {
+        this.scene?.killRemotePlayer(player);
+    }
+
     updateRemotePlayer(
         socketId: string,
         x: number,
@@ -176,10 +180,10 @@ export class Game {
     }
 
     playerhitanimation() {
-        this.scene?.player.hitanimation();
+        this.scene?.hitLocalPlayer();
     }
     remoteplayerhitanimation(socketId: string) {
-        this.scene?.remotePlayers.get(socketId)?.hitanimation();
+        this.scene?.hitRemotePlayer(socketId);
     }
     pause() {
         this.app.ticker.stop();

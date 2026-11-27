@@ -195,7 +195,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
                 return;
             }
 
-            game.removeRemotePlayer(data.player);
+            game.killRemotePlayer(data.player);
         }
 
         function handlePlayerRespawned(data: {

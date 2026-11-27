@@ -132,6 +132,25 @@ export class GameScene {
         const remote = this.remotePlayers.get(socketId);
         remote?.attackanimation(direction);
     }
+
+    hitLocalPlayer(): void {
+        this.player.hitanimation();
+        void this.playSoundAt(Sound.swordHit, {
+            x: this.player.gridX,
+            y: this.player.gridY
+        });
+    }
+
+    hitRemotePlayer(socketId: string): void {
+        const remote = this.remotePlayers.get(socketId);
+        if (!remote) return;
+
+        remote.hitanimation();
+        void this.playSoundAt(Sound.swordHit, {
+            x: remote.gridX,
+            y: remote.gridY
+        });
+    }
     private createRemotePlayers() {
         for (const player of this.joinedData.players) {
             if (player.socketId === this.joinedData.player.socketId) {
@@ -483,7 +502,11 @@ export class GameScene {
         health: number,
         maxHealth: number
     ) {
-        this.catapults.get(catapultId)?.setHealth(health, maxHealth);
+        const catapult = this.catapults.get(catapultId);
+        if (!catapult) return;
+
+        catapult.setHealth(health, maxHealth);
+        void this.playSoundAt(Sound.swordHit, catapult.position);
     }
 
     private deleteCatapult(catapultId: string) {
@@ -633,6 +656,22 @@ export class GameScene {
 
     setPlayerDead(): void {
         this.player.container.visible = false;
+        void this.playSoundAt(Sound.playerDeath, {
+            x: this.player.gridX,
+            y: this.player.gridY
+        });
+    }
+
+    killRemotePlayer(player: JoinedPayload['players'][number]) {
+        const remote = this.remotePlayers.get(player.socketId);
+        if (remote) {
+            void this.playSoundAt(Sound.playerDeath, {
+                x: remote.gridX,
+                y: remote.gridY
+            });
+        }
+
+        this.removeRemotePlayer(player);
     }
 
     respawnLocalPlayer(x: number, y: number): void {
