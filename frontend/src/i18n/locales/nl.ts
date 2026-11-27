@@ -21,7 +21,7 @@ export const nl = {
 
         connectionLost: 'Verbinding verbroken',
         disconnectedSeverDown:
-            'Je bent verbroken omdat de server mogelijk offline is gegaan of je verbinding een te hoge latentie heeft.',
+            'De verbinding is verbroken omdat de server mogelijk offline is gegaan of je verbinding een te hoge latentie heeft.\nOpnieuw verbinding maken...',
 
         // forgot password
         forgotPassword: 'Wachtwoord vergeten?',
@@ -169,8 +169,8 @@ export const nl = {
         closeForge: 'Smidse sluiten',
         openForge: 'Smidse openen',
 
-        fullscreen: '⛶ Volledig scherm',
-        exitFullscreen: '⛶ Volledig scherm afsluiten',
+        fullScreen: '⛶ Volledig scherm',
+        exitFullScreen: '⛶ Volledig scherm afsluiten',
         controls: 'Besturing',
         move: 'Bewegen',
         castleAttack: 'Kasteel aanval',
