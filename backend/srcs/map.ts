@@ -210,8 +210,8 @@ export class GameMap {
     ) {
         const resources = [];
         const types = [
-            { type: 'wood', amount: 10, respawnTime: 30 },
-            { type: 'iron', amount: 10, respawnTime: 35 }
+            { type: 'wood', amount: 10, respawnTime: 10 },
+            { type: 'iron', amount: 10, respawnTime: 15 }
         ];
 
         let attempts = 0;
