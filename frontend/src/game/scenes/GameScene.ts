@@ -21,6 +21,8 @@ import {
 } from '../systems/Audio';
 import { Sound, type SoundName } from '../assets/loadSounds';
 
+const CATAPULT_SHOT_DURATION_MS = 600;
+
 export class GameScene {
     readonly world: Container;
     readonly map: GameMap;
@@ -292,8 +294,8 @@ export class GameScene {
         name: SoundName,
         position: SoundPosition,
         volume = 1
-    ): void {
-        this.audio.playAt(
+    ): Promise<void> {
+        return this.audio.playAt(
             name,
             position,
             { x: this.player.gridX, y: this.player.gridY },
@@ -459,11 +461,21 @@ export class GameScene {
         catapultId: string,
         direction: 'up' | 'down' | 'left' | 'right'
     ) {
-        this.catapults.get(catapultId)?.fire(direction);
+        const catapult = this.catapults.get(catapultId);
+        if (!catapult) return;
+
+        catapult.fire(direction);
+        void this.playSoundAt(Sound.trebuchetFire, catapult.position).then(() =>
+            this.playSoundAt(Sound.trebuchetPullback, catapult.position)
+        );
     }
 
     breakCatapult(catapultId: string) {
-        this.catapults.get(catapultId)?.break();
+        const catapult = this.catapults.get(catapultId);
+        if (!catapult) return;
+
+        catapult.break();
+        this.playSoundAt(Sound.trebuchetDeath, catapult.position);
     }
 
     updateCatapultHealth(
@@ -510,8 +522,17 @@ export class GameScene {
         const castle = this.castles.get(playerSlot);
         if (!castle) return;
 
-        castle.setLevel(level);
-        castle.setHealth(health);
+        setTimeout(() => {
+            if (level < castle.level) {
+                void this.playSoundAt(Sound.buildingDeath, {
+                    x: castle.gridX,
+                    y: castle.gridY
+                });
+            }
+
+            castle.setLevel(level);
+            castle.setHealth(health);
+        }, CATAPULT_SHOT_DURATION_MS);
     }
 
     updateRemotePlayer(
@@ -670,6 +691,7 @@ export class GameScene {
             );
 
             if (t >= 1) {
+                this.playSoundAt(Sound.trebuchetImpact, shot.target);
                 this.world.removeChild(sprite);
                 sprite.destroy();
                 this.boulders.splice(i, 1);

@@ -5,7 +5,7 @@ export const SOUND_MAX_DISTANCE = 25;
 const SOUND_MIN_AUDIBLE_VOLUME = 0.01;
 export const FOOTSTEP_DISTANCE = 3.5;
 export const FOOTSTEP_VOLUME = 0.5;
-export const BACKGROUND_MUSIC_VOLUME = 0.1;
+export const BACKGROUND_MUSIC_VOLUME = 0.0;
 
 export function distanceAttenuation(
     distance: number,
@@ -30,19 +30,19 @@ export class AudioManager {
         position: SoundPosition,
         listener: SoundPosition,
         { volume = 1, maxDistance = SOUND_MAX_DISTANCE } = {}
-    ): void {
+    ): Promise<void> {
         const distance = Math.hypot(
             position.x - listener.x,
             position.y - listener.y
         );
         const finalVolume = volume * distanceAttenuation(distance, maxDistance);
-        if (finalVolume < SOUND_MIN_AUDIBLE_VOLUME) return;
+        if (finalVolume < SOUND_MIN_AUDIBLE_VOLUME) return Promise.resolve();
 
-        this.play(name, finalVolume);
+        return this.play(name, finalVolume);
     }
 
-    play(name: string, volume = 1): void {
-        this.playSoundEffect(name, volume).catch((error: unknown) => {
+    play(name: string, volume = 1): Promise<void> {
+        return this.playSoundEffect(name, volume).catch((error: unknown) => {
             if (
                 error instanceof DOMException &&
                 error.name === 'NotAllowedError'
@@ -79,11 +79,16 @@ export class AudioManager {
         ) as HTMLAudioElement;
         effect.volume = Math.max(0, Math.min(1, volume));
         this.activeEffects.add(effect);
-        effect.addEventListener(
-            'ended',
-            () => this.activeEffects.delete(effect),
-            { once: true }
-        );
+        const ended = new Promise<void>((resolve) => {
+            effect.addEventListener(
+                'ended',
+                () => {
+                    this.activeEffects.delete(effect);
+                    resolve();
+                },
+                { once: true }
+            );
+        });
 
         try {
             await effect.play();
@@ -91,6 +96,8 @@ export class AudioManager {
             this.activeEffects.delete(effect);
             throw error;
         }
+
+        await ended;
     }
 
     private pickVariant(name: string): HTMLAudioElement {
