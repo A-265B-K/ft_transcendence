@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 import type { WeaponType } from '../game/entities/weapons/weapon';
 import healingIcon from '../assets/castleboons/healing.png';
 import shieldIcon from '../assets/castleboons/shield.png';
+import attackIcon from '../assets/weapons/sword/sword-spacebar.png';
 import boulderIcon from '../assets/boulder-r.png';
 import Endgame from './Endgame';
 
@@ -51,7 +52,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
     const [paused, setPaused] = useState(false);
 
     const [winner, setWinner] = useState('');
-
+    const [canattack, setCanAttack] = useState(false);
     const canSpectate = spectating && castlelvl === 0;
 
     const resumeGame = useCallback(() => {
@@ -275,7 +276,21 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             game.updateRemoteCastle(socketId, level);
             if (socketId === joinedData.player.socketId) {
                 setcastlelvl(level);
+                return;
             }
+            setOpponents((current) =>
+                current.map((opponent) =>
+                    opponent.socketId === socketId
+                        ? {
+                              ...opponent,
+                              inventory: {
+                                  ...opponent.inventory,
+                                  castleLevel: level
+                              }
+                          }
+                        : opponent
+                )
+            );
         }
 
         function handleCatapultSpawn({
@@ -350,7 +365,22 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             if (data.playerSlot === joinedData.player.slot) {
                 setCastleHp(data.health);
                 setcastlelvl(data.level);
+                return;
             }
+            setOpponents((current) =>
+                current.map((opponent) =>
+                    opponent.slot === data.playerSlot
+                        ? {
+                              ...opponent,
+                              castleHp: data.health,
+                              inventory: {
+                                  ...opponent.inventory,
+                                  castleLevel: data.level
+                              }
+                          }
+                        : opponent
+                )
+            );
         }
 
         const handlearmor = (data: { armor: boolean }) => {
@@ -358,17 +388,18 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         };
 
         const handleGameEnd = (data: { winnerid: string }) => {
-            if (data && data.winnerid) setWinner(data.winnerid);
-        };
-
-        const replyToPoll = (ack: () => void) => {
-            ack();
+            if (!data?.winnerid) return;
+            setWinner(data.winnerid);
+            socket.emit('leave_room');
         };
 
         const handleboulderready = (data: { ready: boolean }) => {
             if (data && data.ready !== undefined) {
                 setboulderready(data.ready);
             }
+        };
+        const handleCanAttack = ({ ready }: { ready: boolean }) => {
+            setCanAttack(ready);
         };
 
         socket.on('player_joined', handlePlayerJoined);
@@ -379,6 +410,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         socket.on('join_error', handleJoinError);
         socket.on('player_hp', handlePlayerHP);
         socket.on('player_attacked', handlePlayerAttacked);
+        socket.on('can_attack', handleCanAttack);
         socket.on('resource_spawned', handleResourceSpawned);
         socket.on('castlelvlupdate', handleCastleLvlupdate);
         socket.on('player_died', handlePlayerDied);
@@ -395,7 +427,6 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         socket.on('catapult_broken', handlecatapultbroken);
         socket.on('boulderready', handleboulderready);
         socket.on('game_end', handleGameEnd);
-        socket.on('poll', replyToPoll);
 
         const intervalId = window.setInterval(() => {
             const snapshot = game.getInventorySnapshot();
@@ -416,6 +447,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             socket.off('player_left', handlePlayerLeft);
             socket.off('player_hp', handlePlayerHP);
             socket.off('player_attacked', handlePlayerAttacked);
+            socket.off('can_attack', handleCanAttack);
             socket.off('player_died', handlePlayerDied);
             socket.off('player_respawned', handlePlayerRespawned);
             socket.off('resource_collected', handleResourceCollected);
@@ -434,7 +466,6 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             socket.off('catapult_damaged', handleCatapultDamaged);
             socket.off('catapult_broken', handlecatapultbroken);
             socket.off('game_end', handleGameEnd);
-            socket.off('poll', replyToPoll);
             socket.off('boulderready', handleboulderready);
             window.clearInterval(intervalId);
 
@@ -524,6 +555,13 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
                                 <img
                                     src={shieldIcon}
                                     alt="Armor"
+                                    className="h-12 w-12 object-contain"
+                                />
+                            )}
+                            {canattack && !spectating && (
+                                <img
+                                    src={attackIcon}
+                                    alt="Attack ready (Space)"
                                     className="h-12 w-12 object-contain"
                                 />
                             )}

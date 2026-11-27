@@ -20,7 +20,6 @@ export class Room {
     private started: boolean;
     private finished: boolean;
     private timer: ReturnType<typeof setInterval> | null = null;
-    private polltimer: ReturnType<typeof setInterval> | null = null;
 
     constructor(name: string, hostId: string, code: string, socket: Socket) {
         this.name = name;
@@ -33,25 +32,8 @@ export class Room {
         this.finished = false;
         console.log(`Room created: ${name} [${this.code}]`);
         this.gameloop(socket);
-        this.polloop(socket);
     }
 
-    private polloop(socket: Socket) {
-        this.polltimer = setInterval(() => {
-            for (const player of this.players.values()) {
-                player.poll().then((responsive) => {
-                    if (this.players.get(player.getUserId()) !== player) return;
-                    if (!responsive) {
-                        this.leave(
-                            socket.nsp.sockets.get(player.getSocketId()) ??
-                                socket,
-                            player.getUserId()
-                        );
-                    }
-                });
-            }
-        }, 2000);
-    }
     private gameloop(socket: Socket) {
         this.timer = setInterval(() => {
             if (!this.active()) return;
@@ -59,6 +41,7 @@ export class Room {
             for (const player of this.players.values()) {
                 player.castlecheck();
                 player.respawn();
+                player.checkAttackReady();
                 player.getCastle().checkAttack();
                 for (const catapult of player.getcatapults()) {
                     catapult.loop();
@@ -307,22 +290,24 @@ export class Room {
 
     leave(socket: Socket, userId: string) {
         const player = this.getPlayerByUserId(userId);
+        if (player?.getSocketId() === socket.id)
+            this.removePlayer(socket, player);
+    }
 
-        if (player) {
-            socket.to(this.roomId).emit('player_left', player);
+    private removePlayer(socket: Socket, player: Player) {
+        socket.to(this.roomId).emit('player_left', player);
 
-            this.players.delete(userId);
-            if (this.isHost(userId) && this.getPlayerCount() > 0) {
-                const newhost = this.players.values().next().value?.getUserId();
-                if (newhost) this.hostId = newhost;
-            }
-            socket.to(this.roomId).emit('room_update', {
-                roomId: this.roomId,
-                playerCount: this.getPlayerCount(),
-                maxPlayers: ROOM_MAX_SIZE,
-                hostId: this.hostId
-            });
+        this.players.delete(player.getUserId());
+        if (this.isHost(player.getUserId()) && this.getPlayerCount() > 0) {
+            const newhost = this.players.values().next().value?.getUserId();
+            if (newhost) this.hostId = newhost;
         }
+        socket.to(this.roomId).emit('room_update', {
+            roomId: this.roomId,
+            playerCount: this.getPlayerCount(),
+            maxPlayers: ROOM_MAX_SIZE,
+            hostId: this.hostId
+        });
     }
 
     onMove(
@@ -355,7 +340,11 @@ export class Room {
             return;
         }
 
-        this.leave(socket, userId);
+        const previousSocket = socket.nsp.sockets.get(
+            existingPlayer.getSocketId()
+        );
+        previousSocket?.leave(this.roomId);
+        this.removePlayer(previousSocket ?? socket, existingPlayer);
 
         console.log(`Removed old session for user ${userId}`);
     }
