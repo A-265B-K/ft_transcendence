@@ -51,7 +51,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
 
     const [paused, setPaused] = useState(false);
 
-    const [winner, setWinner] = useState('');
+    const [winner, setWinner] = useState<string | null | undefined>(undefined);
     const [canattack, setCanAttack] = useState(false);
     const canSpectate = spectating && castlelvl === 0;
 
@@ -102,7 +102,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
     }
 
     useEffect(() => {
-        if (!joinedData || !gameContainer.current || winner) return;
+        if (!joinedData || !gameContainer.current || winner !== undefined) return;
 
         console.log('Starting game with:', joinedData);
 
@@ -379,9 +379,9 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
             setArmorActive(data.armor);
         };
 
-        const handleGameEnd = (data: { winnerid: string }) => {
-            if (!data?.winnerid) return;
-            setWinner(data.winnerid);
+        const handleGameEnd = (data: { winnerid?: string }) => {
+            setWinner(data.winnerid ?? null);
+
             socket.emit('leave_room');
         };
 
@@ -491,7 +491,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
         window.location.href = '/game-menu';
     }
 
-    if (winner) {
+    if (winner !== undefined) {
         return <Endgame winner={joinedData.player.userId === winner} />;
     }
     return (
