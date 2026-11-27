@@ -57,7 +57,7 @@ export class GameMap {
             }
         }
 
-        const poolSize = 3500;
+        const poolSize = 10000;
 
         for (let i = 0; i < poolSize; i++) {
             const tile = new Sprite(this.textures[TileType.Grass]);

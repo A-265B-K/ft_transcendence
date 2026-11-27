@@ -172,6 +172,8 @@ export const ru = {
         closeForge: 'Закрыть кузницу',
         openForge: 'Открыть кузницу',
 
+        fullscreen: '⛶ На весь экран',
+        exitFullscreen: '⛶ Выйти из режима',
         controls: 'Управление',
         move: 'Движение',
         castleAttack: 'Атака замком',
