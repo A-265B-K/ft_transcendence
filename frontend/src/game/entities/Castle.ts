@@ -18,7 +18,7 @@ export class Castle {
     gridX = 0;
     gridY = 0;
     level = 1;
-    private health = 100;
+    private health = 200;
 
     private readonly textures: CastleTextures;
     private readonly mapWidth: number;
@@ -55,7 +55,7 @@ export class Castle {
         this.container.addChild(this.sprite);
         this.container.addChild(this.healthBar);
         this.container.addChild(this.levelLabel);
-        this.setHealth(100);
+        this.setHealth(200);
         this.refreshLabel();
     }
 
@@ -72,14 +72,15 @@ export class Castle {
 
         this.level = level;
 
+        this.setHealth(200);
         this.updateTexture();
         this.refreshLabel();
     }
 
     setHealth(health: number) {
         const width = 48;
-        this.health = Math.max(0, Math.min(100, health));
-        const ratio = Math.max(0, Math.min(1, health / 100));
+        this.health = Math.max(0, Math.min(200, health));
+        const ratio = Math.max(0, Math.min(1, health / 200));
         this.healthBar.clear();
         this.healthBar.rect(0, 0, width, 5).fill('#222b33');
         this.healthBar.rect(0, 0, width * ratio, 5).fill('#e65b47');

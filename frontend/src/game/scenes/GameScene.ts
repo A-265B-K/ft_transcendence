@@ -65,6 +65,20 @@ export class GameScene {
         );
 
         this.world.addChild(this.map.container);
+        for (const { type, x, y } of joinedData.map.obstacles) {
+            if (type !== 'rock' && type !== 'tree') continue;
+
+            const sprite = new Sprite(textures[type]);
+
+            sprite.anchor.set(0.5, type === 'rock' ? 0.87 : 0.79);
+            sprite.scale.set(
+                (type === 'rock' ? 160 : 128) / sprite.texture.width
+            );
+            sprite.position.set(isoX(x, y), isoY(x, y));
+            sprite.zIndex = x + y + 1;
+
+            this.world.addChild(sprite);
+        }
 
         this.player = new Player(
             {
@@ -83,10 +97,12 @@ export class GameScene {
                 playerStand: textures.playerStand
             },
             this.map.width,
-            this.map.height
+            this.map.height,
+            joinedData.player.username
         );
 
         this.player.placeAt(joinedData.player.x, joinedData.player.y);
+        this.player.equipWeapon(joinedData.player.equippedWeapon);
         this.world.addChild(this.player.container);
 
         this.createRemotePlayers();
@@ -195,13 +211,13 @@ export class GameScene {
 
                 playerStand: this.textures.playerStand
             },
-            player.userId
+            player.username
         );
 
         remote.placeAt(player.x, player.y);
 
         this.remotePlayers.set(player.socketId, remote);
-        if (player.equippedweapon) remote.equipWeapon(player.equippedweapon);
+        if (player.equippedWeapon) remote.equipWeapon(player.equippedWeapon);
 
         this.world.addChild(remote.container);
     }

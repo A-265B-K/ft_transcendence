@@ -69,7 +69,6 @@ export const ru = {
         // menu button
         gameMenu: 'Игровое меню',
         gamePaused: 'Игра приостановлена',
-        invitationCode: 'Код приглашения',
         resumeGame: 'Продолжить игру',
         pressEscToResume: 'Нажмите ESC, чтобы продолжить',
 
@@ -124,6 +123,8 @@ export const ru = {
         settings: 'Настройки',
         twoFactorAuthentication: 'Двухфакторная аутентификация',
         passwordReset: 'Сброс пароля',
+        confirmPasswordResetRequest:
+            'Подтвердите отправку ссылки для сброса пароля на электронную почту вашего аккаунта.',
         passwordResetRequestSent:
             'Если аккаунт с таким адресом электронной почты существует, будет отправлена ссылка для сброса пароля.',
 
@@ -135,7 +136,6 @@ export const ru = {
             'Не удалось пройти двухфакторную аутентификацию',
         loading: 'Загрузка...',
 
-        enterEmail: 'Сначала введите адрес электронной почты',
         twoFactorSetupFailed:
             'Не удалось настроить двухфакторную аутентификацию',
         twoFactorScanQr:
@@ -173,6 +173,11 @@ export const ru = {
         openForge: 'Открыть кузницу',
 
         fullscreen: '⛶ На весь экран',
-        exitFullscreen: '⛶ Выйти из режима'
+        exitFullscreen: '⛶ Выйти из режима',
+        controls: 'Управление',
+        move: 'Движение',
+        castleAttack: 'Атака замком',
+        weaponAttack: 'Атака оружием',
+        waitingToRespawn: 'Ожидание возрождения...'
     }
 };

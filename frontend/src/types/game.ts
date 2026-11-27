@@ -26,7 +26,7 @@ export interface PlayerData {
     y: number;
     inventory: PlayerInventory;
     lastMoveAt: number;
-    equippedweapon?: WeaponType;
+    equippedWeapon: WeaponType | null;
 }
 
 export interface SpawnPoint {

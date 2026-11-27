@@ -20,8 +20,14 @@ export default function GamePauseMenu({
         };
     }, [onResume]);
 
+    const controls = [
+        { keys: ['W', 'A', 'S', 'D'], action: t('move') },
+        { keys: ['R'], action: t('castleAttack') },
+        { keys: ['SPACE'], action: t('weaponAttack') }
+    ];
+
     return (
-        <div className="absolute inset-0 z-50 grid place-items-center bg-black/60 backdrop-blur-sm">
+        <div className="absolute inset-0 z-50 grid place-items-center overflow-y-auto bg-black/60 p-4 backdrop-blur-sm">
             <div className="w-full max-w-sm rounded-3xl border border-white/10 bg-[#081016]/95 p-8 text-center text-[#f4f7fb] shadow-2xl">
                 <h2 className="mb-2 text-2xl font-bold">{t('gameMenu')}</h2>
 
@@ -43,6 +49,36 @@ export default function GamePauseMenu({
                     >
                         {t('leaveGame')}
                     </button>
+                </div>
+
+                <div className="mt-7 border-t border-white/10 pt-5">
+                    <h3 className="mb-4 text-sm font-bold uppercase tracking-widest text-white/60">
+                        {t('controls')}
+                    </h3>
+
+                    <div className="grid gap-3">
+                        {controls.map((control) => (
+                            <div
+                                key={control.action}
+                                className="flex items-center justify-between gap-3"
+                            >
+                                <span className="text-sm text-white/70">
+                                    {control.action}
+                                </span>
+
+                                <div className="flex gap-1">
+                                    {control.keys.map((key) => (
+                                        <span
+                                            key={key}
+                                            className="flex min-w-8 items-center justify-center rounded-md border border-white/15 bg-white/10 px-2 py-1 text-xs font-bold text-white shadow-sm"
+                                        >
+                                            {key}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
 
                 <p className="mt-5 text-xs text-white/30">

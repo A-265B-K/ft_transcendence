@@ -1,0 +1,14 @@
+apiVersion: 1
+
+datasources:
+  - uid: dg5a5c5wm524ge
+    orgId: 1
+    name: yesoreyeram-infinity-datasource
+    type: yesoreyeram-infinity-datasource
+    basicAuth: false
+    isDefault: false
+    editable: true
+    jsonData:
+      global_queries: []
+      pdcInjected: false
+      tlsSkipVerify: true

@@ -1,4 +1,4 @@
-import { AnimatedSprite, Texture, Container } from 'pixi.js';
+import { AnimatedSprite, Texture, Container, Text, TextStyle } from 'pixi.js';
 import { isoX, isoY } from '../world/iso';
 import { Weapon, type WeaponType } from './weapons/weapon';
 import { Sword } from './weapons/sword';
@@ -26,8 +26,8 @@ export type RemotePlayerTextures = {
 
 export class RemotePlayer {
     readonly sprite: AnimatedSprite;
+    readonly nameLabel: Text;
 
-    userId: string;
     gridX = 0;
     gridY = 0;
 
@@ -37,8 +37,7 @@ export class RemotePlayer {
     private hittimer = 0;
     weapon?: Weapon;
 
-    constructor(textures: RemotePlayerTextures, userId: string) {
-        this.userId = userId;
+    constructor(textures: RemotePlayerTextures, userName: string) {
         this.textures = textures;
 
         this.sprite = new AnimatedSprite([
@@ -53,6 +52,25 @@ export class RemotePlayer {
         this.container.scale.set(0.5);
         this.container.sortableChildren = true;
         this.container.addChild(this.sprite);
+
+        this.nameLabel = new Text({
+            text: userName,
+            style: new TextStyle({
+                fontFamily: 'Arial',
+                fontSize: 24,
+                fill: '#ffffff',
+                fontWeight: 'bold',
+                stroke: {
+                    color: '#000000',
+                    width: 4
+                }
+            })
+        });
+
+        this.nameLabel.anchor.set(0.5, 1);
+        this.nameLabel.y = -this.sprite.height - 8;
+
+        this.container.addChild(this.nameLabel);
 
         this.sprite.animationSpeed = 0.12;
         this.sprite.loop = true;

@@ -43,7 +43,6 @@ set -Eeuo pipefail
 # ------------------------------------------------------------
 
 POSTGRES_APP_PASSWORD=""
-POSTGRES_EXPORTER_PASSWORD=""
 POSTGRES_BACKUPS_PASSWORD=""
 
 # ------------------------------------------------------------
@@ -332,26 +331,6 @@ fi
 
 
 # ------------------------------------------------------------
-# PostgreSQL exporter role
-# ------------------------------------------------------------
-
-if [[ "$POSTGRES_INITIALIZED" == "false" ]]; then
-	log "Generating PostgreSQL exporter password..."
-
-	POSTGRES_EXPORTER_PASSWORD="$(openssl rand -hex 32)"
-
-	if [[ -z "$POSTGRES_EXPORTER_PASSWORD" ]]; then
-		die "Failed to generate PostgreSQL exporter password."
-	fi
-
-	postgres_ensure_exporter_role
-	vault_store_postgres_exporter_credentials
-else
-	vault_load_postgres_exporter_password
-	postgres_ensure_exporter_role
-fi
-
-# ------------------------------------------------------------
 # PostgreSQL backups role
 # ------------------------------------------------------------
 
@@ -371,9 +350,10 @@ else
 	postgres_ensure_backups_role
 fi
 
+postgres_ensure_telegraf_reader
+
 unset POSTGRES_ADMIN_PASSWORD
 unset POSTGRES_APP_PASSWORD
-unset POSTGRES_EXPORTER_PASSWORD
 unset POSTGRES_BACKUPS_PASSWORD
 
 # ------------------------------------------------------------
@@ -381,7 +361,6 @@ unset POSTGRES_BACKUPS_PASSWORD
 # ------------------------------------------------------------
 
 vault_ensure_backend_token
-vault_ensure_exporter_vault_token
 vault_ensure_grafana_token
 vault_ensure_backups_token
 ./scripts/grafana_scripts/grafana_write_secret_files.sh

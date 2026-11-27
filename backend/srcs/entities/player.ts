@@ -43,8 +43,9 @@ export class Player {
     private castle: Castle;
 
     private lastMoveAt: number;
-    private equippedWeapon: WeaponType;
+    private equippedWeapon: WeaponType | undefined;
     private nextAttack: number;
+    private attackReady = false;
 
     private armor = false;
     private armorexpiry = 0;
@@ -64,11 +65,9 @@ export class Player {
         this.username = user.username;
 
         this.slot = slot;
-        this.castle = castle;
-        this.castle.setlevel(PLAYER_DEFAULT_CASTLE_LEVEL);
+        this.castle = this.configureCastle(castle);
         this.hp = PLAYER_MAX_HP;
         this.alive = true;
-        this.equippedWeapon = 'empty';
 
         this.spawn = spawn.pos;
         this.x = this.spawn.x;
@@ -80,7 +79,6 @@ export class Player {
         };
 
         this.lastMoveAt = Date.now();
-        this.equippedWeapon = 'sword';
         this.nextAttack = 0;
     }
 
@@ -160,12 +158,12 @@ export class Player {
             y: this.y,
             inventory: this.getInventory(),
             lastMoveAt: this.lastMoveAt,
-            equippedWeapon: this.equippedWeapon,
+            equippedWeapon: this.equippedWeapon ?? null,
             nextAttack: this.nextAttack
         };
     }
 
-    getEquippedWeapon(): WeaponType {
+    getEquippedWeapon(): WeaponType | undefined {
         return this.equippedWeapon;
     }
 
@@ -174,8 +172,20 @@ export class Player {
             Date.now() + (getattackstats(weapon)?.cooldown ?? 0) * 1000;
     }
 
+    checkAttackReady(): void {
+        const ready = this.canattack();
+        if (ready === this.attackReady) return;
+
+        this.attackReady = ready;
+        this.namespace.to(this.socketId).emit('can_attack', { ready });
+    }
+
     canattack(): boolean {
-        return Date.now() >= this.nextAttack && this.equippedWeapon != 'empty';
+        return (
+            this.alive &&
+            this.equippedWeapon !== undefined &&
+            Date.now() >= this.nextAttack
+        );
     }
 
     setPosition(x: number, y: number): void {
@@ -275,13 +285,17 @@ export class Player {
         this.alive = true;
         this.x = this.spawn.x;
         this.y = this.spawn.y;
-        this.equippedWeapon = 'empty';
+        this.equippedWeapon = undefined;
         this.lastMoveAt = now;
         this.respawnAt = null;
         this.inventory.iron = 0;
         this.inventory.wood = 0;
         this.namespace.to(this.roomId).emit('player_respawned', {
             player: this
+        });
+        this.namespace.to(this.socketId).emit('inventory_updated', {
+            playerId: this.userId,
+            inventory: this.getInventory()
         });
         return true;
     }
@@ -328,7 +342,11 @@ export class Player {
             inventory: { wood: this.inventory.wood, iron: this.inventory.iron }
         };
     }
-    payForCatapult(target: Player, map: GameMap): boolean {
+    payForCatapult(
+        target: Player,
+        othertargets: Player[],
+        map: GameMap
+    ): boolean {
         if (
             !this.alive ||
             this.castle.isDestroyed() ||
@@ -346,6 +364,7 @@ export class Player {
                 );
             },
             map,
+            othertargets,
             target.castle
         );
         if (!newCatapult.canSpawn()) return false;
@@ -372,21 +391,15 @@ export class Player {
     castleattack() {
         return this.castle.castleattack(this);
     }
-    async poll(): Promise<boolean> {
-        const socket = this.namespace.sockets.get(this.socketId);
-        if (!socket) return false;
 
-        try {
-            await socket.timeout(2000).emitWithAck('poll');
-            return true;
-        } catch {
-            return false;
-        }
+    private configureCastle(castle: Castle): Castle {
+        castle.setlevel(PLAYER_DEFAULT_CASTLE_LEVEL);
+        castle.setOwner(this.namespace, this.roomId, this.socketId);
+        return castle;
     }
 
     setGameSetup(spawn: Spawn, castle: Castle): void {
-        this.castle = castle;
-        this.castle.setlevel(PLAYER_DEFAULT_CASTLE_LEVEL);
+        this.castle = this.configureCastle(castle);
         this.spawn = spawn.pos;
         this.x = this.spawn.x;
         this.y = this.spawn.y;

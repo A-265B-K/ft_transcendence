@@ -33,10 +33,6 @@ export default function Room({ joinedData, onStartGame }: RoomProps) {
 
         const socket = connectSocket();
 
-        const replyToPoll = (ack: () => void) => {
-            ack();
-        };
-
         const handleJoined = (data: JoinedPayload) => {
             if (data.roomId !== roomId) {
                 return;
@@ -113,9 +109,8 @@ export default function Room({ joinedData, onStartGame }: RoomProps) {
         socket.on('join_error', handleJoinError);
         socket.on('room_update', handleRoomUpdate);
         socket.on('gamestart', handleGameStart);
-        socket.on('poll', replyToPoll);
 
-        if (!joinedData) {
+        if (!currentJoinedData) {
             socket.emit('join_room', {
                 roomId
             });
@@ -126,9 +121,8 @@ export default function Room({ joinedData, onStartGame }: RoomProps) {
             socket.off('join_error', handleJoinError);
             socket.off('room_update', handleRoomUpdate);
             socket.off('gamestart', handleGameStart);
-            socket.off('poll', replyToPoll);
         };
-    }, [roomId, joinedData, currentJoinedData, navigate, onStartGame]);
+    }, [roomId, currentJoinedData, navigate, onStartGame]);
 
     async function copyRoomCode() {
         if (!room?.code) return;
@@ -152,12 +146,6 @@ export default function Room({ joinedData, onStartGame }: RoomProps) {
         connectSocket().emit('game_start');
     }
 
-    function leaveCreatedRoom() {
-        connectSocket().emit('leave_room');
-        localStorage.removeItem('gameRoomId');
-        navigate('/game-menu');
-    }
-
     if (loading) {
         return (
             <div className="grid min-h-screen place-items-center bg-linear-to-b from-[#10212a] to-[#081016] text-[#f4f7fb]">
@@ -178,7 +166,7 @@ export default function Room({ joinedData, onStartGame }: RoomProps) {
 
                     <button
                         type="button"
-                        onClick={leaveCreatedRoom}
+                        onClick={() => navigate('/game-menu')}
                         className="mt-5 w-full rounded-xl border border-white/15 px-4 py-3 transition hover:bg-white/10"
                     >
                         {t('backToLobby')}
@@ -246,7 +234,7 @@ export default function Room({ joinedData, onStartGame }: RoomProps) {
                     )}
                     <button
                         type="button"
-                        onClick={leaveCreatedRoom}
+                        onClick={() => navigate('/game-menu')}
                         className="rounded-xl border border-white/15 px-4 py-3 transition hover:bg-white/10"
                     >
                         {t('backToLobby')}

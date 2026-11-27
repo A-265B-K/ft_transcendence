@@ -7,7 +7,7 @@ import {
     PLAYER_MAX_HP
 } from '../constants.js';
 import type { Player } from './player.js';
-import type { Vec2 } from '../types.js';
+import type { Socket, Vec2 } from '../types.js';
 
 export type upgradecost = {
     wood: number;
@@ -20,6 +20,12 @@ export class Castle {
     private readonly position: Vec2;
     private nextcastleheal = 0;
     private boulderlandtime = 0;
+    private attackready = false;
+    private owner?: {
+        namespace: Socket['nsp'];
+        roomId: string;
+        socketId: string;
+    };
 
     constructor(
         readonly playerSlot: number,
@@ -31,7 +37,7 @@ export class Castle {
     upgrade(): boolean {
         if (this.level >= 4) return false;
 
-        this.level += 1;
+        this.setlevel(this.level + 1);
         return true;
     }
     getposition(): Vec2 {
@@ -50,8 +56,19 @@ export class Castle {
         return this.health <= 0;
     }
 
+    setOwner(namespace: Socket['nsp'], roomId: string, socketId: string): void {
+        this.owner = { namespace, roomId, socketId };
+    }
+
     setlevel(newlevel: number) {
+        if (newlevel === this.level) return;
+
         this.level = newlevel;
+        const owner = this.owner;
+        owner?.namespace.to(owner.roomId).emit('castlelvlupdate', {
+            socketId: owner.socketId,
+            level: this.level
+        });
     }
     canHeal(Player: Player): boolean {
         return !this.isDestroyed() && Player.isnearcastle() && this.level >= 2;
@@ -59,12 +76,21 @@ export class Castle {
     canAddarmor(): boolean {
         return !this.isDestroyed() && this.level >= 3;
     }
-    canAttack(): boolean {
-        return (
+    checkAttack() {
+        if (this.attackready) return;
+        if (
             !this.isDestroyed() &&
             this.level == 4 &&
             Date.now() >= this.boulderlandtime
-        );
+        ) {
+            this.attackready = true;
+            this.owner?.namespace.to(this.owner.roomId).emit('boulderready', {
+                ready: true
+            });
+        }
+    }
+    canAttack() {
+        return this.attackready;
     }
     resetHealingCooldown(): void {
         this.nextcastleheal = 0;
@@ -90,6 +116,10 @@ export class Castle {
     castleattack(player: Player) {
         if (this.canAttack()) {
             this.boulderlandtime = Date.now() + 1500;
+            this.owner?.namespace.to(this.owner.roomId).emit('boulderready', {
+                ready: false
+            });
+            this.attackready = false;
             return {
                 start: this.getposition(),
                 target: player.getPosition()
@@ -138,9 +168,9 @@ export class Castle {
         if (this.isDestroyed()) return this.health;
 
         this.health = Math.max(0, this.health - damage);
-        if (this.health === 0 && this.level > 1) {
+        if (this.health === 0 && this.level > 0) {
             this.level -= 1;
-            this.health = CASTLE_MAX_HP;
+            if (this.level > 0) this.health = CASTLE_MAX_HP;
         }
         return this.health;
     }

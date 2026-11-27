@@ -1,4 +1,4 @@
-import { AnimatedSprite, Texture, Container } from 'pixi.js';
+import { AnimatedSprite, Texture, Container, Text, TextStyle } from 'pixi.js';
 import { isoX, isoY } from '../world/iso';
 import { Inventory } from './Inventory';
 import { Weapon, type WeaponType } from './weapons/weapon';
@@ -32,6 +32,8 @@ export class Player {
     readonly container = new Container();
     sprite: AnimatedSprite;
 
+    readonly nameLabel: Text;
+
     readonly inventory = new Inventory();
     gridX = 0;
     gridY = 0;
@@ -43,9 +45,13 @@ export class Player {
     private readonly mapHeight: number;
     weapon?: Weapon;
     private hittimer = 0;
-    private Armor = false;
 
-    constructor(textures: PlayerTextures, mapWidth: number, mapHeight: number) {
+    constructor(
+        textures: PlayerTextures,
+        mapWidth: number,
+        mapHeight: number,
+        playerName: string
+    ) {
         this.textures = textures;
         this.mapWidth = mapWidth;
         this.mapHeight = mapHeight;
@@ -64,6 +70,26 @@ export class Player {
         this.container.sortableChildren = true;
         this.sprite.zIndex = 0;
         this.container.addChild(this.sprite);
+
+        this.nameLabel = new Text({
+            text: playerName,
+            style: new TextStyle({
+                fontFamily: 'Arial',
+                fontSize: 24,
+                fill: '#ffffff',
+                fontWeight: 'bold',
+                stroke: {
+                    color: '#000000',
+                    width: 4
+                }
+            })
+        });
+
+        this.nameLabel.anchor.set(0.5, 1);
+        this.nameLabel.y = -this.sprite.height - 8;
+        this.nameLabel.zIndex = 10;
+
+        this.container.addChild(this.nameLabel);
 
         this.sprite.animationSpeed = 0.12;
         this.sprite.loop = true;
@@ -157,12 +183,6 @@ export class Player {
         }
     }
 
-    hasarmor() {
-        return this.Armor;
-    }
-    setarmor(newarmor: boolean) {
-        this.Armor = newarmor;
-    }
     private setWalkAnimation() {
         const animations = {
             down: [this.textures.playerDown1, this.textures.playerDown2],
@@ -180,12 +200,15 @@ export class Player {
         this.container.y = isoY(this.gridX, this.gridY);
         this.container.zIndex = this.gridX + this.gridY + 1;
     }
-    equipWeapon(type: WeaponType) {
+    equipWeapon(type: WeaponType | null) {
         if (this.weapon) {
             this.container.removeChild(this.weapon.sprite);
             this.weapon.sprite.destroy();
+            this.weapon = undefined;
         }
         switch (type) {
+            case null:
+                return;
             case 'sword':
                 this.weapon = new Sword();
                 break;

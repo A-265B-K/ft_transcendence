@@ -66,7 +66,6 @@ export const en = {
         //menu button
         gameMenu: 'Game Menu',
         gamePaused: 'Your game is paused',
-        invitationCode: 'Invitation code',
         resumeGame: 'Resume Game',
         pressEscToResume: 'Press ESC to resume',
         //create a profile
@@ -115,6 +114,8 @@ export const en = {
         settings: 'Settings',
         twoFactorAuthentication: 'Two-Factor Authentication',
         passwordReset: 'Password Reset',
+        confirmPasswordResetRequest:
+            'Confirm to send a password reset link to your account email.',
         passwordResetRequestSent:
             'If an account exists for this email, a password reset link will be sent.',
 
@@ -124,7 +125,6 @@ export const en = {
         twoFactorVerificationFailed: '2FA verification failed',
         loading: 'Loading...',
 
-        enterEmail: 'Enter your email first',
         twoFactorSetupFailed: '2FA setup failed',
         twoFactorScanQr: 'Scan this QR code with your authenticator app',
         twoFactorEnabled: 'Two-factor authentication enabled',
@@ -148,6 +148,7 @@ export const en = {
         maxLevel: 'Max level',
         upgradeCastle: 'Upgrade castle',
         chooseTarget: 'Choose a target',
+        castleStats: 'Castle level {{level}} · {{hp}} HP',
 
         dagger: 'Dagger',
         sword: 'Sword',
@@ -159,6 +160,11 @@ export const en = {
         openForge: 'Open forge',
 
         fullScreen: '⛶ Fullscreen',
-        exitFullScreen: '⛶ Exit Fullscreen'
+        exitFullScreen: '⛶ Exit Fullscreen',
+        controls: 'Controls',
+        move: 'Move',
+        castleAttack: 'Castle attack',
+        weaponAttack: 'Weapon attack',
+        waitingToRespawn: 'Waiting to respawn..'
     }
 };

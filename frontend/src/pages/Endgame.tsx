@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router-dom';
-import { getSocket } from '../socket';
 import { t } from 'i18next';
 
 export default function Endgame({ winner }: { winner: boolean }) {
@@ -12,11 +11,7 @@ export default function Endgame({ winner }: { winner: boolean }) {
                 </h1>
                 <button
                     type="button"
-                    onClick={() => {
-                        getSocket()?.emit('leave_room');
-                        localStorage.removeItem('gameRoomId');
-                        navigate('/game-menu');
-                    }}
+                    onClick={() => navigate('/game-menu')}
                     className="w-full rounded-xl bg-linear-to-r from-[#ffcf5c] to-[#ff9f43] px-4 py-3 font-bold text-[#10212a] transition hover:brightness-110"
                 >
                     {t('backToMenu')}

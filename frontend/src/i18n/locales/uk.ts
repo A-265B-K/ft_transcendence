@@ -67,7 +67,6 @@ export const uk = {
         // menu button
         gameMenu: 'Ігрове меню',
         gamePaused: 'Гру призупинено',
-        invitationCode: 'Код запрошення',
         resumeGame: 'Продовжити гру',
         pressEscToResume: 'Натисніть ESC, щоб продовжити',
         // create a profile
@@ -89,6 +88,8 @@ export const uk = {
         createAccount: 'Створити обліковий запис',
         // reset password
         resetPassword: 'Скинути пароль',
+        confirmPasswordResetRequest:
+            'Підтвердьте, щоб надіслати посилання для скидання пароля на електронну пошту вашого акаунта.',
         enterNewPassword: 'Введіть новий пароль нижче.',
         newPassword: 'Новий пароль',
         confirmNewPassword: 'Підтвердіть новий пароль',
@@ -127,7 +128,6 @@ export const uk = {
             'Не вдалося підтвердити двофакторну автентифікацію',
         loading: 'Завантаження...',
 
-        enterEmail: 'Спочатку введіть електронну адресу',
         twoFactorSetupFailed:
             'Не вдалося налаштувати двофакторну автентифікацію',
         twoFactorScanQr:
@@ -164,6 +164,11 @@ export const uk = {
         openForge: 'Відкрити кузню',
 
         fullscreen: '⛶ На весь екран',
-        exitFullscreen: '⛶ Вийти з режиму'
+        exitFullscreen: '⛶ Вийти з режиму',
+        controls: 'Керування',
+        move: 'Рух',
+        castleAttack: 'Атака замкoм',
+        weaponAttack: 'Атака зброєю',
+        waitingToRespawn: 'Oчікування відродження...'
     }
 };
