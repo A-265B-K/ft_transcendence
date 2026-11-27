@@ -102,7 +102,8 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
     }
 
     useEffect(() => {
-        if (!joinedData || !gameContainer.current || winner !== undefined) return;
+        if (!joinedData || !gameContainer.current || winner !== undefined)
+            return;
 
         console.log('Starting game with:', joinedData);
 
