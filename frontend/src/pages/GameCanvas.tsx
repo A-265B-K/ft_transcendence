@@ -628,7 +628,7 @@ export default function GameCanvas({ joinedData }: GameCanvasProps) {
                     onClick={toggleFullscreen}
                     className="rounded-xl border border-white/15 bg-[#0a1016]/75 px-4 py-2 text-sm font-bold text-white shadow-lg backdrop-blur-xl transition hover:bg-white/10"
                 >
-                    {isFullscreen ? t('fullScreen') : t('exitFullScreen')}
+                    {isFullscreen ? t('exitFullScreen') : t('fullScreen')}
                 </button>
 
                 {!spectating && (

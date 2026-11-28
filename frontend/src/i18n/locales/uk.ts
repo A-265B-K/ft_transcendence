@@ -5,10 +5,10 @@ export const uk = {
         spectating: 'Тепер ви спостерігаєте за грою.',
         leaveGame: 'Вийти з гри',
         youWon: 'Ви перемогли! 🏆',
-        youLost: 'Вы програли...',
+        youLost: 'Ви програли...',
         // castle component
         castle: 'Замок',
-        tilesAway: 'клітинок звідси',
+        tilesAway: 'клітинок до замку',
         youAreHere: 'Ви тут',
         castleDirection: 'Напрямок до замку',
         // inventory component
@@ -19,7 +19,7 @@ export const uk = {
 
         connectionLost: 'З’єднання втрачено',
         disconnectedSeverDown:
-            'Вас було відключено, оскільки сервер міг припинити роботу або затримка вашого з’єднання стала надто високою.\nСпроба повторного підключення...',
+            'З’єднання перервано, оскільки сервер міг припинити роботу або затримка з’єднання стала надто високою.\nСпроба повторного підключення...',
         // forgot password
         forgotPassword: 'Забули пароль?',
         sendPasswordLink:
@@ -30,7 +30,7 @@ export const uk = {
         passwordResetRequestFailed:
             'Не вдалося надіслати запит на скидання пароля.',
         passwordResetEmailSent:
-            'Якщо обліковий запис із цією електронною адресою існує, посилання для скидання пароля було надіслано.',
+            'Якщо обліковий запис із цією електронною адресою існує, посилання для скидання пароля надіслано.',
         sending: 'Надсилання...',
         sendResetLink: 'Надіслати посилання для скидання',
 
@@ -81,15 +81,13 @@ export const uk = {
         signingIn: 'Вхід...',
         loginFailed: 'Не вдалося увійти',
         loginSuccessful: 'Вхід успішний',
-        backendSignInError: 'Не вдалося зв’язатися з сервером для входу.',
+        backendSignInError: 'Не вдалося зв’язатися із сервером для входу.',
         // lobby
         readyToPlay: 'Готові грати?',
         createOrSignIn: 'Створіть обліковий запис або увійдіть.',
         createAccount: 'Створити обліковий запис',
         // reset password
         resetPassword: 'Скинути пароль',
-        confirmPasswordResetRequest:
-            'Підтвердьте, щоб надіслати посилання для скидання пароля на електронну пошту вашого акаунта.',
         enterNewPassword: 'Введіть новий пароль нижче.',
         newPassword: 'Новий пароль',
         confirmNewPassword: 'Підтвердіть новий пароль',
@@ -102,7 +100,7 @@ export const uk = {
         backToMainMenu: 'Повернутися до головного меню',
 
         acceptPrivacyPolicy: 'Ви повинні прийняти Політику конфіденційності.',
-        acceptTerms: 'Ви повинні прийняти Умови надання послуг.',
+        acceptTerms: 'Ви повинні прийняти Умови користування.',
         creatingAccount: 'Створення облікового запису...',
         signupFailed: 'Не вдалося зареєструватися',
         accountCreated: 'Обліковий запис створено',
@@ -112,11 +110,13 @@ export const uk = {
         confirmPassword: 'Підтвердіть пароль',
         iAgreeTo: 'Я погоджуюся з',
         privacyPolicy: 'Політикою конфіденційності',
-        termsOfService: 'Умовами надання послуг',
+        termsOfService: 'Умовами користування',
 
         settings: 'Налаштування',
         twoFactorAuthentication: 'Двофакторна автентифікація',
         passwordReset: 'Скидання пароля',
+        confirmPasswordResetRequest:
+            'Підтвердьте надсилання посилання для скидання пароля на електронну пошту вашого облікового запису.',
         passwordResetRequestSent:
             'Якщо обліковий запис із цією електронною адресою існує, посилання для скидання пароля буде надіслано.',
 
@@ -152,6 +152,7 @@ export const uk = {
         maxLevel: 'Максимальний рівень',
         upgradeCastle: 'Покращити замок',
         chooseTarget: 'Виберіть ціль',
+        castleStats: 'Рівень замку {{level}} · {{hp}} HP',
 
         dagger: 'Кинджал',
         sword: 'Меч',
@@ -159,16 +160,15 @@ export const uk = {
         axe: 'Сокира',
         buyCatapult: 'Купити катапульту',
         chooseWeaponToCraft: 'Виберіть зброю для створення.',
-
         closeForge: 'Закрити кузню',
         openForge: 'Відкрити кузню',
 
-        fullscreen: '⛶ На весь екран',
-        exitFullscreen: '⛶ Вийти з режиму',
+        fullScreen: '⛶ На весь екран',
+        exitFullScreen: '⛶ Вийти з режиму',
         controls: 'Керування',
         move: 'Рух',
-        castleAttack: 'Атака замкoм',
+        castleAttack: 'Атака замком',
         weaponAttack: 'Атака зброєю',
-        waitingToRespawn: 'Oчікування відродження...'
+        waitingToRespawn: 'Очікування відродження...'
     }
 };

@@ -172,12 +172,13 @@ export const ru = {
         closeForge: 'Закрыть кузницу',
         openForge: 'Открыть кузницу',
 
-        fullscreen: '⛶ На весь экран',
-        exitFullscreen: '⛶ Выйти из режима',
+        fullScreen: '⛶ На весь экран',
+        exitFullScreen: '⛶ Выйти из режима',
         controls: 'Управление',
         move: 'Движение',
         castleAttack: 'Атака замком',
         weaponAttack: 'Атака оружием',
-        waitingToRespawn: 'Ожидание возрождения...'
+        waitingToRespawn: 'Ожидание возрождения...',
+        castleStats: 'Уровень замка {{level}} · {{hp}} HP'
     }
 };
