@@ -24,6 +24,7 @@ export type PlayerTextures = {
     playerRight1: Texture;
     playerRight2: Texture;
     playerStand: Texture;
+	playerGhost: Texture;
 };
 
 type Direction = 'up' | 'down' | 'left' | 'right';
@@ -46,6 +47,7 @@ export class Player {
     weapon?: Weapon;
     private hittimer = 0;
     private Armor = false;
+    private spectating = false;
 
     constructor(
         textures: PlayerTextures,
@@ -105,7 +107,13 @@ export class Player {
         this.syncSpritePosition();
     }
 
+    get isSpectating(): boolean {
+        return this.spectating;
+    }
+
     update(input: InputState, deltaSeconds: number) {
+        const spectating = this.isSpectating;
+
         let moveX = 0;
         let moveY = 0;
 
@@ -127,29 +135,33 @@ export class Player {
         }
         const magnitude = Math.hypot(moveX, moveY);
         if (magnitude > 0) {
-            this.updateDirection(moveX, moveY);
+            if (!spectating) {
+                this.updateDirection(moveX, moveY);
 
-            if (!this.sprite.playing) {
-                this.sprite.play();
+                if (!this.sprite.playing) {
+                    this.sprite.play();
+                }
+                this.weapon?.updateweaponpos(
+                    this.sprite.currentFrame,
+                    this.direction
+                );
             }
-            this.weapon?.updateweaponpos(
-                this.sprite.currentFrame,
-                this.direction
-            );
 
             const step = this.speed * deltaSeconds;
 
             this.gridX += (moveX / magnitude) * step;
             this.gridY += (moveY / magnitude) * step;
         } else {
-            this.sprite.stop();
-            this.sprite.texture = this.textures.playerStand;
-            if (this.weapon && !this.weapon.isAttacking) {
-                this.weapon?.makevisible();
-                this.weapon.setPosition(-44, -84);
-                this.weapon.setframe(0);
+            if (!spectating) {
+                this.sprite.stop();
+                this.sprite.texture = this.textures.playerStand;
+                if (this.weapon && !this.weapon.isAttacking) {
+                    this.weapon?.makevisible();
+                    this.weapon.setPosition(-44, -84);
+                    this.weapon.setframe(0);
+                }
+                this.direction = 'down';
             }
-            this.direction = 'down';
         }
 
         this.gridX = Math.max(0, Math.min(this.mapWidth - 1, this.gridX));
@@ -189,6 +201,21 @@ export class Player {
     }
     setarmor(newarmor: boolean) {
         this.Armor = newarmor;
+    }
+    setSpectator() {
+        this.spectating = true;
+        this.sprite.stop();
+        this.sprite.texture = this.textures.playerGhost;
+        this.weapon?.makeinvisible();
+    }
+    setAlive() {
+        this.spectating = false;
+        this.sprite.texture = this.textures.playerStand;
+        this.sprite.tint = 0xffffff;
+        this.container.visible = true;
+        if (this.weapon) {
+            this.weapon.makevisible();
+        }
     }
     private setWalkAnimation() {
         const animations = {

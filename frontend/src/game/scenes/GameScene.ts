@@ -28,7 +28,6 @@ export class GameScene {
     readonly socket: Socket;
     private readonly forestBackground: TilingSprite;
     private wasmoving = false;
-    // private isSpectating = false;
 
     private readonly boulders: {
         sprite: Sprite;
@@ -80,7 +79,8 @@ export class GameScene {
                 playerRight1: textures.playerRight1,
                 playerRight2: textures.playerRight2,
 
-                playerStand: textures.playerStand
+                playerStand: textures.playerStand,
+				playerGhost: textures.playerGhost
             },
             this.map.width,
             this.map.height,
@@ -285,14 +285,14 @@ export class GameScene {
             this.player.gridY - oldY
         );
 
-        if (movedDistance > 0.05) {
+        if (!this.player.isSpectating && movedDistance > 0.05) {
             this.socket.emit('player_move', {
                 x: this.player.gridX,
                 y: this.player.gridY,
                 moving: true
             });
             this.wasmoving = true;
-        } else if (this.wasmoving == true) {
+        } else if (!this.player.isSpectating && this.wasmoving == true) {
             this.socket.emit('player_move', {
                 x: this.player.gridX,
                 y: this.player.gridY,
@@ -534,12 +534,12 @@ export class GameScene {
     }
 
     setPlayerDead(): void {
-        this.player.container.visible = false;
+        this.player.setSpectator();
     }
 
     respawnLocalPlayer(x: number, y: number): void {
         this.player.placeAt(x, y);
-        this.player.container.visible = true;
+        this.player.setAlive();
     }
 
     launchboulder(shot: CastleAttackStarted) {

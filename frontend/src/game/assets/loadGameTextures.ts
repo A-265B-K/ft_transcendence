@@ -48,6 +48,8 @@ import catapultRightFireUrl from '../../assets/catapult/right-fire.png';
 import catapultDestroyedUrl from '../../assets/catapult/destroyed.png';
 import type { CatapultTextures } from '../entities/catapult';
 
+import ghost1Url from '../../assets/ghost.png';
+
 export type GameTextures = {
     grass: Texture;
     forestBackground: Texture;
@@ -72,6 +74,8 @@ export type GameTextures = {
     playerRight2: Texture;
 
     playerStand: Texture;
+
+	playerGhost: Texture;
 
     sword1: Texture;
     sword2: Texture;
@@ -122,6 +126,7 @@ export async function loadGameTextures(): Promise<GameTextures> {
         playerRight2,
 
         playerStand,
+		playerGhost,
         sword1,
         sword2,
         sword3,
@@ -176,6 +181,8 @@ export async function loadGameTextures(): Promise<GameTextures> {
         Assets.load(right2Url),
 
         Assets.load(standUrl),
+
+		Assets.load(ghost1Url),
 
         Assets.load<Texture>(sword1Url),
         Assets.load<Texture>(sword2Url),
@@ -232,6 +239,8 @@ export async function loadGameTextures(): Promise<GameTextures> {
         playerRight2,
 
         playerStand,
+		playerGhost,
+
         sword1,
         sword2,
         sword3,
