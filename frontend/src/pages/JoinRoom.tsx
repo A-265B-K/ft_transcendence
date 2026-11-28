@@ -127,20 +127,20 @@ export default function JoinRoom({ onBack, onJoined }: JoinRoomProps) {
     }
 
     return (
-        <div className="grid min-h-screen place-items-center bg-linear-to-b from-[#10212a] to-[#081016] text-[#f4f7fb]">
-            <div className="w-full max-w-md rounded-3xl border border-white/10 bg-[#081016]/80 p-8 text-center shadow-2xl backdrop-blur-md">
+        <div className="grid min-h-screen place-items-center bg-linear-to-b from-[#10212a] to-[#081016] px-4 py-8 text-[#f4f7fb]">
+            <div className="w-full max-w-lg rounded-3xl border border-white/10 bg-[#081016]/80 p-6 text-center shadow-2xl backdrop-blur-md sm:p-8">
                 <h2 className="mb-2 text-2xl font-bold">{t('joinRoom')}</h2>
 
                 <p className="mb-6 text-white/60">{t('gameLobby')}</p>
 
                 {error && (
-                    <div className="mb-4 rounded-xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm text-red-300">
+                    <div className="mb-4 rounded-xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm text-red-300 break-words">
                         {t(error)}
                     </div>
                 )}
 
                 <div className="grid gap-3">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
                         <h3 className="text-lg font-bold">
                             {t('availableRooms')}
                         </h3>
@@ -149,7 +149,7 @@ export default function JoinRoom({ onBack, onJoined }: JoinRoomProps) {
                             type="button"
                             onClick={loadRooms}
                             disabled={loading}
-                            className="text-sm text-white/50 transition hover:text-white"
+                            className="shrink-0 text-sm text-white/50 transition hover:text-white"
                         >
                             {t('refresh')}
                         </button>
@@ -170,9 +170,9 @@ export default function JoinRoom({ onBack, onJoined }: JoinRoomProps) {
                             {rooms.map((room) => (
                                 <div
                                     key={room.roomId}
-                                    className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 p-4"
+                                    className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 p-4"
                                 >
-                                    <div className="min-w-0 text-left">
+                                    <div className="min-w-0 flex-1 text-left">
                                         <p className="truncate font-bold">
                                             {room.name}
                                         </p>
@@ -198,7 +198,7 @@ export default function JoinRoom({ onBack, onJoined }: JoinRoomProps) {
                                             loading ||
                                             room.playerCount >= room.maxPlayers
                                         }
-                                        className="ml-3 rounded-xl bg-[#ffcf5c] px-4 py-2 font-bold text-[#10212a] transition hover:brightness-110 disabled:opacity-40"
+                                        className="shrink-0 rounded-xl bg-[#ffcf5c] px-4 py-2 font-bold text-[#10212a] transition hover:brightness-110 disabled:opacity-40"
                                     >
                                         {t('join')}
                                     </button>
@@ -224,7 +224,7 @@ export default function JoinRoom({ onBack, onJoined }: JoinRoomProps) {
                             type="button"
                             onClick={joinWithCode}
                             disabled={loading}
-                            className="rounded-xl border border-white/15 bg-white/5 px-4 py-3 font-bold transition hover:bg-white/10 disabled:opacity-50"
+                            className="shrink-0 rounded-xl border border-white/15 bg-white/5 px-4 py-3 font-bold transition hover:bg-white/10 disabled:opacity-50"
                         >
                             {t('join')}
                         </button>
